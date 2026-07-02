@@ -550,7 +550,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Verify beginner desktop and Firefox launch in the VM.
   - Acceptance: LightDM graphical login appears, Xfce starts for the normal user, and Firefox opens in the graphical session.
 
-- [ ] Correct assumptions found during VM testing.
+- [x] Correct assumptions found during VM testing.
   - Acceptance: every mismatch from real output is either fixed in the app or documented as hardware/environment-specific.
 
 ## Current State

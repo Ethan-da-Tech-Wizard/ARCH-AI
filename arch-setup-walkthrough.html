@@ -1538,6 +1538,7 @@ const glossary = {
   mountpoints: "Mountpoints are the directories where filesystems are currently attached. In lsblk output, they help reveal which partitions are in use.",
   transport: "Transport describes how storage is connected, such as USB, SATA, NVMe, or virtual. It is one clue for identifying a disk.",
   serial: "A serial number is a hardware identifier reported by some devices. It can help distinguish two drives with similar size or model.",
+  "serial console": "A serial console is a text console exposed through a serial device such as ttyS0. It is useful for headless VM testing because boot messages and login prompts can be captured without a graphical window.",
   symlink: "A symbolic link is a filesystem pointer from one path to another. It is often used for configuration paths like /etc/localtime.",
   wheel: "wheel is the traditional administrator group on Arch. Users in wheel can be allowed to run sudo.",
   visudo: "visudo safely edits the sudoers file and checks syntax before saving, which helps avoid locking out administrator access.",
@@ -3514,6 +3515,21 @@ extendSection("Configure System", {
       type: "warn",
       title: "The root identifier must match the real root filesystem",
       text: "The example entry uses root=UUID=... because UUIDs are stable. The learner must copy the UUID of the Linux root filesystem, not the EFI partition and not the swap partition."
+    },
+    {
+      type: "checkpoint",
+      title: "Headless VM testing note",
+      text: "For automated or headless VM validation, the Arch ISO and installed system may need a serial console. In the VM run, adding console=ttyS0,115200 made the live ISO and installed system visible over QEMU serial output. A normal laptop or desktop install usually does not need this option."
+    },
+    {
+      type: "explain",
+      title: "bootctl output can mention EFI variables",
+      text: "When bootctl install runs inside a chroot or VM environment, it may report that EFI variable modifications were skipped. That is not automatically a failed install. systemd-boot can still copy EFI files, including fallback files, and the real proof is whether the machine boots from the installed disk without the ISO."
+    },
+    {
+      type: "explain",
+      title: "FAT32 random seed warning",
+      text: "A simple beginner layout mounts the EFI System Partition at /boot, and that filesystem is FAT32. bootctl may warn that the random seed file is on a world-accessible mount. Treat that as a hardening note for later, not as a reason to abandon a successful beginner install."
     }
   ],
   commands: [
@@ -3569,7 +3585,7 @@ extendSection("Configure System", {
         ["/boot/loader/entries", "Directory where entry files such as arch.conf live for this layout."]
       ],
       expected: "Usually no output.",
-      fails: "If /boot is not writable, confirm the EFI partition is mounted at /boot."
+      fails: "If /boot is not writable, confirm the EFI partition is mounted at /boot. bootctl install can also create /boot/loader, but creating it here keeps the file-editing order clear."
     },
     {
       label: "Open the systemd-boot main config",
@@ -3626,6 +3642,20 @@ extendSection("Configure System", {
       fails: "If the UUID belongs to the EFI or swap partition, boot will fail. Recheck with blkid and lsblk -f."
     },
     {
+      label: "Optional serial-console boot entry variant",
+      sources: sourceRefs("systemdBootMan", "loaderConfMan"),
+      command: "options root=UUID=PASTE-ROOT-UUID-HERE rw console=ttyS0,115200",
+      purpose: "Shows the options line variant used for headless VM testing when boot messages and login need to appear on the first serial port.",
+      words: [
+        ["options", "Kernel command line starts after this word."],
+        ["root=UUID=PASTE-ROOT-UUID-HERE", "The real root filesystem UUID."],
+        ["rw", "Mount root read-write."],
+        ["console=ttyS0,115200", "Send kernel console output to the ttyS0 serial port at 115200 baud."]
+      ],
+      expected: "Use this variant only for a VM or machine where a serial console is intentionally needed.",
+      fails: "For normal graphical or laptop installs, keep the simpler options line unless you know why serial output is required."
+    },
+    {
       label: "Optional Intel microcode entry line",
       sources: sourceRefs("systemdBootMan", "pacman"),
       command: "initrd /intel-ucode.img",
@@ -3658,8 +3688,8 @@ extendSection("Configure System", {
         ["bootctl", "Tool for checking EFI boot status and managing systemd-boot."],
         ["install", "Install systemd-boot to the EFI System Partition."]
       ],
-      expected: "Output indicates systemd-boot was installed and EFI boot entries were created or updated.",
-      fails: "If bootctl cannot find an EFI System Partition, confirm UEFI mode and that the ESP is mounted at /boot."
+      expected: "Output indicates systemd-boot files were installed. It may also create normal and fallback EFI loader paths.",
+      fails: "If bootctl cannot find an EFI System Partition, confirm UEFI mode and that the ESP is mounted at /boot. If EFI variable modification is skipped from a chroot, continue to bootctl list/status and the real boot test instead of assuming failure."
     },
     {
       label: "List boot entries before reboot",
