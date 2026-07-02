@@ -355,7 +355,7 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add partition-if-necessary decision flow.
   - Acceptance: app explains when partitioning is required, when existing partitions can be reused, when formatting is destructive, and when the user should stop and back up before continuing.
 
-- [ ] Add swap strategy branching.
+- [x] Add swap strategy branching.
   - Acceptance: app supports no swap, swap partition, and swap file explanations without mixing commands.
 
 - [ ] Add audio-device branching.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add swap strategy branching so no-swap, swap-partition, and swap-file choices are explained without mixing commands.
+Next KISS implementation step: add audio-device branching so laptop/internal audio, HDMI/DisplayPort audio, USB headsets, and Bluetooth audio troubleshooting paths are separated.

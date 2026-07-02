@@ -4080,6 +4080,11 @@ const profileLabels = {
     "grub-uefi": "UEFI GRUB",
     "grub-bios": "legacy BIOS GRUB"
   },
+  swapStrategy: {
+    none: "no swap for now",
+    "swap-partition": "swap partition",
+    "swap-file": "swap file after install"
+  },
   networkPath: {
     ethernet: "Ethernet",
     wifi: "Wi-Fi",
@@ -4106,6 +4111,7 @@ function setupProfileCompleteEnough() {
 function profileValue(field) {
   const value = setupProfile[field];
   if (field === "bootloaderPath" && !value) return "recommended for boot mode";
+  if (field === "swapStrategy" && !value) return "no swap for now";
   return profileLabels[field]?.[value] || "not answered";
 }
 
@@ -4141,6 +4147,7 @@ function diskIdentitySignature() {
     rootPartition: getDeviceValue("rootPartition"),
     swapPartition: getDeviceValue("swapPartition"),
     diskStrategy: activeDiskStrategy().key,
+    swapStrategy: activeSwapStrategy().key,
     eraseIntent: setupProfile.eraseIntent,
     installTarget: setupProfile.installTarget
   });
@@ -4180,6 +4187,13 @@ function diskIdentityGateIssues() {
       issues.push("Current OS disk must be a whole disk such as /dev/sda or /dev/nvme0n1.");
     } else if (getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk")) {
       issues.push("Separate-internal-SSD installs require the target disk to be different from the current OS disk.");
+    }
+  }
+  if (activeSwapStrategy().key === "swap-partition") {
+    if (getDeviceUnknown("swapPartition") || !getDeviceValue("swapPartition")) {
+      issues.push("Swap partition strategy selected, but Swap partition is not mapped.");
+    } else if (!looksLikePartition(getDeviceValue("swapPartition"))) {
+      issues.push("Swap partition must be a partition path such as /dev/sda3 or /dev/nvme0n1p3.");
     }
   }
   return issues;
@@ -4321,6 +4335,12 @@ function deviceWarnings() {
   if (separateInternalDiskRequired() && (getDeviceUnknown("currentOsDisk") || !getDeviceValue("currentOsDisk"))) {
     warnings.push("Separate internal SSD path selected. Current OS disk must be mapped so the app can prove the target disk is not the existing OS disk.");
   }
+  if (activeSwapStrategy().key === "swap-partition" && (getDeviceUnknown("swapPartition") || !getDeviceValue("swapPartition"))) {
+    warnings.push("Swap partition selected. Swap partition must be mapped before mkswap or swapon commands belong in the path.");
+  }
+  if (activeSwapStrategy().key !== "swap-partition" && getDeviceValue("swapPartition")) {
+    warnings.push("Swap partition value is filled, but the active swap strategy is not swap partition. The app will not show partition swap commands unless Swap strategy is set to Swap partition.");
+  }
 
   if (getDeviceUnknown("wifiDevice") || !getDeviceValue("wifiDevice")) {
     warnings.push("Wi-Fi device is not known yet. The app cannot render the final iwctl station command verbatim.");
@@ -4394,6 +4414,8 @@ function renderPartitionCommandPreview() {
   const missing = [];
   if (!efiPartition) missing.push("EFI partition");
   if (!rootPartition) missing.push("Root partition");
+  const useSwapPartition = activeSwapStrategy().key === "swap-partition";
+  if (useSwapPartition && !swapPartition) missing.push("Swap partition");
 
   if (missing.length) {
     return `
@@ -4407,12 +4429,12 @@ function renderPartitionCommandPreview() {
   return `
     <section class="profile-summary-card profile-safe">
       <h4>Rendered partition examples</h4>
-      <p>The app will now replace root and EFI partition examples with your mapped partitions. Swap commands are personalized only when a valid optional swap partition is entered.</p>
+      <p>The app will now replace root and EFI partition examples with your mapped partitions. Swap partition commands are personalized only when Swap strategy is set to swap partition and a valid swap partition is entered.</p>
       <pre><code>${escapeHtml(`mkfs.fat -F 32 ${efiPartition}`)}</code></pre>
       <pre><code>${escapeHtml(`mkfs.ext4 ${rootPartition}`)}</code></pre>
       <pre><code>${escapeHtml(`mount ${rootPartition} /mnt`)}</code></pre>
       <pre><code>${escapeHtml(`mount ${efiPartition} /mnt/boot`)}</code></pre>
-      ${swapPartition ? `<pre><code>${escapeHtml(`mkswap ${swapPartition}\nswapon ${swapPartition}`)}</code></pre>` : "<p><strong>Swap:</strong> no valid swap partition is mapped, so swap partition commands remain examples until a swap value is entered.</p>"}
+      ${useSwapPartition && swapPartition ? `<pre><code>${escapeHtml(`mkswap ${swapPartition}\nswapon ${swapPartition}`)}</code></pre>` : `<p><strong>Swap:</strong> active strategy is ${profileValue("swapStrategy")}, so partition swap commands are not rendered here.</p>`}
       <p><strong>Safety rule:</strong> these are still storage-changing paths. Formatting commands can erase the filesystem on the named partition. The Disk identity gate must still pass before destructive commands are usable.</p>
     </section>
   `;
@@ -5458,6 +5480,96 @@ function partitionDecisionTemplate() {
   `;
 }
 
+const swapStrategyCatalog = {
+  none: {
+    label: "No swap for now",
+    status: "ready",
+    showPartitionCommands: false,
+    summary: "Skip swap setup during the beginner install. This is a valid simple path, especially for a VM or a machine with enough RAM.",
+    active: [
+      "Do not create or format a swap partition.",
+      "Do not run mkswap or swapon for the example swap partition.",
+      "genfstab will not include a swap entry unless swap is active."
+    ],
+    inactive: [
+      "Swap partition commands are hidden.",
+      "Swap file setup is a later installed-system task.",
+      "Hibernation planning is not covered by this no-swap path."
+    ]
+  },
+  "swap-partition": {
+    label: "Swap partition",
+    status: "danger",
+    showPartitionCommands: true,
+    summary: "Use a dedicated partition as swap. This requires an exact swap partition name because mkswap overwrites the selected partition's old contents.",
+    active: [
+      "Map the swap partition in Device Mapping.",
+      "Run mkswap only on that exact swap partition.",
+      "Run swapon so genfstab can detect active swap."
+    ],
+    inactive: [
+      "Do not run mkswap on the root partition.",
+      "Do not run mkswap on the EFI partition.",
+      "Do not use this path when the swap partition is unknown."
+    ]
+  },
+  "swap-file": {
+    label: "Swap file after install",
+    status: "ready",
+    showPartitionCommands: false,
+    summary: "Skip partition swap commands during Disk Setup and plan to create a swap file later inside the installed filesystem.",
+    active: [
+      "Do not create a dedicated swap partition for this path.",
+      "Do not run mkswap on a partition during Disk Setup.",
+      "Create and enable a swap file later after root filesystem setup is complete."
+    ],
+    inactive: [
+      "Swap partition commands are hidden.",
+      "A swap file still needs correct permissions and fstab setup later.",
+      "Some hibernation setups need extra planning and are not assumed here."
+    ]
+  }
+};
+
+function activeSwapStrategy() {
+  const key = setupProfile.swapStrategy || "none";
+  return { key: swapStrategyCatalog[key] ? key : "none", ...(swapStrategyCatalog[key] || swapStrategyCatalog.none) };
+}
+
+function isSwapPartitionCommand(command) {
+  const text = command.command.trim();
+  return text === "mkswap /dev/nvme0n1p3" || text === "swapon /dev/nvme0n1p3";
+}
+
+function swapStrategyCommandVisible(command) {
+  if (!isSwapPartitionCommand(command)) return true;
+  return activeSwapStrategy().showPartitionCommands === true;
+}
+
+function swapStrategyTemplate() {
+  const strategy = activeSwapStrategy();
+  const swapPartition = getDeviceValue("swapPartition");
+  const swapReady = strategy.key !== "swap-partition" || (swapPartition && !getDeviceUnknown("swapPartition") && looksLikePartition(swapPartition));
+  return `
+    <section class="profile-summary-card swap-strategy-card ${strategy.status === "danger" && !swapReady ? "profile-danger" : "profile-safe"}">
+      <h4>Active swap strategy</h4>
+      <p><strong>${strategy.label}:</strong> ${strategy.summary}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Active path</strong>
+          <ul>${strategy.active.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Not part of this path</strong>
+          <ul>${strategy.inactive.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p><strong>Mapped swap partition:</strong> ${escapeHtml(swapPartition || "not entered")}</p>
+      <p><strong>KISS rule:</strong> no-swap, swap-partition, and swap-file are three different paths. Do not run partition swap commands unless swap partition is selected and mapped.</p>
+    </section>
+  `;
+}
+
 const bootloaderBranchLabels = {
   "systemd-boot": "UEFI systemd-boot",
   "grub-uefi": "UEFI GRUB",
@@ -5488,7 +5600,7 @@ function visibleBlocksForSection(section) {
 }
 
 function visibleCommandsForSection(section) {
-  return (section.commands || []).filter((command) => branchMatchesProfile(command.branch) && diskStrategyCommandVisible(section, command));
+  return (section.commands || []).filter((command) => branchMatchesProfile(command.branch) && diskStrategyCommandVisible(section, command) && swapStrategyCommandVisible(command));
 }
 
 function sectionBranchNotice(section) {
@@ -5496,10 +5608,11 @@ function sectionBranchNotice(section) {
   if (section.title === "Disk Setup") {
     const strategy = activeDiskStrategy();
     const hiddenCount = (section.commands || []).filter((command) => commandSafetyType(command) === "disk-write" && !diskStrategyCommandVisible(section, command)).length;
+    const hiddenSwapCount = (section.commands || []).filter((command) => isSwapPartitionCommand(command) && !swapStrategyCommandVisible(command)).length;
     notices.push(`
       <section class="branch-notice ${strategy.status === "danger" ? "branch-notice-blocked" : "branch-notice-active"}">
         <strong>Disk strategy shown: ${strategy.label}</strong>
-        <p>${escapeHtml(strategy.visiblePath)}${hiddenCount ? ` ${hiddenCount} destructive storage command${hiddenCount === 1 ? " is" : "s are"} hidden from this lesson right now.` : " Destructive storage commands are visible but still safety-gated before copy."}</p>
+        <p>${escapeHtml(strategy.visiblePath)}${hiddenCount ? ` ${hiddenCount} destructive storage command${hiddenCount === 1 ? " is" : "s are"} hidden from this lesson right now.` : " Destructive storage commands are visible but still safety-gated before copy."}${hiddenSwapCount ? ` ${hiddenSwapCount} swap partition command${hiddenSwapCount === 1 ? " is" : "s are"} hidden by the active swap strategy.` : ""}</p>
       </section>
     `);
   }
@@ -5927,6 +6040,7 @@ function renderProfileSummary() {
         Erase intent: ${profileValue("eraseIntent")}. Internal drives: ${profileValue("internalDriveCount")}.
         External drive: ${profileValue("externalDrive")}. Boot mode: ${profileValue("bootMode")}.
         Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
+        Swap: ${profileValue("swapStrategy")}.
       </p>
     </section>
     <section class="profile-summary-card">
@@ -5937,6 +6051,7 @@ function renderProfileSummary() {
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
     ${partitionDecisionTemplate()}
+    ${swapStrategyTemplate()}
     ${bootloaderPathTemplate()}
     ${networkPathTemplate()}
     ${diskIdentityGateTemplate()}
