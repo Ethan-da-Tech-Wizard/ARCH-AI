@@ -4130,6 +4130,7 @@ function looksLikePartition(value) {
 
 function diskIdentitySignature() {
   return JSON.stringify({
+    currentOsDisk: getDeviceValue("currentOsDisk"),
     targetDisk: getDeviceValue("targetDisk"),
     efiPartition: getDeviceValue("efiPartition"),
     rootPartition: getDeviceValue("rootPartition"),
@@ -4166,6 +4167,15 @@ function diskIdentityGateIssues() {
   }
   if (getDeviceValue("currentOsDisk") && getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk") && setupProfile.installTarget !== "same-existing") {
     issues.push("Current OS disk and target disk match, but the profile does not say this is a same-disk install.");
+  }
+  if (separateInternalDiskRequired()) {
+    if (getDeviceUnknown("currentOsDisk") || !getDeviceValue("currentOsDisk")) {
+      issues.push("Separate-internal-SSD installs require the current OS disk to be mapped so it can be compared against the target disk.");
+    } else if (!looksLikeWholeDisk(getDeviceValue("currentOsDisk"))) {
+      issues.push("Current OS disk must be a whole disk such as /dev/sda or /dev/nvme0n1.");
+    } else if (getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk")) {
+      issues.push("Separate-internal-SSD installs require the target disk to be different from the current OS disk.");
+    }
   }
   return issues;
 }
@@ -4302,6 +4312,9 @@ function deviceWarnings() {
 
   if (getDeviceValue("currentOsDisk") && getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk")) {
     warnings.push("Current OS disk and target install disk are the same. This may be intentional, but it is high risk and requires erase-vs-preserve confirmation.");
+  }
+  if (separateInternalDiskRequired() && (getDeviceUnknown("currentOsDisk") || !getDeviceValue("currentOsDisk"))) {
+    warnings.push("Separate internal SSD path selected. Current OS disk must be mapped so the app can prove the target disk is not the existing OS disk.");
   }
 
   if (getDeviceUnknown("wifiDevice") || !getDeviceValue("wifiDevice")) {
@@ -5049,6 +5062,139 @@ function bootNetworkPathNotes() {
   return parts;
 }
 
+function separateInternalDiskRequired() {
+  return setupProfile.installTarget === "second-internal" || setupProfile.internalDriveCount === "two" || setupProfile.internalDriveCount === "three-plus";
+}
+
+function internalScenarioChoice() {
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentKnown = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const targetKnown = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  if (!setupProfileCompleteEnough()) {
+    return {
+      status: "danger",
+      title: "Internal disk scenario unknown",
+      summary: "Complete the Safety Profile before deciding whether this is one internal disk, a separate internal target disk, or a same-disk install.",
+      evidence: [
+        "Install target is not fully described yet.",
+        "Current OS disk and target disk cannot be compared yet.",
+        "Storage commands should stay in discovery mode."
+      ],
+      required: [
+        "Answer install target.",
+        "Answer internal drive count.",
+        "Map current OS disk and target disk when the install uses internal storage."
+      ]
+    };
+  }
+  if (setupProfile.installTarget === "vm-disk") {
+    return {
+      status: "ready",
+      title: "VM disk scenario",
+      summary: "Treat the VM virtual disk as the target only after confirming it is not host passthrough storage.",
+      evidence: [
+        `Target disk: ${targetKnown ? targetDisk : "not mapped yet"}.`,
+        "Current OS disk comparison is less important than confirming no host disk is passed through.",
+        "Disk size should match the virtual disk created for the VM."
+      ],
+      required: [
+        "Map the VM target disk.",
+        "Confirm the VM has no host disk passthrough target.",
+        "Use VM disk size as one evidence point, not the only evidence point."
+      ]
+    };
+  }
+  if (setupProfile.installTarget === "external") {
+    return {
+      status: "ready",
+      title: "External target scenario",
+      summary: "The target is external, so the main risk is confusing the external SSD, installer USB, backup drive, or internal OS disk.",
+      evidence: [
+        `Current OS disk: ${currentKnown ? currentOsDisk : "not mapped yet"}.`,
+        `External target disk: ${targetKnown ? targetDisk : "not mapped yet"}.`,
+        "External disks can change names between boots or when plugged into a different port."
+      ],
+      required: [
+        "Map current OS disk when visible.",
+        "Map the external target disk by transport, model, serial, and size.",
+        "Unplug unrelated external storage when possible."
+      ]
+    };
+  }
+  if (setupProfile.installTarget === "same-existing") {
+    return {
+      status: "danger",
+      title: "Same internal disk scenario",
+      summary: "The target disk may be the same disk that already contains an operating system. This is valid only when erase or preserve intent is explicit.",
+      evidence: [
+        `Current OS disk: ${currentKnown ? currentOsDisk : "not mapped yet"}.`,
+        `Target disk: ${targetKnown ? targetDisk : "not mapped yet"}.`,
+        currentKnown && targetKnown && currentOsDisk === targetDisk ? "Current OS disk and target disk match, as expected for a same-disk path." : "Current OS disk and target disk are not proven to be the same yet."
+      ],
+      required: [
+        "Choose erase only if the existing OS/data on that disk can be destroyed.",
+        "Choose preserve/manual if any partition, OS, or personal data must survive.",
+        "Do not follow separate-SSD assumptions for a same-disk install."
+      ]
+    };
+  }
+  if (separateInternalDiskRequired()) {
+    const separated = currentKnown && targetKnown && currentOsDisk !== targetDisk;
+    return {
+      status: separated ? "ready" : "danger",
+      title: "Separate internal SSD scenario",
+      summary: "Arch is intended for a different internal disk from the one that contains the current operating system.",
+      evidence: [
+        `Current OS disk: ${currentKnown ? currentOsDisk : "not mapped yet"}.`,
+        `Target install disk: ${targetKnown ? targetDisk : "not mapped yet"}.`,
+        separated ? "Checkpoint passed: target disk is not the current OS disk." : "Checkpoint not passed: the app cannot prove the target disk is separate from the current OS disk yet."
+      ],
+      required: [
+        "Map the current OS disk as a whole disk.",
+        "Map the target install disk as a whole disk.",
+        "Confirm the two names are different and then verify size, model, serial, and mountpoints."
+      ]
+    };
+  }
+  return {
+    status: setupProfile.eraseIntent === "yes" ? "danger" : "ready",
+    title: "One internal disk scenario",
+    summary: "The machine appears to have one internal install target. If that disk has an existing OS or data, erase versus preserve must be explicit.",
+    evidence: [
+      `Target disk: ${targetKnown ? targetDisk : "not mapped yet"}.`,
+      "A one-disk machine can still contain Windows, macOS, Linux, recovery, EFI, or personal-data partitions.",
+      setupProfile.eraseIntent === "yes" ? "Erase intent is selected, so this path can destroy the existing contents of the target disk." : "Preserve or unsure intent keeps destructive commands out of the normal path."
+    ],
+    required: [
+      "Map the target disk by multiple clues.",
+      "If keeping anything on the disk, use preserve/manual.",
+      "If erasing, confirm backups exist before partitioning or formatting."
+    ]
+  };
+}
+
+function internalScenarioTemplate() {
+  const scenario = internalScenarioChoice();
+  return `
+    <section class="profile-summary-card internal-scenario-card ${scenario.status === "danger" ? "profile-danger" : "profile-safe"}">
+      <h4>Internal disk scenario check</h4>
+      <p><strong>${scenario.title}:</strong> ${scenario.summary}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Evidence now</strong>
+          <ul>${scenario.evidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Required before storage commands</strong>
+          <ul>${scenario.required.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p><strong>KISS rule:</strong> a separate SSD install is only simpler if the target disk is proven to be different from the current OS disk.</p>
+    </section>
+  `;
+}
+
 const diskStrategyCatalog = {
   "profile-incomplete": {
     label: "Disk strategy unknown",
@@ -5676,6 +5822,7 @@ function renderProfileSummary() {
       <p>${recommendedPath()}</p>
     </section>
     ${scenarioPathTemplate()}
+    ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
     ${bootloaderPathTemplate()}
     ${networkPathTemplate()}

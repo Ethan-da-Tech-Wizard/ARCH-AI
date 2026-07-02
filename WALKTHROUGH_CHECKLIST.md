@@ -349,7 +349,7 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add disk strategy branching.
   - Acceptance: app distinguishes full-disk wipe from existing-partition/manual layouts and labels destructive commands clearly.
 
-- [ ] Add internal SSD scenario branching.
+- [x] Add internal SSD scenario branching.
   - Acceptance: app distinguishes installing Arch to a separate internal SSD from installing Arch onto the same internal SSD that already contains an operating system.
 
 - [ ] Add partition-if-necessary decision flow.
@@ -367,10 +367,10 @@ The app must support two common beginner scenarios before it shows destructive d
 
 ### Scenario A: Arch Goes On A Separate Internal SSD
 
-- [ ] Teach how to identify multiple internal drives.
+- [x] Teach how to identify multiple internal drives.
   - Acceptance: app explains how to compare `lsblk` name, size, model, type, and mountpoints so the user can tell the current OS disk from the empty or target SSD.
 
-- [ ] Add a "this is not my current OS disk" checkpoint.
+- [x] Add a "this is not my current OS disk" checkpoint.
   - Acceptance: user must confirm the target SSD is separate from the disk containing the existing operating system before full-disk wipe commands are shown.
 
 - [ ] Add partitioning path for the separate SSD.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add internal SSD scenario branching so one-internal-disk, two-internal-disk, external-disk, and same-disk cases show clearer target/current-disk checks before storage commands.
+Next KISS implementation step: add the partition-if-necessary decision flow so the app explains when partitioning is required, when existing partitions can be reused, and when formatting remains destructive.
