@@ -4204,42 +4204,49 @@ const deviceFields = [
   {
     key: "currentOsDisk",
     label: "Current OS disk",
+    kind: "whole-disk",
     placeholder: "/dev/nvme0n1",
     help: "The whole disk that currently holds the operating system, if one exists. Whole disks look like /dev/nvme0n1 or /dev/sda, not /dev/sda1."
   },
   {
     key: "targetDisk",
     label: "Target install disk",
+    kind: "whole-disk",
     placeholder: "/dev/sdb",
     help: "The whole disk Arch will be installed onto. This is the most dangerous value. Formatting or partitioning the wrong target disk can erase the wrong data."
   },
   {
     key: "externalSsd",
     label: "External SSD / USB drive",
+    kind: "whole-disk",
     placeholder: "/dev/sdb",
     help: "The whole external drive, if Arch is going onto an external SSD or USB drive. External drive names can change between boots."
   },
   {
     key: "efiPartition",
     label: "EFI partition",
+    kind: "partition",
     placeholder: "/dev/sdb1",
     help: "The partition used for UEFI boot files. Partitions usually end in a number, like /dev/sda1 or /dev/nvme0n1p1."
   },
   {
     key: "rootPartition",
     label: "Root partition",
+    kind: "partition",
     placeholder: "/dev/sdb2",
     help: "The partition that will become /, the main installed Arch filesystem."
   },
   {
     key: "rootUuid",
     label: "Root filesystem UUID",
+    kind: "uuid",
     placeholder: "12345678-90ab-cdef-1234-567890abcdef",
     help: "The UUID printed by blkid for the Linux root filesystem. This is the value used in systemd-boot root=UUID= entries."
   },
   {
     key: "swapPartition",
     label: "Swap partition",
+    kind: "partition",
     placeholder: "/dev/sdb3",
     help: "Optional partition for swap. Leave unknown or blank if you are not using a swap partition."
   },
@@ -4544,8 +4551,9 @@ function renderDeviceForm() {
   deviceForm.innerHTML = deviceFields.map((field) => {
     const value = getDeviceValue(field.key);
     const unknown = getDeviceUnknown(field.key);
+    const mismatch = deviceFieldMismatch(field);
     return `
-      <section class="device-field">
+      <section class="device-field ${mismatch ? "device-field-mismatch" : ""}">
         <label>
           <span class="device-field-title">${field.label}</span>
           <input type="text" name="${field.key}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder)}" ${unknown ? "disabled" : ""}>
@@ -4555,9 +4563,31 @@ function renderDeviceForm() {
           <span>I do not know this yet. Show me how to find it before I use commands that need it.</span>
         </label>
         <p class="device-field-help">${field.help}</p>
+        ${mismatch ? `<p class="device-field-mismatch-note"><strong>Mismatch:</strong> ${escapeHtml(mismatch)}</p>` : ""}
       </section>
     `;
   }).join("");
+}
+
+function deviceFieldMismatch(field) {
+  const value = getDeviceValue(field.key);
+  if (!value || getDeviceUnknown(field.key)) return "";
+  if (field.kind === "whole-disk" && looksLikePartition(value)) {
+    return `${field.label} requires a whole disk, but ${value} looks like a partition. Use the parent disk, such as /dev/sda instead of /dev/sda1.`;
+  }
+  if (field.kind === "whole-disk" && !looksLikeWholeDisk(value)) {
+    return `${field.label} requires a whole disk path such as /dev/sda, /dev/vda, /dev/nvme0n1, or /dev/mmcblk0.`;
+  }
+  if (field.kind === "partition" && looksLikeWholeDisk(value)) {
+    return `${field.label} requires a partition, but ${value} looks like a whole disk. Use the numbered partition, such as /dev/sda1 or /dev/nvme0n1p1.`;
+  }
+  if (field.kind === "partition" && !looksLikePartition(value)) {
+    return `${field.label} requires a partition path such as /dev/sda1, /dev/vda2, /dev/nvme0n1p1, or /dev/mmcblk0p1.`;
+  }
+  if (field.kind === "uuid" && !looksLikeUuid(value)) {
+    return `${field.label} requires a UUID shaped like 12345678-90ab-cdef-1234-567890abcdef. Do not paste a device path here.`;
+  }
+  return "";
 }
 
 function deviceWarnings() {
@@ -4574,7 +4604,7 @@ function deviceWarnings() {
     const value = getDeviceValue(key);
     const field = deviceFields.find((item) => item.key === key);
     if (value && !looksLikeWholeDisk(value)) {
-      warnings.push(`${field.label} should be a whole disk such as /dev/sda or /dev/nvme0n1. The value "${value}" does not look like a whole disk.`);
+      warnings.push(deviceFieldMismatch(field) || `${field.label} should be a whole disk such as /dev/sda or /dev/nvme0n1. The value "${value}" does not look like a whole disk.`);
     }
   }
 
@@ -4582,11 +4612,11 @@ function deviceWarnings() {
     const value = getDeviceValue(key);
     const field = deviceFields.find((item) => item.key === key);
     if (value && !looksLikePartition(value)) {
-      warnings.push(`${field.label} should be a partition such as /dev/sda1 or /dev/nvme0n1p1. The value "${value}" does not look like a partition.`);
+      warnings.push(deviceFieldMismatch(field) || `${field.label} should be a partition such as /dev/sda1 or /dev/nvme0n1p1. The value "${value}" does not look like a partition.`);
     }
   }
   if (getDeviceValue("rootUuid") && !looksLikeUuid(getDeviceValue("rootUuid"))) {
-    warnings.push(`Root filesystem UUID should look like 12345678-90ab-cdef-1234-567890abcdef. The value "${getDeviceValue("rootUuid")}" does not look like a UUID.`);
+    warnings.push(deviceFieldMismatch(deviceFields.find((item) => item.key === "rootUuid")) || `Root filesystem UUID should look like 12345678-90ab-cdef-1234-567890abcdef. The value "${getDeviceValue("rootUuid")}" does not look like a UUID.`);
   }
 
   if (getDeviceValue("currentOsDisk") && getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk")) {

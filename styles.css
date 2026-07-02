@@ -259,6 +259,11 @@ h3 {
   background: #fff;
 }
 
+.device-field-mismatch {
+  border-color: var(--danger);
+  background: #fff8f4;
+}
+
 .device-field label {
   display: grid;
   gap: 7px;
@@ -272,6 +277,13 @@ h3 {
 .device-field-help {
   color: #5d6a82;
   font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.device-field-mismatch-note {
+  margin: 0;
+  color: #8a321f;
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 

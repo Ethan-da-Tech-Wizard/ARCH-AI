@@ -280,7 +280,7 @@ Examples:
 - [x] Render final commands verbatim from user values.
   - Acceptance: if the user enters Wi-Fi name `Home Network` and Wi-Fi device `wlan0`, the app renders `station wlan0 connect "Home Network"` and explains the quotes and space.
 
-- [ ] Add mismatch warnings.
+- [x] Add mismatch warnings.
   - Acceptance: if a user enters a partition path where a whole disk is required, or a whole disk where a partition is required, the app warns before showing destructive commands.
 
 ## Storage Naming Education Requirement
