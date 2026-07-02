@@ -538,8 +538,11 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Run the UEFI/systemd-boot path in a VM.
   - Acceptance: VM boots into the installed system without the ISO and matches the guide.
 
-- [ ] Run the GRUB path in a VM.
-  - Acceptance: VM boots through GRUB and matches the guide.
+- [x] Run the UEFI GRUB path in a VM.
+  - Acceptance: VM boots through GRUB UEFI from the installed disk without the ISO and matches the guide.
+
+- [ ] Run the legacy BIOS GRUB path in a VM.
+  - Acceptance: VM boots through BIOS GRUB from the installed disk without the ISO and matches the guide.
 
 - [x] Verify networking steps in the VM.
   - Acceptance: wired networking, DNS, package install, and Firefox install steps match real output.

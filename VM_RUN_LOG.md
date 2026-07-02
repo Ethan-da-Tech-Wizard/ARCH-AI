@@ -31,6 +31,8 @@ Status:
 ```text
 UEFI/systemd-boot VM run: complete
 Result: QEMU reached the Arch UEFI boot menu, the ISO was booted over serial with console=ttyS0,115200, Arch was installed to the qcow2 disk, and the VM booted successfully without the ISO.
+UEFI/GRUB VM run: complete
+Result: QEMU loaded the installed GRUB UEFI boot entry from the qcow2 disk without the ISO, GRUB displayed the Arch menu over serial, and the installed system reached login.
 ```
 
 ## Completed Local Preparation
@@ -90,13 +92,13 @@ What this does not prove yet:
 
 ```text
 Audible sound playback has not been verified.
-The GRUB path has not been verified.
+Legacy BIOS GRUB has not been verified.
 ```
 
 Next practical test path:
 
 ```text
-Use the same VM method for deeper audio playback checks, or create a separate fresh disk for GRUB validation.
+Use the same VM method for deeper audio playback checks, or create a separate fresh disk for legacy BIOS GRUB validation.
 ```
 
 ## Finished UEFI/systemd-boot Run
@@ -422,6 +424,197 @@ Final result:
 
 ```text
 PASS. The UEFI/systemd-boot VM installed Arch, shut down, relaunched without the ISO, booted from the installed qcow2 disk, logged in as archuser, mounted / and /boot correctly, ran NetworkManager, resolved DNS, reached archlinux.org, validated sudo, installed Xorg/Xfce/LightDM/Firefox/PipeWire packages, showed the LightDM graphical login, started an Xfce session, launched Firefox to archlinux.org, and exposed PipeWire audio sink/source diagnostics through pactl.
+```
+
+## Finished UEFI/GRUB Run
+
+Test ID: VM-UEFI-GRUB
+
+Date: 2026-07-02
+
+VM software: QEMU
+
+QEMU version: 11.0.1
+
+Arch ISO file: `iso/archlinux-2026.07.01-x86_64.iso`
+
+Firmware: UEFI OVMF
+
+Disk image: `vm/arch-uefi-grub.qcow2`
+
+Disk size: 32 GiB
+
+UEFI vars file: `vm/OVMF_VARS-arch-uefi-grub.fd`
+
+Network mode: QEMU user-mode NAT Ethernet
+
+Bootloader path: GRUB UEFI
+
+Acceleration: TCG software emulation; `/dev/kvm` was unavailable in this environment.
+
+Install layout:
+
+```text
+Disk: /dev/vda
+EFI system partition: /dev/vda1, 512 MiB, vfat, mounted at /mnt/boot during install and /boot after first boot
+Root partition: /dev/vda2, ext4, mounted at /mnt during install and / after first boot
+Swap partition: not used in this VM run
+```
+
+Important VM-specific choices:
+
+```text
+GRUB_CMDLINE_LINUX_DEFAULT="console=ttyS0,115200"
+GRUB_TERMINAL_OUTPUT="console serial"
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+serial-getty@ttyS0.service enabled
+```
+
+These serial settings were used so the headless QEMU test could show GRUB, kernel boot output, and login over the terminal. They are not required for a normal graphical desktop install.
+
+Install commands and observed results:
+
+```text
+ls /sys/firmware/efi/efivars
+Result: UEFI variables existed.
+
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
+Result before partitioning: /dev/vda existed as a blank 32 GiB disk.
+
+sgdisk --zap-all /dev/vda
+sgdisk -n 1:0:+512M -t 1:ef00 -c 1:EFI /dev/vda
+sgdisk -n 2:0:0 -t 2:8300 -c 2:root /dev/vda
+partprobe /dev/vda
+mkfs.fat -F32 /dev/vda1
+mkfs.ext4 -F /dev/vda2
+mount /dev/vda2 /mnt
+mkdir -p /mnt/boot
+mount /dev/vda1 /mnt/boot
+
+Result after mounting:
+/dev/vda1 vfat mounted at /mnt/boot
+/dev/vda2 ext4 mounted at /mnt
+
+pacstrap -K /mnt base linux linux-firmware nano networkmanager sudo grub efibootmgr
+Result: packages installed and initramfs generated successfully.
+
+genfstab -U /mnt >> /mnt/etc/fstab
+Result: / and /boot were written by UUID.
+
+locale-gen
+Result: en_US.UTF-8 generated.
+
+systemctl enable NetworkManager
+Result: NetworkManager service enabled.
+
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+Result: Installation finished. No error reported.
+
+grub-mkconfig -o /boot/grub/grub.cfg
+Result: Arch Linux menu entry generated.
+
+grep -n "menuentry" /boot/grub/grub.cfg
+Result: Arch Linux, Advanced options, and UEFI Firmware Settings menu entries existed.
+
+efibootmgr
+Result: Boot0002* GRUB existed and BootOrder started with 0002.
+```
+
+First boot without ISO:
+
+```text
+QEMU launched without -cdrom.
+OVMF loaded Boot0002 "GRUB" from \EFI\GRUB\grubx64.efi.
+GRUB displayed version 2:2.14-1.
+GRUB displayed the Arch Linux menu.
+GRUB loaded /boot/vmlinuz-linux and /boot/initramfs-linux.img.
+The installed system reached archgrub login on ttyS0.
+```
+
+Installed-system verification:
+
+```text
+whoami
+archuser
+
+hostnamectl --static
+archgrub
+
+findmnt /
+/dev/vda2 ext4 mounted at /
+
+findmnt /boot
+/dev/vda1 vfat mounted at /boot
+
+cat /etc/fstab
+UUID=86c1c8f4-46d8-45c5-9554-c098dd17f4f4 / ext4 rw,relatime 0 1
+UUID=3EE9-49C1 /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
+
+readlink /etc/localtime
+/usr/share/zoneinfo/UTC
+
+grep -v '^#' /etc/locale.gen
+en_US.UTF-8 UTF-8
+
+cat /etc/locale.conf
+LANG=en_US.UTF-8
+
+systemctl is-active NetworkManager
+active
+
+ip addr show
+enp0s2 had DHCP address 10.0.2.15/24.
+
+ping -c 2 1.1.1.1
+2 packets transmitted, 2 received, 0% packet loss.
+
+ping -c 2 archlinux.org
+2 packets transmitted, 2 received, 0% packet loss.
+
+sudo -v
+SUDO_OK
+```
+
+Observed warnings and notes:
+
+```text
+The live ISO serial login reset once while the ISO was still finishing startup jobs. Logging in again and switching to a plain Bash prompt avoided prompt noise.
+
+mkinitcpio warned that /etc/vconsole.conf was not found and default values would be used. This is acceptable for the minimal VM and not a GRUB failure.
+
+grub-mkconfig warned that os-prober would not be executed. This is expected for this single-OS VM and not a GRUB failure.
+```
+
+Commands that matched the guide:
+
+```text
+UEFI detection, GPT partitioning, ESP mounted at /boot, pacstrap, genfstab, locale setup, timezone setup, NetworkManager enablement, user/sudo setup, GRUB UEFI package install, grub-install, grub-mkconfig, menuentry check, efibootmgr check, first boot without ISO, mount checks, network checks, DNS check, and sudo validation matched the intended UEFI GRUB path.
+```
+
+Commands that differed from a normal desktop install:
+
+```text
+The VM added serial console options to GRUB and enabled serial-getty@ttyS0.service so QEMU could be tested headlessly.
+The VM used UTC for deterministic testing. A real user should choose their actual timezone.
+The VM used -accel tcg instead of -enable-kvm because /dev/kvm was unavailable.
+```
+
+Fix needed in app:
+
+```text
+None found from this UEFI GRUB run.
+```
+
+Fix needed in documentation:
+
+```text
+Record that UEFI GRUB has passed separately from legacy BIOS GRUB.
+```
+
+Final result:
+
+```text
+PASS. The UEFI GRUB VM installed Arch, installed GRUB for x86_64-efi, generated a GRUB config with an Arch menu entry, created a GRUB UEFI boot entry, shut down, relaunched without the ISO, showed GRUB, booted the installed system, logged in as archuser, mounted / and /boot correctly, used the configured locale and timezone, ran NetworkManager, reached IP and DNS targets, and validated sudo.
 ```
 
 ## ISO Placement
