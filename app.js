@@ -5844,6 +5844,63 @@ function separateSsdPartitionPlanTemplate() {
   `;
 }
 
+function separateSsdFormatMountTemplate() {
+  if (!separateInternalDiskRequired()) return "";
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentReady = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const targetReady = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  const separated = currentReady && targetReady && currentOsDisk !== targetDisk;
+  const efiPartition = validMappedPartition("efiPartition");
+  const rootPartition = validMappedPartition("rootPartition");
+  const swapPartition = validMappedPartition("swapPartition");
+  const useSwapPartition = activeSwapStrategy().key === "swap-partition";
+  const uefi = setupProfile.bootMode !== "bios";
+  const missing = [];
+  if (!separated) missing.push("current OS disk and target SSD must be mapped as different whole disks");
+  if (uefi && !efiPartition) missing.push("EFI partition");
+  if (!rootPartition) missing.push("root partition");
+  if (useSwapPartition && !swapPartition) missing.push("swap partition");
+  if (missing.length) {
+    return `
+      <section class="profile-summary-card profile-danger">
+        <h4>Separate SSD format/mount path blocked</h4>
+        <p>The app cannot render the separate-SSD format and mount path until these values are proven: ${missing.map(escapeHtml).join(", ")}.</p>
+        <p>Formatting commands erase the filesystem on the named partition. Keep this blocked until every target partition name is exact.</p>
+      </section>
+    `;
+  }
+  const formatCommands = [];
+  if (uefi) formatCommands.push({ command: `mkfs.fat -F 32 ${efiPartition}`, effect: `Erases and creates a FAT32 filesystem on the mapped EFI partition ${efiPartition}.` });
+  formatCommands.push({ command: `mkfs.ext4 ${rootPartition}`, effect: `Erases and creates an ext4 filesystem on the mapped Linux root partition ${rootPartition}.` });
+  if (useSwapPartition) formatCommands.push({ command: `mkswap ${swapPartition}`, effect: `Erases and initializes the mapped swap partition ${swapPartition} for swap use.` });
+  const mountCommands = [
+    { command: `mount ${rootPartition} /mnt`, effect: `Attaches the mapped root partition ${rootPartition} at /mnt for pacstrap.` }
+  ];
+  if (uefi) {
+    mountCommands.push({ command: "mkdir -p /mnt/boot", effect: "Creates the boot mount directory inside the mounted target system." });
+    mountCommands.push({ command: `mount ${efiPartition} /mnt/boot`, effect: `Attaches the mapped EFI partition ${efiPartition} at /mnt/boot for the simple UEFI bootloader path.` });
+  }
+  if (useSwapPartition) mountCommands.push({ command: `swapon ${swapPartition}`, effect: `Activates the mapped swap partition ${swapPartition} for the live install session and genfstab.` });
+  return `
+    <section class="profile-summary-card profile-safe">
+      <h4>Separate SSD format and mount path</h4>
+      <p><strong>Erase boundary:</strong> formatting must touch only the mapped target partitions on ${escapeHtml(targetDisk)}. It must not touch the current OS disk ${escapeHtml(currentOsDisk)}.</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Formatting commands erase these target partitions</strong>
+          ${formatCommands.map((item) => `<pre><code>${escapeHtml(item.command)}</code></pre><p>${escapeHtml(item.effect)}</p>`).join("")}
+        </div>
+        <div>
+          <strong>Mount/activate commands after formatting</strong>
+          ${mountCommands.map((item) => `<pre><code>${escapeHtml(item.command)}</code></pre><p>${escapeHtml(item.effect)}</p>`).join("")}
+        </div>
+      </div>
+      <p><strong>Safety rule:</strong> this is still a preview. Copy-ready destructive commands require the Disk identity gate and exact Device Mapping values.</p>
+    </section>
+  `;
+}
+
 const swapStrategyCatalog = {
   none: {
     label: "No swap for now",
@@ -6556,6 +6613,7 @@ function renderProfileSummary() {
     ${diskStrategyTemplate()}
     ${partitionDecisionTemplate()}
     ${separateSsdPartitionPlanTemplate()}
+    ${separateSsdFormatMountTemplate()}
     ${swapStrategyTemplate()}
     ${audioPathTemplate()}
     ${bootloaderPathTemplate()}

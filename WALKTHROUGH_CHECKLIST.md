@@ -376,7 +376,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add partitioning path for the separate SSD.
   - Acceptance: app offers a simple full-disk Arch layout for the separate SSD and explains EFI, root, optional swap, and BIOS boot partition differences.
 
-- [ ] Add formatting and mounting path for the separate SSD.
+- [x] Add formatting and mounting path for the separate SSD.
   - Acceptance: app maps the chosen partition names into format and mount commands and repeats that formatting erases those target partitions.
 
 ### Scenario B: Arch Goes On The Same Internal SSD As An Existing OS
