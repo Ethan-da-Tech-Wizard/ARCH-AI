@@ -1445,6 +1445,16 @@ const glossary = {
   chroot: "chroot means 'change root.' It makes a folder behave like the top of the filesystem, so commands run as if they are inside the new Arch install.",
   hostname: "A hostname is the computer's network name. It is how the machine identifies itself locally.",
   locale: "A locale controls language, character encoding, date formats, sorting rules, and similar regional behavior.",
+  "time zone": "A time zone tells the system how to translate universal time into local clock time for logs, file timestamps, calendars, and the desktop clock.",
+  "hardware detection": "Hardware detection means reading what CPU, graphics card, network device, audio device, and USB devices the machine actually has before choosing packages.",
+  lscpu: "lscpu prints CPU details such as vendor and model. It helps decide whether Intel or AMD CPU microcode applies.",
+  lspci: "lspci lists PCI devices such as graphics cards, Wi-Fi adapters, Ethernet adapters, storage controllers, and audio controllers.",
+  lsusb: "lsusb lists USB devices. It helps identify USB Wi-Fi adapters, Bluetooth adapters, webcams, audio devices, and installation media.",
+  rfkill: "rfkill shows whether wireless radios such as Wi-Fi or Bluetooth are blocked by software or hardware.",
+  GPU: "GPU means graphics processing unit. The GPU determines which graphics driver path is appropriate.",
+  Mesa: "Mesa provides open-source OpenGL drivers and related graphics pieces used by many Intel and AMD graphics setups.",
+  NVIDIA: "NVIDIA is a GPU vendor. NVIDIA systems often need a separate driver decision instead of the Mesa-only path used by many Intel and AMD systems.",
+  Vulkan: "Vulkan is a graphics API used by many games and graphics applications. On Arch, Intel and AMD Vulkan support use different Mesa split packages.",
   DNS: "DNS is the internet's naming system. It translates names like archlinux.org into IP addresses computers can connect to.",
   network: "Networking is the collection of hardware, addresses, routes, DNS, and services that let the computer communicate with other machines.",
   firewall: "A firewall is a network policy tool that decides which traffic is allowed or blocked.",
@@ -1949,6 +1959,31 @@ const officialSources = {
     label: "Arch package: wireplumber",
     url: "https://archlinux.org/packages/extra/x86_64/wireplumber/",
     note: "Official package page for WirePlumber."
+  },
+  mesaPackage: {
+    label: "Arch package: mesa",
+    url: "https://archlinux.org/packages/extra/x86_64/mesa/",
+    note: "Official package page for Mesa open-source OpenGL drivers."
+  },
+  vulkanIntelPackage: {
+    label: "Arch package: vulkan-intel",
+    url: "https://archlinux.org/packages/extra/x86_64/vulkan-intel/",
+    note: "Official package page for Intel Vulkan driver support."
+  },
+  vulkanRadeonPackage: {
+    label: "Arch package: vulkan-radeon",
+    url: "https://archlinux.org/packages/extra/x86_64/vulkan-radeon/",
+    note: "Official package page for Radeon Vulkan driver support."
+  },
+  nvidiaOpenPackage: {
+    label: "Arch package: nvidia-open",
+    url: "https://archlinux.org/packages/extra/x86_64/nvidia-open/",
+    note: "Official package page for NVIDIA open kernel modules."
+  },
+  nvidiaUtilsPackage: {
+    label: "Arch package: nvidia-utils",
+    url: "https://archlinux.org/packages/extra/x86_64/nvidia-utils/",
+    note: "Official package page for NVIDIA userspace utilities and libraries."
   },
   archWikiDocsPackage: {
     label: "Arch package: arch-wiki-docs",
@@ -2857,6 +2892,44 @@ extendSection("Configure System", {
       fails: "If the locale was not generated first, programs may warn that the locale is unavailable."
     },
     {
+      label: "Verify time zone link",
+      sources: sourceRefs("installGuide", "systemTime"),
+      command: "readlink /etc/localtime",
+      purpose: "Confirms that /etc/localtime points to the selected time zone file.",
+      words: [
+        ["readlink", "Prints the target of a symbolic link."],
+        ["/etc/localtime", "The system time zone symlink."]
+      ],
+      expected: "Output points into /usr/share/zoneinfo, such as /usr/share/zoneinfo/America/Phoenix.",
+      fails: "If nothing prints or the target is wrong, rerun the ln -sf command with the correct time zone path."
+    },
+    {
+      label: "Verify generated locale selection",
+      sources: sourceRefs("installGuide", "locale"),
+      command: "grep -v '^#' /etc/locale.gen",
+      purpose: "Shows uncommented locale entries so the learner can confirm a UTF-8 locale was selected before locale-gen.",
+      words: [
+        ["grep", "Searches text."],
+        ["-v", "Invert the match, so matching lines are hidden."],
+        ["'^#'", "Pattern for lines that start with #, which are comments."],
+        ["/etc/locale.gen", "Locale generation list."]
+      ],
+      expected: "At least one uncommented UTF-8 locale appears, such as en_US.UTF-8 UTF-8.",
+      fails: "If nothing useful appears, reopen /etc/locale.gen and uncomment the intended UTF-8 locale."
+    },
+    {
+      label: "Verify system language file",
+      sources: sourceRefs("installGuide", "locale"),
+      command: "cat /etc/locale.conf",
+      purpose: "Displays the installed system's default language and character encoding setting.",
+      words: [
+        ["cat", "Prints file contents."],
+        ["/etc/locale.conf", "System locale configuration file."]
+      ],
+      expected: "Output includes LANG=en_US.UTF-8 or the locale intentionally chosen for this system.",
+      fails: "If the file is missing or has a locale that was not generated, create it again after locale-gen."
+    },
+    {
       label: "Set the hostname",
       sources: sourceRefs("installGuide"),
       command: "echo \"archbox\" > /etc/hostname",
@@ -3276,6 +3349,153 @@ insertSectionAfter("Graphical Desktop", {
     }
   ],
   terms: ["package", "repository", "service", "NetworkManager", "Firefox", "PipeWire", "WirePlumber", "nano", "terminal"]
+});
+
+insertSectionAfter("Post-Install Baseline", {
+  title: "Hardware Detection",
+  summary: "Identify CPU, GPU, network, audio, and USB hardware before choosing hardware-specific packages.",
+  sources: sourceRefs("pacman", "mesaPackage", "vulkanIntelPackage", "vulkanRadeonPackage", "nvidiaOpenPackage", "nvidiaUtilsPackage"),
+  blocks: [
+    {
+      type: "goal",
+      title: "Goal",
+      text: "Keep the default install path simple while still making the machine-specific parts explicit. Hardware packages are chosen from evidence, not guessed from brand names or copied as a bundle."
+    },
+    {
+      type: "warn",
+      title: "Do not install every branch",
+      text: "Intel CPU microcode, AMD CPU microcode, Mesa Vulkan packages, and NVIDIA packages are not one universal command. Choose the branch that matches the detected hardware. Installing unrelated driver packages can create confusion during troubleshooting."
+    },
+    {
+      type: "explain",
+      title: "What usually differs",
+      text: "CPU vendor affects microcode. GPU vendor affects graphics packages. Wi-Fi and Bluetooth depend on the adapter. Audio usually starts with PipeWire, but the actual sink/source names come from the detected audio controller."
+    }
+  ],
+  commands: [
+    {
+      label: "Identify the CPU",
+      sources: sourceRefs("installGuide"),
+      command: "lscpu | grep -E 'Vendor ID|Model name'",
+      purpose: "Shows whether the CPU is Intel or AMD so the matching microcode package can be chosen.",
+      words: [
+        ["lscpu", "Prints CPU details."],
+        ["grep", "Filters text output."],
+        ["-E", "Uses extended regular expressions."],
+        ["Vendor ID|Model name", "Shows the CPU vendor and human-readable model."]
+      ],
+      expected: "Vendor ID usually says GenuineIntel or AuthenticAMD.",
+      fails: "If lscpu is unavailable, inspect /proc/cpuinfo with grep -E 'vendor_id|model name' /proc/cpuinfo."
+    },
+    {
+      label: "Identify PCI hardware",
+      sources: sourceRefs("installGuide"),
+      command: "lspci -k | grep -A3 -E 'VGA|3D|Display|Network|Ethernet|Audio'",
+      purpose: "Lists graphics, network, Ethernet, and audio controllers with the kernel driver currently attached.",
+      words: [
+        ["lspci", "Lists PCI devices."],
+        ["-k", "Shows kernel drivers and modules for each PCI device."],
+        ["grep -A3", "Prints each matching line plus three following lines."],
+        ["VGA|3D|Display|Network|Ethernet|Audio", "Device classes relevant to desktop setup."]
+      ],
+      expected: "Output identifies the GPU vendor, network controller, Ethernet controller, and audio controller if present.",
+      fails: "If a needed device is missing, confirm the device is enabled in firmware and physically present."
+    },
+    {
+      label: "Identify USB hardware",
+      sources: sourceRefs("installGuide"),
+      command: "lsusb",
+      purpose: "Lists USB devices such as USB Wi-Fi adapters, Bluetooth adapters, webcams, audio interfaces, and the installer USB.",
+      words: [
+        ["lsusb", "Lists USB devices."]
+      ],
+      expected: "USB hardware appears by vendor and product name or ID.",
+      fails: "If a USB device is missing, try another port and confirm the device works on another machine."
+    },
+    {
+      label: "Check wireless radio blocks",
+      sources: sourceRefs("networkManager"),
+      command: "rfkill list",
+      purpose: "Shows whether Wi-Fi or Bluetooth radios are blocked by software or a hardware switch.",
+      words: [
+        ["rfkill", "Reads or changes radio block state."],
+        ["list", "Displays current radio devices and block status."]
+      ],
+      expected: "Wi-Fi and Bluetooth devices, if present, should not be hard blocked.",
+      fails: "If hard blocked is yes, use the laptop switch, keyboard toggle, or firmware setting before blaming NetworkManager."
+    },
+    {
+      label: "Intel CPU microcode branch",
+      sources: sourceRefs("pacman"),
+      command: "sudo pacman -S intel-ucode",
+      purpose: "Installs Intel CPU microcode. Use this only when CPU detection shows an Intel CPU.",
+      words: [
+        ["intel-ucode", "Intel CPU microcode package."]
+      ],
+      expected: "Use on Intel systems only, then add the matching bootloader microcode entry where the bootloader section says to do so.",
+      fails: "If the CPU is AMD, do not use this branch."
+    },
+    {
+      label: "AMD CPU microcode branch",
+      sources: sourceRefs("pacman"),
+      command: "sudo pacman -S amd-ucode",
+      purpose: "Installs AMD CPU microcode. Use this only when CPU detection shows an AMD CPU.",
+      words: [
+        ["amd-ucode", "AMD CPU microcode package."]
+      ],
+      expected: "Use on AMD systems only, then add the matching bootloader microcode entry where the bootloader section says to do so.",
+      fails: "If the CPU is Intel, do not use this branch."
+    },
+    {
+      label: "Intel graphics branch",
+      sources: sourceRefs("mesaPackage", "vulkanIntelPackage", "pacman"),
+      command: "sudo pacman -S mesa vulkan-intel",
+      purpose: "Installs Mesa OpenGL support and the Intel Vulkan driver for systems whose detected GPU is Intel.",
+      words: [
+        ["mesa", "Open-source OpenGL drivers."],
+        ["vulkan-intel", "Intel Vulkan driver package."]
+      ],
+      expected: "Use when lspci identifies Intel graphics. If the machine only needs a basic desktop and Vulkan is not needed, Mesa may already arrive as a dependency.",
+      fails: "If the GPU is not Intel, choose the matching GPU branch instead."
+    },
+    {
+      label: "AMD graphics branch",
+      sources: sourceRefs("mesaPackage", "vulkanRadeonPackage", "pacman"),
+      command: "sudo pacman -S mesa vulkan-radeon",
+      purpose: "Installs Mesa OpenGL support and the Radeon Vulkan driver for systems whose detected GPU is AMD Radeon.",
+      words: [
+        ["mesa", "Open-source OpenGL drivers."],
+        ["vulkan-radeon", "Radeon Vulkan driver package."]
+      ],
+      expected: "Use when lspci identifies AMD/ATI Radeon graphics.",
+      fails: "If the GPU is not AMD Radeon, choose the matching GPU branch instead."
+    },
+    {
+      label: "NVIDIA graphics branch",
+      sources: sourceRefs("nvidiaOpenPackage", "nvidiaUtilsPackage", "pacman"),
+      command: "sudo pacman -S nvidia-open nvidia-utils",
+      purpose: "Installs NVIDIA open kernel modules and NVIDIA userspace utilities for supported NVIDIA GPUs on the standard linux kernel path.",
+      words: [
+        ["nvidia-open", "NVIDIA open kernel modules package."],
+        ["nvidia-utils", "NVIDIA userspace utilities and libraries."]
+      ],
+      expected: "Use only when lspci identifies NVIDIA graphics and the selected NVIDIA driver path matches the installed kernel and GPU support.",
+      fails: "If the machine has older NVIDIA hardware, a custom kernel, or hybrid graphics, stop and use the NVIDIA-specific documentation before installing random packages."
+    },
+    {
+      label: "Verify selected graphics path",
+      sources: sourceRefs("pacman"),
+      command: "pacman -Q mesa vulkan-intel vulkan-radeon nvidia-open nvidia-utils",
+      purpose: "Checks which graphics packages are installed after choosing a branch.",
+      words: [
+        ["pacman -Q", "Queries installed packages."],
+        ["graphics package names", "The possible packages from the branches above."]
+      ],
+      expected: "Installed packages print versions. Packages not selected for this machine may print 'was not found'.",
+      fails: "Do not treat every missing branch package as a failure. Only the package or packages chosen for this hardware need to be installed."
+    }
+  ],
+  terms: ["hardware detection", "lscpu", "lspci", "lsusb", "rfkill", "GPU", "Mesa", "NVIDIA", "Vulkan", "firmware", "NetworkManager", "PipeWire"]
 });
 
 extendSection("Configure System", {
@@ -6846,7 +7066,7 @@ function commandSafetyType(command) {
   if (/^(nano|sudo\s+nano|EDITOR=.*\bvisudo\b|ln\s+-sf|locale-gen|echo\b|cat\s+>|genfstab|arch-chroot|mount|swapon)\b/.test(text)) {
     return "configuration";
   }
-  if (/^(ls|lsblk|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|systemctl\s+show)\b/.test(text)) {
+  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show)\b/.test(text)) {
     return "safe-inspection";
   }
   if (/^(Ctrl|F\d+$|u$|q$|PID |\/|@|\[|process_count|new_processes|normal baseline|keep,)/.test(text)) {

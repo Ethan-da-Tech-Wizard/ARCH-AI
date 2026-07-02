@@ -332,6 +332,12 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add post-install package baseline.
   - Acceptance: app explains and installs practical beginner packages such as `sudo`, `networkmanager`, `firefox`, `pipewire`, `wireplumber`, `pipewire-pulse`, `pavucontrol`, and a terminal/editor path.
 
+- [x] Add locale and timezone verification.
+  - Acceptance: app does not only set `/etc/localtime`, `/etc/locale.gen`, and `/etc/locale.conf`; it also verifies the time zone symlink, uncommented locale selection, and locale configuration file.
+
+- [x] Add hardware detection and driver-choice branching.
+  - Acceptance: app asks the learner to inspect CPU, PCI, USB, and radio-block state before choosing Intel CPU, AMD CPU, Intel graphics, AMD graphics, NVIDIA graphics, Bluetooth, or audio-related packages.
+
 ## 2. Make Steps Branch Safely
 
 - [~] Add UEFI vs BIOS branching.
@@ -559,6 +565,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Full bootloader configuration covers UEFI `systemd-boot`, UEFI GRUB, and legacy BIOS GRUB paths.
 - [x] Beginner desktop path is added with Xorg, Xfce, LightDM, Firefox, and audio controls.
 - [x] Post-install baseline is added with required, desktop-path, and hardware-specific package guidance.
+- [x] Hardware detection path separates Intel CPU, AMD CPU, Intel graphics, AMD graphics, and NVIDIA graphics choices.
 - [ ] Offline ArchWiki source ingestion is not complete.
 - [ ] VM verification is not complete.
 
