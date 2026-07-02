@@ -274,7 +274,7 @@ Examples:
 - [x] Add placeholder input fields for every command placeholder.
   - Acceptance: placeholders such as `"YourWiFi"`, `wlan0`, `/dev/sda`, `/dev/sda1`, `ethan`, `archbox`, and `PASTE-ROOT-UUID-HERE` all have matching inputs or discovery steps before the user is expected to type/copy the command.
 
-- [ ] Disable copy for incomplete templated commands.
+- [x] Disable copy for incomplete templated commands.
   - Acceptance: if required values are missing, the command is visibly incomplete and cannot be copied as if it were ready.
 
 - [ ] Render final commands verbatim from user values.

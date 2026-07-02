@@ -7000,11 +7000,14 @@ function renderCommandValue(command) {
   const hasPartitionReplacement = afterPartitions !== afterDisk;
   const replaced = afterText.text;
   const personalized = replaced !== command.command;
+  const placeholderMatches = commandPlaceholderMatches(replaced);
   return {
     command: replaced,
     personalized,
     note: renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement, afterText.labels),
-    placeholderWarning: renderPlaceholderWarning(replaced)
+    placeholderMatches,
+    placeholderWarning: renderPlaceholderWarning(placeholderMatches),
+    copyReady: placeholderMatches.length === 0
   };
 }
 
@@ -7046,8 +7049,11 @@ const commandPlaceholderRules = [
   }
 ];
 
-function renderPlaceholderWarning(commandText) {
-  const matches = commandPlaceholderRules.filter((rule) => rule.test.test(commandText));
+function commandPlaceholderMatches(commandText) {
+  return commandPlaceholderRules.filter((rule) => rule.test.test(commandText));
+}
+
+function renderPlaceholderWarning(matches) {
   if (!matches.length) return "";
   return `
     <section class="placeholder-command-warning">
@@ -7073,6 +7079,9 @@ function commandTemplate(command) {
   const safety = commandSafetyMeta(command);
   const dangerClass = commandDangerClass(safetyType);
   const rendered = renderCommandValue(command);
+  const copyButton = rendered.copyReady
+    ? `<button class="copy-btn" type="button" data-copy="${escapeHtml(rendered.command)}">Copy</button>`
+    : `<button class="copy-btn" type="button" disabled title="Fill the mapped values for this command first">Incomplete</button>`;
   if (blocked) {
     return `
       <section class="command-card command-blocked${dangerClass}">
@@ -7109,7 +7118,7 @@ function commandTemplate(command) {
           <h4>${command.label}</h4>
           ${commandSafetyBadge(command)}
         </div>
-        <button class="copy-btn" type="button" data-copy="${escapeHtml(rendered.command)}">Copy</button>
+        ${copyButton}
       </div>
       <p class="command-safety-note">${safety.explanation}</p>
       ${destructiveCommandWarning(safetyType)}
