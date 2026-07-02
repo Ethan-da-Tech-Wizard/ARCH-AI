@@ -265,7 +265,7 @@ Examples:
 - [x] Add easy update controls.
   - Acceptance: user can change a device name later and all future instructions update to match.
 
-- [ ] Add placeholder warnings.
+- [x] Add placeholder warnings.
   - Acceptance: app clearly labels example values like `/dev/sda`, `/dev/nvme0n1`, `/dev/sdb4`, `PASTE-ROOT-UUID-HERE`, and never lets them look like guaranteed real values.
 
 - [ ] Add command templating.

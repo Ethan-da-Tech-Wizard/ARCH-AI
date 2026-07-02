@@ -926,6 +926,21 @@ h3 {
   line-height: 1.55;
 }
 
+.placeholder-command-warning {
+  padding: 12px;
+  border: 1px solid var(--warn-line);
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: var(--warn-bg);
+  color: #6d552a;
+}
+
+.placeholder-command-warning ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;

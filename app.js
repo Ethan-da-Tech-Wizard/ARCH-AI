@@ -6923,8 +6923,58 @@ function renderCommandValue(command) {
   return {
     command: replaced,
     personalized,
-    note: renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement)
+    note: renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement),
+    placeholderWarning: renderPlaceholderWarning(replaced)
   };
+}
+
+const commandPlaceholderRules = [
+  {
+    test: /\/dev\/sda(?!\d)|\/dev\/nvme0n1(?!p\d)|\/dev\/sdb(?!\d)/,
+    label: "Example whole disk",
+    warning: "This command still contains an example whole-disk path. A whole disk value must come from this machine's current lsblk output, not from the walkthrough text."
+  },
+  {
+    test: /\/dev\/sda\d+|\/dev\/nvme0n1p\d+|\/dev\/sdb\d+/,
+    label: "Example partition",
+    warning: "This command still contains an example partition path. A partition value must match the exact EFI, root, or swap partition found on this machine."
+  },
+  {
+    test: /\bwlan0\b/,
+    label: "Example Wi-Fi device",
+    warning: "wlan0 is an example Wi-Fi device name. Use the name from iwctl device list or ip link."
+  },
+  {
+    test: /"Network Name"|"YourWiFi"/,
+    label: "Example Wi-Fi network",
+    warning: "This command still contains an example Wi-Fi network name. Replace it with the exact SSID, keeping quotes when the name contains spaces."
+  },
+  {
+    test: /\bPASTE-ROOT-UUID-HERE\b/,
+    label: "Root UUID placeholder",
+    warning: "PASTE-ROOT-UUID-HERE is not a real UUID. Replace it with the UUID of the Linux root filesystem, not the EFI partition and not swap."
+  },
+  {
+    test: /\barchbox\b/,
+    label: "Example hostname",
+    warning: "archbox is an example hostname. Replace it with the computer name you actually want before writing /etc/hostname."
+  },
+  {
+    test: /\bethan\b/,
+    label: "Example username",
+    warning: "ethan is an example username. Replace it with the real account name before creating users, setting passwords, or changing sudo access."
+  }
+];
+
+function renderPlaceholderWarning(commandText) {
+  const matches = commandPlaceholderRules.filter((rule) => rule.test.test(commandText));
+  if (!matches.length) return "";
+  return `
+    <section class="placeholder-command-warning">
+      <strong>Placeholder warning</strong>
+      <ul>${matches.map((match) => `<li><strong>${escapeHtml(match.label)}:</strong> ${escapeHtml(match.warning)}</li>`).join("")}</ul>
+    </section>
+  `;
 }
 
 function renderCommandWords(command, rendered) {
@@ -6984,6 +7034,7 @@ function commandTemplate(command) {
       <p class="command-safety-note">${safety.explanation}</p>
       ${destructiveCommandWarning(safetyType)}
       ${rendered.note}
+      ${rendered.placeholderWarning}
       ${sourceListTemplate(command.sources, "Official source for this command", true)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <div class="explain-grid">
