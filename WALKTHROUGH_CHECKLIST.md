@@ -529,7 +529,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Create a clean Arch VM test plan.
   - Acceptance: document lists VM settings, boot mode, disk size, networking mode, and test checkpoints.
 
-- [ ] Run the UEFI/systemd-boot path in a VM.
+- [x] Run the UEFI/systemd-boot path in a VM.
   - Acceptance: VM boots into the installed system without the ISO and matches the guide.
 
 - [ ] Run the GRUB path in a VM.

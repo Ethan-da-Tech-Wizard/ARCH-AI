@@ -29,8 +29,8 @@ KVM acceleration: /dev/kvm was not available in this environment.
 Status:
 
 ```text
-UEFI/systemd-boot VM run: pending
-Reason: QEMU reached the Arch UEFI boot menu, but the default ISO boot did not expose a usable live shell through the serial-only console. A graphical VM console or a serial-enabled boot parameter path is needed to complete the install test.
+UEFI/systemd-boot VM run: complete
+Result: QEMU reached the Arch UEFI boot menu, the ISO was booted over serial with console=ttyS0,115200, Arch was installed to the qcow2 disk, and the VM booted successfully without the ISO.
 ```
 
 ## Completed Local Preparation
@@ -89,18 +89,322 @@ QEMU can boot the Arch ISO to the UEFI boot menu.
 What this does not prove yet:
 
 ```text
-The guide's partitioning commands match real output.
-pacstrap has not been run.
-systemd-boot has not been installed.
-The VM has not booted from the installed disk.
-Networking inside the live ISO has not been verified.
 Firefox and audio have not been verified.
+The graphical desktop path has not been verified.
+The GRUB path has not been verified.
 ```
 
 Next practical test path:
 
 ```text
-Use a graphical QEMU/virt-manager/GNOME Boxes console, or boot the ISO with explicit serial console kernel parameters, then complete the VM_TEST_PLAN.md UEFI/systemd-boot run.
+Use the same VM method for the desktop, Firefox, and audio path, or create a separate fresh disk for GRUB validation.
+```
+
+## Finished UEFI/systemd-boot Run
+
+Test ID: VM-UEFI-SDBOOT
+
+Date: 2026-07-02
+
+VM software: QEMU
+
+QEMU version: 11.0.1
+
+Arch ISO file: `iso/archlinux-2026.07.01-x86_64.iso`
+
+Firmware: UEFI OVMF
+
+Disk image: `vm/arch-uefi-systemdboot.qcow2`
+
+Disk size: 32 GiB
+
+Network mode: QEMU user-mode NAT Ethernet
+
+Network interface shown by `ip link`: `enp0s2`
+
+Disk name shown by `lsblk`: `vda`
+
+EFI partition: `/dev/vda1`, 512 MiB, FAT32, mounted at `/boot`
+
+Root partition: `/dev/vda2`, 31.5 GiB, ext4, mounted at `/`
+
+Swap partition: not used in this VM run
+
+Bootloader path: systemd-boot
+
+Serial console note:
+
+```text
+The Arch ISO boot entry was edited at the UEFI systemd-boot menu.
+The kernel command line was given console=ttyS0,115200 so the live ISO shell was visible through QEMU serial output.
+The installed systemd-boot entry also includes console=ttyS0,115200.
+```
+
+Pre-install output:
+
+```text
+whoami:
+root
+
+timedatectl:
+Local time: Thu 2026-07-02 07:21:54 UTC
+Universal time: Thu 2026-07-02 07:21:54 UTC
+RTC time: Thu 2026-07-02 07:21:54
+Time zone: UTC (UTC, +0000)
+System clock synchronized: yes
+NTP service: active
+RTC in local TZ: no
+
+ip link:
+1: lo: <LOOPBACK,UP,LOWER_UP>
+2: enp0s2: <BROADCAST,MULTICAST,UP,LOWER_UP>
+   link/ether 52:54:00:12:34:56
+   altname enx525400123456
+
+lsblk -o NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS:
+NAME    SIZE TYPE MODEL        TRAN   SERIAL  MOUNTPOINTS
+loop0 999.4M loop                             /run/archiso/airootfs
+sr0     1.5G rom  QEMU DVD-ROM sata   QM00005 /run/archiso/bootmnt
+vda      32G disk              virtio
+
+lsblk -f:
+NAME FSTYPE FSVER LABEL       UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+loop0 squash 4.0                                                          0   100% /run/archiso/airootfs
+sr0  iso966 Jolie ARCH_202607 2026-07-01-16-36-20-00                     0   100% /run/archiso/bootmnt
+vda
+```
+
+Network/DNS output:
+
+```text
+ping -c 3 1.1.1.1:
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 24.166/36.584/55.111/13.351 ms
+
+ping -c 3 archlinux.org:
+PING archlinux.org (209.126.35.79)
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 26.961/48.187/88.003/28.174 ms
+```
+
+Partition and mount output:
+
+```text
+sgdisk -Z /dev/vda:
+GPT data structures destroyed! You may now partition the disk using fdisk or other utilities.
+
+sgdisk -n 1:0:+512M -t 1:ef00 -c 1:'EFI System' -n 2:0:0 -t 2:8300 -c 2:'Arch root' /dev/vda:
+The operation has completed successfully.
+
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS /dev/vda:
+NAME    SIZE TYPE FSTYPE MOUNTPOINTS
+vda      32G disk
+├─vda1  512M part
+└─vda2 31.5G part
+
+mkfs.fat -F 32 /dev/vda1:
+mkfs.fat 4.2 (2021-01-31)
+
+mkfs.ext4 -F /dev/vda2:
+Filesystem UUID: 0892e7ba-9227-4d12-b2bc-71382a9409e4
+
+findmnt /mnt:
+TARGET SOURCE    FSTYPE OPTIONS
+/mnt   /dev/vda2 ext4   rw,relatime
+
+findmnt /mnt/boot:
+TARGET    SOURCE    FSTYPE OPTIONS
+/mnt/boot /dev/vda1 vfat   rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii
+```
+
+Install checkpoints:
+
+```text
+pacstrap result:
+pacstrap -K /mnt base linux linux-firmware nano networkmanager sudo completed successfully.
+175 packages were installed.
+Total Download Size: 673.22 MiB
+Total Installed Size: 1139.82 MiB
+pacstrap runtime: 3:36.45
+
+genfstab result:
+# /dev/vda2
+UUID=0892e7ba-9227-4d12-b2bc-71382a9409e4 /     ext4 rw,relatime 0 1
+
+# /dev/vda1
+UUID=1BDA-41B0 /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
+
+arch-chroot entered:
+Prompt changed to [root@archiso /]#
+
+/boot mounted correctly:
+TARGET SOURCE FSTYPE OPTIONS
+/boot  /dev/vda1 vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii
+
+root UUID used:
+0892e7ba-9227-4d12-b2bc-71382a9409e4
+
+NetworkManager:
+systemctl enable NetworkManager
+systemctl is-enabled NetworkManager
+enabled
+
+normal user:
+archuser was created with UID 1000 and added to wheel.
+%wheel ALL=(ALL:ALL) ALL was enabled in /etc/sudoers.
+```
+
+Bootloader checkpoints:
+
+```text
+/boot/loader/loader.conf:
+default arch.conf
+timeout 5
+console-mode keep
+editor no
+
+/boot/loader/entries/arch.conf:
+title Arch Linux
+linux /vmlinuz-linux
+initrd /initramfs-linux.img
+options root=UUID=0892e7ba-9227-4d12-b2bc-71382a9409e4 rw console=ttyS0,115200
+
+bootctl install:
+Copied /usr/lib/systemd/boot/efi/systemd-bootx64.efi to /boot/EFI/systemd/systemd-bootx64.efi.
+Copied /usr/lib/systemd/boot/efi/systemd-bootx64.efi to /boot/EFI/BOOT/BOOTX64.EFI.
+Random seed file /boot/loader/random-seed successfully written.
+Not booted with EFI or running in a container, skipping EFI variable modifications.
+
+bootctl list:
+title: Arch Linux (default)
+id: arch.conf
+linux: /boot/vmlinuz-linux
+initrd: /boot/initramfs-linux.img
+options: root=UUID=0892e7ba-9227-4d12-b2bc-71382a9409e4 rw console=ttyS0,115200
+
+bootctl status:
+Available Boot Loaders on ESP:
+/boot/EFI/systemd/systemd-bootx64.efi
+/boot/EFI/BOOT/BOOTX64.EFI
+Default Boot Loader Entry: Arch Linux
+```
+
+First boot:
+
+```text
+ISO removed/ejected:
+QEMU was relaunched without -cdrom and without -boot d.
+
+VM boots from installed disk:
+Firmware loaded Boot0003 "UEFI Misc Device".
+systemd-boot displayed "Arch Linux".
+Kernel mounted root UUID 0892e7ba-9227-4d12-b2bc-71382a9409e4.
+Installed system reached "archtest login:" on ttyS0.
+
+login works:
+Logged in as archuser.
+whoami returned archuser.
+
+findmnt /:
+TARGET SOURCE    FSTYPE OPTIONS
+/      /dev/vda2 ext4   rw,relatime
+
+findmnt /boot:
+TARGET SOURCE FSTYPE OPTIONS
+/boot  /dev/vda1 vfat   rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii
+
+cat /etc/fstab:
+# /dev/vda2
+UUID=0892e7ba-9227-4d12-b2bc-71382a9409e4 /     ext4 rw,relatime 0 1
+
+# /dev/vda1
+UUID=1BDA-41B0 /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
+
+systemctl status NetworkManager:
+Loaded: loaded; enabled
+Active: active (running)
+Main PID: 283 (NetworkManager)
+
+ip addr show enp0s2:
+enp0s2: <BROADCAST,MULTICAST,UP,LOWER_UP>
+inet 10.0.2.15/24
+
+ping -c 3 1.1.1.1:
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 18.179/19.384/21.378/1.420 ms
+
+ping -c 3 archlinux.org:
+PING archlinux.org (209.126.35.79)
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 32.167/63.427/84.771/22.591 ms
+
+sudo -v:
+sudo displayed the normal first-use warning and accepted the archuser password.
+Command exited successfully.
+```
+
+Desktop/Firefox/audio:
+
+```text
+graphical login: not tested
+Firefox launch: not tested
+systemctl --user status pipewire: not tested
+systemctl --user status wireplumber: not tested
+pactl info: not tested
+```
+
+Commands that matched the guide:
+
+```text
+Disk identity checks, EFI check, partition creation, mkfs, mount, pacstrap, genfstab, arch-chroot, locale, hostname, user account, NetworkManager enablement, systemd-boot entry creation, first boot mount checks, NetworkManager status, IP ping, DNS ping, and sudo validation matched the intended UEFI/systemd-boot path.
+```
+
+Commands that differed:
+
+```text
+The VM used -accel tcg instead of -enable-kvm because /dev/kvm was unavailable.
+The ISO was booted over serial by editing the Arch ISO boot entry and adding console=ttyS0,115200.
+The installed boot entry also includes console=ttyS0,115200 so the installed system is visible over serial.
+The first attempt to write /boot/loader/loader.conf happened before /boot/loader existed. The file was rewritten after bootctl install created the directory.
+bootctl install reported that EFI variable modifications were skipped from the chroot, but it installed both the normal systemd path and fallback /boot/EFI/BOOT/BOOTX64.EFI. The VM booted from the installed disk successfully.
+```
+
+Unexpected output:
+
+```text
+The Arch ISO boot showed one failed systemd-loop unit for attaching /sys/devices/.../block/sr0 to loopback. The ISO still mounted /dev/sr0 successfully and reached the live root shell.
+bootctl warned that the FAT32 /boot mount is world-accessible for the random seed file. This is expected for the simple ESP-mounted-at-/boot layout, but should be documented as a note for future hardening choices.
+```
+
+Failure point:
+
+```text
+None in the finished run.
+```
+
+Fix needed in app:
+
+```text
+Add a serial-console VM note for automated/headless validation:
+- live ISO boot parameter: console=ttyS0,115200
+- installed systemd-boot options line includes: console=ttyS0,115200
+
+Add a small ordering note:
+- bootctl install creates /boot/loader if it does not already exist
+- if writing loader.conf before bootctl install, create /boot/loader first
+```
+
+Fix needed in documentation:
+
+```text
+Document that bootctl can install fallback EFI files even when EFI variable writes are skipped inside a chroot, and that the real proof is a successful boot without the ISO.
+Keep desktop, Firefox, and audio marked as separate untested validation paths.
+```
+
+Final result:
+
+```text
+PASS. The UEFI/systemd-boot VM installed Arch, shut down, relaunched without the ISO, booted from the installed qcow2 disk, logged in as archuser, mounted / and /boot correctly, ran NetworkManager, resolved DNS, reached archlinux.org, and validated sudo.
 ```
 
 ## ISO Placement
