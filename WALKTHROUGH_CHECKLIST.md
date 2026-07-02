@@ -358,7 +358,7 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add swap strategy branching.
   - Acceptance: app supports no swap, swap partition, and swap file explanations without mixing commands.
 
-- [ ] Add audio-device branching.
+- [x] Add audio-device branching.
   - Acceptance: app separates laptop/internal audio, HDMI/DisplayPort audio, USB headsets, and Bluetooth audio troubleshooting paths.
 
 ## 2A. Internal SSD Install Scenarios
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add audio-device branching so laptop/internal audio, HDMI/DisplayPort audio, USB headsets, and Bluetooth audio troubleshooting paths are separated.
+Next KISS implementation step: add the mount layout checkpoint before `pacstrap` so root, boot, and optional swap must be confirmed mounted/active before base-system install.

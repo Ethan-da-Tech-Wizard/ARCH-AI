@@ -1062,6 +1062,10 @@ code {
   border-left-width: 5px;
 }
 
+.audio-path-card {
+  border-left-width: 5px;
+}
+
 .boot-path-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1413,6 +1417,17 @@ dialog::backdrop {
                 <option value="">No swap for now</option>
                 <option value="swap-partition">Swap partition</option>
                 <option value="swap-file">Swap file after install</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Audio target</span>
+              <select name="audioTarget">
+                <option value="">Internal speakers / microphone</option>
+                <option value="hdmi-displayport">HDMI / DisplayPort audio</option>
+                <option value="usb-headset">USB headset or USB audio</option>
+                <option value="bluetooth">Bluetooth audio</option>
+                <option value="unknown">Unknown / not checked yet</option>
               </select>
             </label>
           </form>
@@ -5566,6 +5581,13 @@ const profileLabels = {
     "swap-partition": "swap partition",
     "swap-file": "swap file after install"
   },
+  audioTarget: {
+    internal: "internal speakers / microphone",
+    "hdmi-displayport": "HDMI / DisplayPort audio",
+    "usb-headset": "USB headset or USB audio",
+    bluetooth: "Bluetooth audio",
+    unknown: "audio target unknown"
+  },
   networkPath: {
     ethernet: "Ethernet",
     wifi: "Wi-Fi",
@@ -5593,6 +5615,7 @@ function profileValue(field) {
   const value = setupProfile[field];
   if (field === "bootloaderPath" && !value) return "recommended for boot mode";
   if (field === "swapStrategy" && !value) return "no swap for now";
+  if (field === "audioTarget" && !value) return "internal speakers / microphone";
   return profileLabels[field]?.[value] || "not answered";
 }
 
@@ -7051,6 +7074,137 @@ function swapStrategyTemplate() {
   `;
 }
 
+const audioPathCatalog = {
+  internal: {
+    label: "Internal speakers / microphone",
+    status: "ready",
+    summary: "Use this for laptop speakers, built-in desktop analog audio, and built-in microphones.",
+    evidence: [
+      "Use lspci to identify the audio controller and kernel driver.",
+      "Use pactl list short sinks to find analog output sinks.",
+      "Use pactl list short sources to find microphone sources and ignore monitor-only sources when testing a real mic."
+    ],
+    checks: [
+      "PipeWire, pipewire-pulse, and WirePlumber user services are running.",
+      "pavucontrol shows the intended output device and it is not muted.",
+      "The default sink/source matches the built-in device before recording or playback tests."
+    ],
+    notThis: [
+      "Do not troubleshoot HDMI first if the user wants laptop speakers.",
+      "Do not assume a monitor source is a microphone.",
+      "Do not install Bluetooth tools just to fix built-in analog audio."
+    ]
+  },
+  "hdmi-displayport": {
+    label: "HDMI / DisplayPort audio",
+    status: "ready",
+    summary: "Use this when audio should play through a monitor, TV, dock, or GPU display output.",
+    evidence: [
+      "Use lspci to identify the GPU and audio controller.",
+      "Use pactl list short sinks to find HDMI or DisplayPort sinks.",
+      "Confirm the monitor/TV input is selected and the display cable actually carries audio."
+    ],
+    checks: [
+      "Graphics drivers are installed for the selected GPU path.",
+      "The HDMI/DisplayPort sink is selected in pavucontrol.",
+      "Volume is unmuted in both Linux and the monitor/TV."
+    ],
+    notThis: [
+      "Do not expect a microphone from most HDMI/DisplayPort sinks.",
+      "Do not debug laptop speakers when the selected target is monitor audio.",
+      "Do not blame Firefox until system playback works outside the browser."
+    ]
+  },
+  "usb-headset": {
+    label: "USB headset or USB audio",
+    status: "ready",
+    summary: "Use this for USB headsets, USB microphones, DACs, audio interfaces, and webcam microphones.",
+    evidence: [
+      "Use lsusb to confirm the USB audio device is visible.",
+      "Use pactl list short sinks for USB outputs.",
+      "Use pactl list short sources for USB microphones or headset inputs."
+    ],
+    checks: [
+      "The USB device appears after unplug/replug.",
+      "The USB output/input is selected in pavucontrol.",
+      "The headset hardware mute switch, if present, is off."
+    ],
+    notThis: [
+      "Do not troubleshoot internal speakers if the selected device is USB.",
+      "Do not assume the first listed sink/source is the USB device.",
+      "Do not ignore cable, hub, or port problems."
+    ]
+  },
+  bluetooth: {
+    label: "Bluetooth audio",
+    status: "danger",
+    summary: "Use this only after basic PipeWire audio works, because Bluetooth adds adapter, radio, pairing, profile, and codec layers.",
+    evidence: [
+      "Use rfkill list to confirm Bluetooth is not blocked.",
+      "Use lsusb or lspci to identify the Bluetooth adapter.",
+      "Use Bluetooth tools only after bluez and bluez-utils are installed and the Bluetooth service is running."
+    ],
+    checks: [
+      "Bluetooth radio is unblocked.",
+      "The device is paired, trusted, and connected.",
+      "The correct Bluetooth audio profile is selected in pavucontrol."
+    ],
+    notThis: [
+      "Do not start with Bluetooth if internal or USB audio is the real target.",
+      "Do not blame PipeWire alone before checking pairing and radio state.",
+      "Do not treat headset microphone mode and high-quality playback mode as the same profile."
+    ]
+  },
+  unknown: {
+    label: "Audio target unknown",
+    status: "danger",
+    summary: "Stop and identify the desired audio device before choosing a troubleshooting path.",
+    evidence: [
+      "Run lspci for internal/GPU audio controllers.",
+      "Run lsusb for USB audio devices and Bluetooth adapters.",
+      "Run pactl list short sinks and pactl list short sources after PipeWire is running."
+    ],
+    checks: [
+      "Choose whether the target is internal, HDMI/DisplayPort, USB, or Bluetooth.",
+      "Pick one path first instead of changing several layers at once.",
+      "Keep the universal PipeWire service checks as the baseline."
+    ],
+    notThis: [
+      "Do not randomly switch devices in pavucontrol.",
+      "Do not install unrelated packages before identifying the target.",
+      "Do not treat no microphone and no speaker output as the same failure."
+    ]
+  }
+};
+
+function activeAudioPath() {
+  const key = setupProfile.audioTarget || "internal";
+  return { key: audioPathCatalog[key] ? key : "internal", ...(audioPathCatalog[key] || audioPathCatalog.internal) };
+}
+
+function audioPathTemplate() {
+  const path = activeAudioPath();
+  return `
+    <section class="profile-summary-card audio-path-card ${path.status === "danger" ? "profile-danger" : "profile-safe"}">
+      <h4>Active audio path</h4>
+      <p><strong>${path.label}:</strong> ${path.summary}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Evidence to gather</strong>
+          <ul>${path.evidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Ready checks</strong>
+          <ul>${path.checks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p><strong>Not this path:</strong></p>
+      <ul>${path.notThis.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <p><strong>KISS rule:</strong> choose one audio target, prove PipeWire is running, then route that one target before changing anything else.</p>
+    </section>
+  `;
+}
+
 const bootloaderBranchLabels = {
   "systemd-boot": "UEFI systemd-boot",
   "grub-uefi": "UEFI GRUB",
@@ -7086,6 +7240,15 @@ function visibleCommandsForSection(section) {
 
 function sectionBranchNotice(section) {
   const notices = [];
+  if (section.title === "Audio") {
+    const path = activeAudioPath();
+    notices.push(`
+      <section class="branch-notice ${path.status === "danger" ? "branch-notice-blocked" : "branch-notice-active"}">
+        <strong>Audio path shown: ${path.label}</strong>
+        <p>${escapeHtml(path.summary)} Use the universal PipeWire service, sink, and source checks below, then apply the evidence for this selected device class.</p>
+      </section>
+    `);
+  }
   if (section.title === "Disk Setup") {
     const strategy = activeDiskStrategy();
     const hiddenCount = (section.commands || []).filter((command) => commandSafetyType(command) === "disk-write" && !diskStrategyCommandVisible(section, command)).length;
@@ -7521,7 +7684,7 @@ function renderProfileSummary() {
         Erase intent: ${profileValue("eraseIntent")}. Internal drives: ${profileValue("internalDriveCount")}.
         External drive: ${profileValue("externalDrive")}. Boot mode: ${profileValue("bootMode")}.
         Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
-        Swap: ${profileValue("swapStrategy")}.
+        Swap: ${profileValue("swapStrategy")}. Audio: ${profileValue("audioTarget")}.
       </p>
     </section>
     <section class="profile-summary-card">
@@ -7533,6 +7696,7 @@ function renderProfileSummary() {
     ${diskStrategyTemplate()}
     ${partitionDecisionTemplate()}
     ${swapStrategyTemplate()}
+    ${audioPathTemplate()}
     ${bootloaderPathTemplate()}
     ${networkPathTemplate()}
     ${diskIdentityGateTemplate()}
