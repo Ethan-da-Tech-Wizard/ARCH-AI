@@ -433,7 +433,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add Firefox readiness checkpoint.
   - Acceptance: app verifies desktop session, network, DNS, and Firefox package installation before browser troubleshooting.
 
-- [ ] Add audio readiness checkpoint.
+- [x] Add audio readiness checkpoint.
   - Acceptance: app verifies package installation, user services, sinks, sources, mute state, and recording/playback test.
 
 ## 3A. Post-Install Safety Hardening

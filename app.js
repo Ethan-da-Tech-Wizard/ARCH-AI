@@ -1132,6 +1132,19 @@ const sections = [
         fails: "If there is a package conflict with pulseaudio, pacman may ask to replace it. On a PipeWire setup, replacing PulseAudio is usually expected."
       },
       {
+        label: "Confirm audio packages are installed",
+        sources: sourceRefs("pipewire", "wireplumber", "pipewirePackage", "wireplumberPackage", "pacman"),
+        command: "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol",
+        purpose: "Verifies that the required PipeWire, PulseAudio compatibility, WirePlumber, and mixer packages are installed before troubleshooting audio behavior.",
+        words: [
+          ["pacman", "Arch package manager."],
+          ["-Q", "Query installed packages."],
+          ["pipewire pipewire-pulse wireplumber pavucontrol", "The packages expected for this simple PipeWire desktop audio path."]
+        ],
+        expected: "One installed-package line appears for each package.",
+        fails: "If a package is missing, install it before debugging services, devices, or volume controls."
+      },
+      {
         label: "Start user audio services",
         sources: sourceRefs("pipewire", "wireplumber", "systemctlMan"),
         command: "systemctl --user enable --now pipewire pipewire-pulse wireplumber",
@@ -1145,6 +1158,20 @@ const sections = [
         ],
         expected: "Usually no output if everything starts correctly.",
         fails: "If the user service manager is unavailable, log out and back in, then retry."
+      },
+      {
+        label: "Confirm user audio services are active",
+        sources: sourceRefs("pipewire", "wireplumber", "systemctlMan"),
+        command: "systemctl --user is-active pipewire pipewire-pulse wireplumber",
+        purpose: "Checks the three user audio services that must be running for common desktop audio.",
+        words: [
+          ["systemctl", "Controls and inspects systemd services."],
+          ["--user", "Targets the logged-in user's services."],
+          ["is-active", "Prints the active state without opening the full status view."],
+          ["pipewire pipewire-pulse wireplumber", "The core audio server, PulseAudio compatibility service, and session manager."]
+        ],
+        expected: "Each service prints active.",
+        fails: "If any service is inactive, inspect it with systemctl --user status SERVICE and check package installation first."
       },
       {
         label: "Open the mixer",
@@ -2760,7 +2787,7 @@ extendSection("Audio", {
     {
       type: "checkpoint",
       title: "Audio readiness checkpoint",
-      text: "A working audio setup requires detected hardware, running PipeWire services, a session manager, the correct default output/input, and application streams routed to the right devices."
+      text: "Before deep audio troubleshooting, prove the basic chain in order: required packages are installed, user services are active, PipeWire is reachable, output sinks and input sources exist, default devices are selected, mute state is known, and a short record/playback test works."
     },
     {
       type: "explain",
@@ -2831,6 +2858,54 @@ extendSection("Audio", {
       ],
       expected: "One or more sources. Microphones may appear alongside monitor sources that represent output capture.",
       fails: "If only monitor sources appear, the microphone may be muted, disabled in firmware, unsupported, or not selected in pavucontrol."
+    },
+    {
+      label: "Show default output sink",
+      sources: sourceRefs("pipewire"),
+      command: "pactl get-default-sink",
+      purpose: "Shows which output device new app audio streams will use by default.",
+      words: [
+        ["pactl", "Audio server control tool."],
+        ["get-default-sink", "Print the current default output sink."]
+      ],
+      expected: "A sink name appears, commonly containing analog, hdmi, usb, or bluetooth-related text.",
+      fails: "If no sink is returned, PipeWire may not see an output device or pipewire-pulse may not be reachable."
+    },
+    {
+      label: "Show default input source",
+      sources: sourceRefs("pipewire"),
+      command: "pactl get-default-source",
+      purpose: "Shows which microphone or input source new recording streams will use by default.",
+      words: [
+        ["get-default-source", "Print the current default input source."],
+        ["source", "An audio input such as a microphone, headset mic, or monitor source."]
+      ],
+      expected: "A source name appears. For a real microphone test, prefer a microphone source instead of a monitor source.",
+      fails: "If only a monitor source is default, choose the real microphone in pavucontrol before recording."
+    },
+    {
+      label: "Check output mute state",
+      sources: sourceRefs("pipewire"),
+      command: "pactl get-sink-mute @DEFAULT_SINK@",
+      purpose: "Checks whether the selected default output is muted.",
+      words: [
+        ["get-sink-mute", "Show mute state for an output sink."],
+        ["@DEFAULT_SINK@", "pactl shortcut for the current default output."]
+      ],
+      expected: "Mute: no.",
+      fails: "If it says Mute: yes, unmute the output in pavucontrol or with pactl after confirming the correct device."
+    },
+    {
+      label: "Check input mute state",
+      sources: sourceRefs("pipewire"),
+      command: "pactl get-source-mute @DEFAULT_SOURCE@",
+      purpose: "Checks whether the selected default microphone/input is muted.",
+      words: [
+        ["get-source-mute", "Show mute state for an input source."],
+        ["@DEFAULT_SOURCE@", "pactl shortcut for the current default input."]
+      ],
+      expected: "Mute: no for the microphone source being tested.",
+      fails: "If it says Mute: yes, unmute the input in pavucontrol and confirm the default source is the real microphone."
     },
     {
       label: "Record a short microphone test",
@@ -6636,7 +6711,7 @@ function commandSafetyType(command) {
     if (/^echo\s+["']?\$/.test(text)) return "safe-inspection";
     return "configuration";
   }
-  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show|echo\s)/.test(text)) {
+  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show|pactl\s+(info|list|get-default|get-sink-mute|get-source-mute)\b|echo\s)/.test(text)) {
     return "safe-inspection";
   }
   if (/^(Ctrl|F\d+$|u$|q$|PID |\/|@|\[|process_count|new_processes|normal baseline|keep,)/.test(text)) {
