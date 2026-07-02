@@ -373,7 +373,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add a "this is not my current OS disk" checkpoint.
   - Acceptance: user must confirm the target SSD is separate from the disk containing the existing operating system before full-disk wipe commands are shown.
 
-- [ ] Add partitioning path for the separate SSD.
+- [x] Add partitioning path for the separate SSD.
   - Acceptance: app offers a simple full-disk Arch layout for the separate SSD and explains EFI, root, optional swap, and BIOS boot partition differences.
 
 - [ ] Add formatting and mounting path for the separate SSD.

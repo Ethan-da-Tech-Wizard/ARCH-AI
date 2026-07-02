@@ -5797,6 +5797,53 @@ function partitionDecisionTemplate() {
   `;
 }
 
+function separateSsdPartitionPlanTemplate() {
+  if (!separateInternalDiskRequired()) return "";
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const targetReady = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  const currentReady = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const separated = currentReady && targetReady && currentOsDisk !== targetDisk;
+  const efiPartition = getDeviceValue("efiPartition") || "EFI partition not mapped";
+  const rootPartition = getDeviceValue("rootPartition") || "root partition not mapped";
+  const swapPartition = getDeviceValue("swapPartition") || "swap partition not mapped";
+  const useSwapPartition = activeSwapStrategy().key === "swap-partition";
+  const uefiLayout = [
+    `Partition table: GPT on ${targetReady ? targetDisk : "the mapped separate target SSD"}.`,
+    `EFI System Partition: ${efiPartition}. Suggested beginner size: about 512 MiB to 1 GiB. Format later as FAT32 and mount at /mnt/boot for the simple UEFI path.`,
+    `Linux root partition: ${rootPartition}. Use the remaining main space for Arch's / filesystem unless a separate /home plan is intentionally added later.`,
+    useSwapPartition ? `Swap partition: ${swapPartition}. Use only if Swap strategy is set to swap partition; otherwise skip partition swap commands.` : "Swap: current strategy does not require a swap partition, so do not create one just because an example mentions swap."
+  ];
+  const biosLayout = [
+    "Partition table: MBR is the simplest beginner BIOS option on a fully erased separate SSD. GPT can also work, but GRUB BIOS on GPT normally needs a tiny BIOS boot partition.",
+    "BIOS boot partition: only for legacy BIOS + GPT. It is tiny, unformatted, and different from an EFI System Partition.",
+    `Linux root partition: ${rootPartition}. This is the filesystem mounted at /mnt before pacstrap.`,
+    useSwapPartition ? `Swap partition: ${swapPartition}. Optional, and only used when the swap-partition strategy is selected.` : "Swap: skip a swap partition unless the active swap strategy says to use one."
+  ];
+  const layout = setupProfile.bootMode === "bios" ? biosLayout : uefiLayout;
+  return `
+    <section class="profile-summary-card ${separated ? "profile-safe" : "profile-danger"}">
+      <h4>Separate SSD partition plan</h4>
+      <p><strong>Target:</strong> ${targetReady ? escapeHtml(targetDisk) : "not mapped as a whole disk yet"}. <strong>Current OS disk:</strong> ${currentReady ? escapeHtml(currentOsDisk) : "not mapped as a whole disk yet"}.</p>
+      <p>${separated ? "The target and current OS disk are different mapped whole disks. Partitioning still requires the Disk identity gate before copy-ready destructive commands." : "Do not partition yet. The app must first prove the target SSD is a different whole disk from the current OS disk."}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>${setupProfile.bootMode === "bios" ? "Legacy BIOS layout" : "UEFI layout"}</strong>
+          <ul>${layout.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Do not mix boot layouts</strong>
+          <ul>
+            <li>UEFI uses an EFI System Partition; legacy BIOS GRUB does not boot from an ESP.</li>
+            <li>Legacy BIOS with GPT may need a BIOS boot partition; UEFI does not use that partition.</li>
+            <li>Do not create, delete, or write the partition table until target disk identity is proven by name, size, model, serial, and mountpoints.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 const swapStrategyCatalog = {
   none: {
     label: "No swap for now",
@@ -6508,6 +6555,7 @@ function renderProfileSummary() {
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
     ${partitionDecisionTemplate()}
+    ${separateSsdPartitionPlanTemplate()}
     ${swapStrategyTemplate()}
     ${audioPathTemplate()}
     ${bootloaderPathTemplate()}
