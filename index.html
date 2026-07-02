@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Arch Setup Walkthrough</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Arch ISO companion</p>
+        <h1>Arch Setup Walkthrough</h1>
+      </div>
+      <div class="progress-wrap" aria-label="Lesson progress">
+        <span id="progress-label">0% complete</span>
+        <div class="progress-track"><div id="progress-bar"></div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar" aria-label="Walkthrough sections">
+        <div class="panel">
+          <label class="search-label" for="search">Find a command or idea</label>
+          <input id="search" type="search" placeholder="sudo, DNS, PipeWire, mount...">
+        </div>
+        <nav id="section-nav" class="section-nav"></nav>
+      </aside>
+
+      <section class="content">
+        <div class="intro">
+          <div>
+            <p class="eyebrow">Use this from another screen</p>
+            <h2>From booted ISO to a usable system</h2>
+          </div>
+          <div class="intro-copy">
+            <p>
+              This guide is written for a person who may be looking at the Arch installer on one computer
+              and reading this walkthrough on a phone, tablet, or second monitor. Every command is treated
+              as something worth explaining.
+            </p>
+            <p>
+              The install order and technical facts are anchored to official Arch sources. This app adds
+              beginner explanations, command word maps, checkpoints, and failure notes around those sources.
+            </p>
+          </div>
+        </div>
+
+        <section class="source-policy" aria-labelledby="source-policy-title">
+          <div>
+            <p class="eyebrow">Source policy</p>
+            <h3 id="source-policy-title">Arch first, explanations second</h3>
+          </div>
+          <p>
+            Each lesson links back to ArchWiki, Arch manual pages, or official Arch package pages. When the
+            Arch docs change, the walkthrough should be checked against those links before the app text is changed.
+          </p>
+        </section>
+
+        <section class="profile" aria-labelledby="profile-title">
+          <div class="profile-head">
+            <div>
+              <p class="eyebrow">Safety profile</p>
+              <h3 id="profile-title">Describe the install before disk commands appear</h3>
+            </div>
+            <p>
+              This profile keeps the wizard focused on your real setup. It does not detect hardware by itself.
+              You will still verify disks with commands before partitioning or formatting.
+            </p>
+          </div>
+
+          <form id="profile-form" class="profile-form">
+            <label>
+              <span>What are you using to read this guide?</span>
+              <select name="guideDevice">
+                <option value="">Choose one</option>
+                <option value="phone">Phone</option>
+                <option value="tablet">Tablet</option>
+                <option value="second-computer">Second computer</option>
+                <option value="same-computer">Same computer</option>
+                <option value="printed">Printed copy</option>
+              </select>
+            </label>
+
+            <label>
+              <span>What kind of computer is being installed?</span>
+              <select name="machineType">
+                <option value="">Choose one</option>
+                <option value="generic-pc">Generic PC</option>
+                <option value="laptop">Laptop</option>
+                <option value="mac">Mac</option>
+                <option value="vm">Virtual machine</option>
+                <option value="other">Other / unsure</option>
+              </select>
+            </label>
+
+            <label>
+              <span>What environment is the target computer in right now?</span>
+              <select name="currentEnvironment">
+                <option value="">Choose one</option>
+                <option value="arch-iso">Booted into the Arch ISO</option>
+                <option value="windows">Windows</option>
+                <option value="macos">macOS</option>
+                <option value="linux">Linux</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Where will Arch be installed?</span>
+              <select name="installTarget">
+                <option value="">Choose one</option>
+                <option value="only-internal">Only internal SSD/disk</option>
+                <option value="second-internal">Separate second internal SSD/disk</option>
+                <option value="external">External SSD/USB drive</option>
+                <option value="same-existing">Same disk as an existing OS</option>
+                <option value="vm-disk">Virtual disk</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Can the target disk be fully erased?</span>
+              <select name="eraseIntent">
+                <option value="">Choose one</option>
+                <option value="yes">Yes, erase the target disk</option>
+                <option value="no-preserve">No, preserve existing data/OS</option>
+                <option value="unsure">Unsure</option>
+              </select>
+            </label>
+
+            <label>
+              <span>How many internal SSDs/disks are in the computer?</span>
+              <select name="internalDriveCount">
+                <option value="">Choose one</option>
+                <option value="one">One</option>
+                <option value="two">Two</option>
+                <option value="three-plus">Three or more</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Is an external SSD/USB drive connected?</span>
+              <select name="externalDrive">
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Boot mode detected or expected</span>
+              <select name="bootMode">
+                <option value="">Choose one</option>
+                <option value="uefi">UEFI</option>
+                <option value="bios">Legacy BIOS</option>
+                <option value="unknown">Unknown / not checked yet</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Network path</span>
+              <select name="networkPath">
+                <option value="">Choose one</option>
+                <option value="ethernet">Ethernet</option>
+                <option value="wifi">Wi-Fi</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+          </form>
+
+          <div id="profile-summary" class="profile-summary" aria-live="polite"></div>
+        </section>
+
+        <section class="device-map" aria-labelledby="device-map-title">
+          <div class="profile-head">
+            <div>
+              <p class="eyebrow">Device mapping</p>
+              <h3 id="device-map-title">Use your exact names, or say “I do not know”</h3>
+            </div>
+            <p>
+              These values will eventually drive the commands shown by the wizard. If you do not know a value,
+              mark it honestly. The safe path is discovery first, never guessing.
+            </p>
+          </div>
+
+          <form id="device-form" class="device-form"></form>
+          <div id="device-summary" class="profile-summary" aria-live="polite"></div>
+          <div id="discovery-guide" class="discovery-guide"></div>
+        </section>
+
+        <section class="wizard" aria-labelledby="wizard-title">
+          <div class="wizard-topline">
+            <div>
+              <p class="eyebrow">Setup wizard</p>
+              <h3 id="wizard-title">Guided install stage</h3>
+            </div>
+            <div class="wizard-counter" id="wizard-counter">Step 1 of 1</div>
+          </div>
+          <div id="wizard-stage"></div>
+          <div class="wizard-actions">
+            <button id="wizard-prev" type="button">Previous</button>
+            <button id="wizard-understand" type="button">Mark understood</button>
+            <button id="wizard-next" type="button">Next</button>
+          </div>
+        </section>
+
+        <section class="glossary-panel" aria-labelledby="glossary-title">
+          <div class="profile-head">
+            <div>
+              <p class="eyebrow">Beginner glossary</p>
+              <h3 id="glossary-title">One-click meanings for repeated words</h3>
+            </div>
+            <p>
+              Every page should explain its own commands, but this panel keeps the recurring words close.
+              Open a term whenever a command, file path, option, service, or safety word appears again.
+            </p>
+          </div>
+          <div id="glossary-panel" class="glossary-list"></div>
+        </section>
+
+        <div id="lesson-list" class="lesson-list"></div>
+      </section>
+    </main>
+
+    <dialog id="term-dialog">
+      <button id="close-dialog" class="icon-button" aria-label="Close">x</button>
+      <p class="eyebrow" id="term-kind">Term</p>
+      <h3 id="term-title"></h3>
+      <p id="term-body"></p>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>

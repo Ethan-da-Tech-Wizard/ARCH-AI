@@ -1,0 +1,25 @@
+# Local Arch ISO files used only for VM testing.
+iso/*.iso
+iso/*.img
+
+# Local QEMU/VM disk images. These are large generated test artifacts.
+vm/*.qcow2
+vm/*.raw
+vm/*.img
+vm/*.vdi
+vm/*.vmdk
+
+# Local writable UEFI variable stores copied from OVMF templates.
+vm/*VARS*.fd
+vm/*vars*.fd
+
+# Runtime logs and screenshots from manual VM runs.
+vm/*.log
+vm/*.png
+vm/*.webp
+vm/*.jpg
+vm/*.jpeg
+
+# Alternate local Git metadata used only when the environment provides a
+# read-only placeholder .git directory.
+.git-local/
