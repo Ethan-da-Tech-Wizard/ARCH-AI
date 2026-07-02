@@ -33,6 +33,8 @@ UEFI/systemd-boot VM run: complete
 Result: QEMU reached the Arch UEFI boot menu, the ISO was booted over serial with console=ttyS0,115200, Arch was installed to the qcow2 disk, and the VM booted successfully without the ISO.
 UEFI/GRUB VM run: complete
 Result: QEMU loaded the installed GRUB UEFI boot entry from the qcow2 disk without the ISO, GRUB displayed the Arch menu over serial, and the installed system reached login.
+Legacy BIOS/GRUB VM run: complete
+Result: SeaBIOS booted from the installed qcow2 disk without the ISO, GRUB loaded from the hard disk, and the installed system reached login.
 ```
 
 ## Completed Local Preparation
@@ -92,13 +94,12 @@ What this does not prove yet:
 
 ```text
 Audible sound playback has not been verified.
-Legacy BIOS GRUB has not been verified.
 ```
 
 Next practical test path:
 
 ```text
-Use the same VM method for deeper audio playback checks, or create a separate fresh disk for legacy BIOS GRUB validation.
+Use the same VM method for deeper audio playback checks if audible playback needs to be proven.
 ```
 
 ## Finished UEFI/systemd-boot Run
@@ -615,6 +616,200 @@ Final result:
 
 ```text
 PASS. The UEFI GRUB VM installed Arch, installed GRUB for x86_64-efi, generated a GRUB config with an Arch menu entry, created a GRUB UEFI boot entry, shut down, relaunched without the ISO, showed GRUB, booted the installed system, logged in as archuser, mounted / and /boot correctly, used the configured locale and timezone, ran NetworkManager, reached IP and DNS targets, and validated sudo.
+```
+
+## Finished Legacy BIOS/GRUB Run
+
+Test ID: VM-BIOS-GRUB
+
+Date: 2026-07-02
+
+VM software: QEMU
+
+QEMU version: 11.0.1
+
+Arch ISO file: `iso/archlinux-2026.07.01-x86_64.iso`
+
+Firmware: legacy BIOS, SeaBIOS
+
+Disk image: `vm/arch-bios-grub.qcow2`
+
+Disk size: 32 GiB
+
+Network mode: QEMU user-mode NAT Ethernet
+
+Bootloader path: GRUB BIOS
+
+Acceleration: TCG software emulation; `/dev/kvm` was unavailable in this environment.
+
+Install layout:
+
+```text
+Disk: /dev/vda
+Partition table: MBR / DOS
+Root partition: /dev/vda1, ext4, bootable flag set, mounted at /mnt during install and / after first boot
+Separate /boot partition: not used in this VM run
+EFI system partition: not used in this VM run
+Swap partition: not used in this VM run
+```
+
+Important VM-specific choices:
+
+```text
+GRUB_CMDLINE_LINUX_DEFAULT="console=ttyS0,115200"
+GRUB_TERMINAL_OUTPUT="console serial"
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+serial-getty@ttyS0.service enabled
+```
+
+These serial settings were used so the headless QEMU test could show GRUB, kernel boot output, and login over the terminal. They are not required for a normal graphical desktop install.
+
+Install commands and observed results:
+
+```text
+SeaBIOS appeared at VM startup.
+
+ls /sys/firmware/efi/efivars
+Result: BIOS_MODE_NO_EFIVARS. EFI variables were absent.
+
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS /dev/vda
+Result before partitioning: /dev/vda existed as a blank 32 GiB disk.
+
+fdisk -l /dev/vda
+Result before partitioning: 32 GiB disk with no partition table details yet.
+
+sfdisk /dev/vda
+Result: created DOS/MBR disklabel with one bootable Linux partition.
+
+Result after partitioning:
+/dev/vda1 bootable, start sector 2048, type 83 Linux, size 32 GiB.
+
+mkfs.ext4 -F /dev/vda1
+mount /dev/vda1 /mnt
+Result after mounting: /dev/vda1 ext4 mounted at /mnt.
+
+pacstrap -K /mnt base linux linux-firmware nano networkmanager sudo grub
+Result: packages installed and initramfs generated successfully.
+
+genfstab -U /mnt >> /mnt/etc/fstab
+Result: / was written by UUID.
+
+locale-gen
+Result: en_US.UTF-8 generated.
+
+systemctl enable NetworkManager
+Result: NetworkManager service enabled.
+
+grub-install --target=i386-pc /dev/vda
+Result: Installation finished. No error reported.
+
+grub-mkconfig -o /boot/grub/grub.cfg
+Result: Arch Linux menu entry generated.
+
+grep -n "menuentry" /boot/grub/grub.cfg
+Result: Arch Linux and Advanced options menu entries existed.
+```
+
+First boot without ISO:
+
+```text
+QEMU launched without -cdrom, without OVMF, and without direct kernel boot.
+SeaBIOS displayed "Booting from Hard Disk..."
+GRUB displayed "GRUB loading."
+GRUB displayed version 2:2.14-1.
+GRUB displayed the Arch Linux menu.
+GRUB loaded /boot/vmlinuz-linux and /boot/initramfs-linux.img.
+The installed system reached archbios login on ttyS0.
+```
+
+Installed-system verification:
+
+```text
+whoami
+archuser
+
+hostnamectl --static
+archbios
+
+ls /sys/firmware/efi/efivars
+BIOS_MODE_NO_EFIVARS
+
+findmnt /
+/dev/vda1 ext4 mounted at /
+
+findmnt /boot
+NO_SEPARATE_BOOT_MOUNT
+
+cat /etc/fstab
+UUID=90ed9a41-414a-4ebd-ab00-34e9ea00a486 / ext4 rw,relatime 0 1
+
+readlink /etc/localtime
+/usr/share/zoneinfo/UTC
+
+grep -v '^#' /etc/locale.gen
+en_US.UTF-8 UTF-8
+
+cat /etc/locale.conf
+LANG=en_US.UTF-8
+
+systemctl is-active NetworkManager
+active
+
+ip addr show
+ens3 had DHCP address 10.0.2.15/24.
+
+ping -c 2 1.1.1.1
+2 packets transmitted, 2 received, 0% packet loss.
+
+ping -c 2 archlinux.org
+2 packets transmitted, 2 received, 0% packet loss.
+
+sudo -v
+SUDO_OK
+```
+
+Observed warnings and notes:
+
+```text
+SeaBIOS/QEMU printed an fd0 read error while probing a non-existent floppy device. This did not affect the install disk and was not a GRUB failure.
+
+mkinitcpio warned that /etc/vconsole.conf was not found and default values would be used. This is acceptable for the minimal VM and not a GRUB failure.
+
+grub-mkconfig warned that os-prober would not be executed. This is expected for this single-OS VM and not a GRUB failure.
+
+grub-mkconfig still printed a UEFI Firmware Settings menu entry during generation, but the installed BIOS boot menu shown by GRUB contained Arch Linux and Advanced options. EFI variables were absent before and after install.
+```
+
+Commands that matched the guide:
+
+```text
+BIOS-mode detection, MBR partitioning, whole-disk GRUB target, pacstrap, genfstab, locale setup, timezone setup, NetworkManager enablement, user/sudo setup, GRUB BIOS package install, grub-install, grub-mkconfig, menuentry check, first boot without ISO, mount checks, network checks, DNS check, and sudo validation matched the intended legacy BIOS GRUB path.
+```
+
+Commands that differed from a normal desktop install:
+
+```text
+The VM added serial console options to GRUB and enabled serial-getty@ttyS0.service so QEMU could be tested headlessly.
+The VM used UTC for deterministic testing. A real user should choose their actual timezone.
+The VM used -accel tcg instead of -enable-kvm because /dev/kvm was unavailable.
+```
+
+Fix needed in app:
+
+```text
+None found from this legacy BIOS GRUB run.
+```
+
+Fix needed in documentation:
+
+```text
+Record that legacy BIOS GRUB has passed.
+```
+
+Final result:
+
+```text
+PASS. The legacy BIOS GRUB VM installed Arch on an MBR disk, installed GRUB for i386-pc to the whole disk /dev/vda, generated a GRUB config with an Arch menu entry, shut down, relaunched without the ISO, booted through SeaBIOS from the hard disk, showed GRUB, booted the installed system, logged in as archuser, mounted / correctly, used the configured locale and timezone, ran NetworkManager, reached IP and DNS targets, and validated sudo.
 ```
 
 ## ISO Placement

@@ -541,7 +541,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Run the UEFI GRUB path in a VM.
   - Acceptance: VM boots through GRUB UEFI from the installed disk without the ISO and matches the guide.
 
-- [ ] Run the legacy BIOS GRUB path in a VM.
+- [x] Run the legacy BIOS GRUB path in a VM.
   - Acceptance: VM boots through BIOS GRUB from the installed disk without the ISO and matches the guide.
 
 - [x] Verify networking steps in the VM.
@@ -570,7 +570,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Post-install baseline is added with required, desktop-path, and hardware-specific package guidance.
 - [x] Hardware detection path separates Intel CPU, AMD CPU, Intel graphics, AMD graphics, and NVIDIA graphics choices.
 - [ ] Offline ArchWiki source ingestion is not complete.
-- [ ] VM verification is not complete.
+- [x] Core VM install and bootloader verification is complete; audible audio playback remains hardware-dependent and untested.
 
 ## Next Step
 
