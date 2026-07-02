@@ -1046,6 +1046,10 @@ code {
   border-left-width: 5px;
 }
 
+.disk-strategy-card {
+  border-left-width: 5px;
+}
+
 .boot-path-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5590,6 +5594,7 @@ function diskIdentitySignature() {
     efiPartition: getDeviceValue("efiPartition"),
     rootPartition: getDeviceValue("rootPartition"),
     swapPartition: getDeviceValue("swapPartition"),
+    diskStrategy: activeDiskStrategy().key,
     eraseIntent: setupProfile.eraseIntent,
     installTarget: setupProfile.installTarget
   });
@@ -5599,6 +5604,9 @@ function diskIdentityGateIssues() {
   const issues = [];
   if (!setupProfileCompleteEnough()) {
     issues.push("Complete the safety profile first.");
+  }
+  if (!diskStrategyAllowsDestructiveCommands()) {
+    issues.push("The current disk strategy is not a full-erase path. Destructive partitioning and formatting commands stay hidden until the profile explicitly says the target disk can be erased.");
   }
   if (setupProfile.eraseIntent !== "yes") {
     issues.push("Disk-writing commands stay blocked unless the profile says the target disk can be erased. Preserve/unsure paths need a later, more specific preservation gate.");
@@ -6501,6 +6509,157 @@ function bootNetworkPathNotes() {
   return parts;
 }
 
+const diskStrategyCatalog = {
+  "profile-incomplete": {
+    label: "Disk strategy unknown",
+    status: "danger",
+    allowsDestructive: false,
+    visiblePath: "Observation only.",
+    summary: "Complete the Safety Profile before treating partitioning or formatting as part of the install path.",
+    steps: [
+      "Answer where Arch will be installed.",
+      "Answer whether the target disk can be erased.",
+      "Map the target disk and target partitions from real discovery output."
+    ],
+    hidden: [
+      "Partition editors are hidden from the normal path.",
+      "mkfs and mkswap commands are hidden from the normal path.",
+      "Mount commands remain examples until partition names are mapped."
+    ]
+  },
+  "full-disk-wipe": {
+    label: "Full target-disk erase",
+    status: "ready",
+    allowsDestructive: true,
+    visiblePath: "Destructive storage commands may be shown, but copy remains blocked until the Disk identity gate passes.",
+    summary: "Use this only when the selected target disk can be fully erased and the user accepts losing existing contents on that target.",
+    steps: [
+      "Identify the whole target disk by name, size, model, transport, serial, and mountpoints.",
+      "Create or replace the partition layout for the selected boot mode.",
+      "Format only the mapped target partitions.",
+      "Mount root, then mount the boot partition if the boot mode needs one."
+    ],
+    hidden: [
+      "Do not preserve existing OS partitions in this path.",
+      "Do not format the current OS disk unless it is intentionally the erase target.",
+      "Do not copy destructive commands before the Disk identity gate passes."
+    ]
+  },
+  "vm-disk": {
+    label: "VM virtual disk erase",
+    status: "ready",
+    allowsDestructive: true,
+    visiblePath: "Destructive storage commands may be shown for the mapped virtual disk, still behind the Disk identity gate.",
+    summary: "Use this for a VM disk after confirming there is no passthrough or host disk attached as the target.",
+    steps: [
+      "Confirm the target disk size matches the VM disk created for the test.",
+      "Confirm no host passthrough disk is being used accidentally.",
+      "Partition and format only the mapped VM disk.",
+      "Use the VM boot mode to choose the matching boot partition layout."
+    ],
+    hidden: [
+      "Do not assume every VM disk is safe if passthrough storage is configured.",
+      "Do not use host-mounted/shared folders as install targets.",
+      "Do not skip the Disk identity gate just because this is a VM."
+    ]
+  },
+  "external-erase": {
+    label: "External disk erase",
+    status: "ready",
+    allowsDestructive: true,
+    visiblePath: "Destructive storage commands may be shown, but the app emphasizes external-disk name changes.",
+    summary: "Use this only when the external SSD/USB drive is intentionally the erase target.",
+    steps: [
+      "Identify the external drive by transport, model, serial, and capacity.",
+      "Unplug unrelated external drives if possible.",
+      "Map the external whole disk and its target partitions.",
+      "Format only the mapped external target partitions."
+    ],
+    hidden: [
+      "Do not trust /dev/sda or /dev/sdb by name alone.",
+      "Do not erase a backup drive or installer USB by mistake.",
+      "Do not continue if the external disk name changes between boots without rechecking."
+    ]
+  },
+  "same-disk-erase": {
+    label: "Same disk erase",
+    status: "danger",
+    allowsDestructive: true,
+    visiblePath: "Destructive storage commands may be shown only because the profile explicitly says erase.",
+    summary: "This intentionally destroys the existing OS/data on the target disk. It is allowed only after explicit erase intent and exact disk mapping.",
+    steps: [
+      "Confirm wanted files are backed up elsewhere.",
+      "Confirm the current OS disk and target disk are intentionally the same disk.",
+      "Partition and format only after the Disk identity gate passes.",
+      "Expect the previous OS on that disk to be gone."
+    ],
+    hidden: [
+      "Do not use this path for dual boot.",
+      "Do not use this path when preserve is selected.",
+      "Do not treat recovery or EFI partitions as safe to delete unless the whole disk is intentionally being erased."
+    ]
+  },
+  "preserve-manual": {
+    label: "Preserve/manual layout",
+    status: "danger",
+    allowsDestructive: false,
+    visiblePath: "Observation and mounting only. Destructive storage commands are hidden from the normal path.",
+    summary: "Use this when existing data, an existing OS, or the erase decision must be preserved. A beginner should not resize, delete, or format from a generic example.",
+    steps: [
+      "Identify existing OS, EFI, recovery, and data partitions.",
+      "Decide which exact partition, if any, is already empty and intended for Arch.",
+      "Do not format anything that may contain data to keep.",
+      "Use a later explicit preservation plan before resizing, deleting, or formatting."
+    ],
+    hidden: [
+      "cfdisk is hidden because writing a partition table can destroy the existing layout.",
+      "mkfs commands are hidden because formatting erases the named partition's existing filesystem.",
+      "mkswap is hidden because it overwrites the selected partition for swap use."
+    ]
+  }
+};
+
+function activeDiskStrategy() {
+  if (!setupProfileCompleteEnough()) return { key: "profile-incomplete", ...diskStrategyCatalog["profile-incomplete"] };
+  if (setupProfile.eraseIntent !== "yes") return { key: "preserve-manual", ...diskStrategyCatalog["preserve-manual"] };
+  if (setupProfile.installTarget === "vm-disk") return { key: "vm-disk", ...diskStrategyCatalog["vm-disk"] };
+  if (setupProfile.installTarget === "external") return { key: "external-erase", ...diskStrategyCatalog["external-erase"] };
+  if (setupProfile.installTarget === "same-existing") return { key: "same-disk-erase", ...diskStrategyCatalog["same-disk-erase"] };
+  return { key: "full-disk-wipe", ...diskStrategyCatalog["full-disk-wipe"] };
+}
+
+function diskStrategyAllowsDestructiveCommands() {
+  return activeDiskStrategy().allowsDestructive === true;
+}
+
+function diskStrategyCommandVisible(section, command) {
+  if (section.title !== "Disk Setup") return true;
+  if (commandSafetyType(command) !== "disk-write") return true;
+  return diskStrategyAllowsDestructiveCommands();
+}
+
+function diskStrategyTemplate() {
+  const strategy = activeDiskStrategy();
+  return `
+    <section class="profile-summary-card disk-strategy-card ${strategy.status === "danger" ? "profile-danger" : "profile-safe"}">
+      <h4>Active disk strategy</h4>
+      <p><strong>${strategy.label}:</strong> ${strategy.summary}</p>
+      <p><strong>Visible path:</strong> ${strategy.visiblePath}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Current steps</strong>
+          <ul>${strategy.steps.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Hidden or blocked</strong>
+          <ul>${strategy.hidden.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p><strong>KISS rule:</strong> Do not make a preserve/manual storage situation look like a full-disk wipe. Show destructive commands only when erase intent is explicit.</p>
+    </section>
+  `;
+}
+
 const bootloaderBranchLabels = {
   "systemd-boot": "UEFI systemd-boot",
   "grub-uefi": "UEFI GRUB",
@@ -6531,36 +6690,50 @@ function visibleBlocksForSection(section) {
 }
 
 function visibleCommandsForSection(section) {
-  return (section.commands || []).filter((command) => branchMatchesProfile(command.branch));
+  return (section.commands || []).filter((command) => branchMatchesProfile(command.branch) && diskStrategyCommandVisible(section, command));
 }
 
 function sectionBranchNotice(section) {
+  const notices = [];
+  if (section.title === "Disk Setup") {
+    const strategy = activeDiskStrategy();
+    const hiddenCount = (section.commands || []).filter((command) => commandSafetyType(command) === "disk-write" && !diskStrategyCommandVisible(section, command)).length;
+    notices.push(`
+      <section class="branch-notice ${strategy.status === "danger" ? "branch-notice-blocked" : "branch-notice-active"}">
+        <strong>Disk strategy shown: ${strategy.label}</strong>
+        <p>${escapeHtml(strategy.visiblePath)}${hiddenCount ? ` ${hiddenCount} destructive storage command${hiddenCount === 1 ? " is" : "s are"} hidden from this lesson right now.` : " Destructive storage commands are visible but still safety-gated before copy."}</p>
+      </section>
+    `);
+  }
   const hasBootloaderBranches = [...(section.blocks || []), ...(section.commands || [])].some((item) => item.branch);
-  if (!hasBootloaderBranches) return "";
+  if (!hasBootloaderBranches) return notices.join("");
   const activeBranch = activeBootloaderBranch();
   const selectedPath = profileValue("bootloaderPath");
   if (activeBranch) {
-    return `
+    notices.push(`
       <section class="branch-notice branch-notice-active">
         <strong>Bootloader branch shown: ${bootloaderBranchLabels[activeBranch]}</strong>
         <p>The profile says boot mode is ${profileValue("bootMode")} and bootloader path is ${selectedPath}. Other bootloader branch commands are hidden by default so the learner follows one path at a time.</p>
       </section>
-    `;
+    `);
+    return notices.join("");
   }
   if (!setupProfile.bootMode || setupProfile.bootMode === "unknown") {
-    return `
+    notices.push(`
       <section class="branch-notice branch-notice-blocked">
         <strong>Bootloader branches hidden</strong>
         <p>Select UEFI or legacy BIOS in the Safety Profile before using bootloader instructions. Until then, bootloader install commands stay out of the visible path.</p>
       </section>
-    `;
+    `);
+    return notices.join("");
   }
-  return `
+  notices.push(`
     <section class="branch-notice branch-notice-blocked">
       <strong>Bootloader selection conflict</strong>
       <p>The selected bootloader path is ${selectedPath}, but the selected boot mode is ${profileValue("bootMode")}. Choose a matching bootloader path before continuing.</p>
     </section>
-  `;
+  `);
+  return notices.join("");
 }
 
 function bootloaderPathChoice() {
@@ -6963,6 +7136,7 @@ function renderProfileSummary() {
       <p>${recommendedPath()}</p>
     </section>
     ${scenarioPathTemplate()}
+    ${diskStrategyTemplate()}
     ${bootloaderPathTemplate()}
     ${networkPathTemplate()}
     ${diskIdentityGateTemplate()}

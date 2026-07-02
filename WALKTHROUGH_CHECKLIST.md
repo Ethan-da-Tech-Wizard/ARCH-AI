@@ -346,7 +346,7 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add Ethernet vs Wi-Fi branching.
   - Acceptance: app separates automatic wired setup from `iwctl` wireless setup and gives validation commands for each path.
 
-- [ ] Add disk strategy branching.
+- [x] Add disk strategy branching.
   - Acceptance: app distinguishes full-disk wipe from existing-partition/manual layouts and labels destructive commands clearly.
 
 - [ ] Add internal SSD scenario branching.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add disk strategy branching so full-disk wipe, VM disk, external disk, same-disk preserve, and manual existing-partition paths are not presented as one generic storage flow.
+Next KISS implementation step: add internal SSD scenario branching so one-internal-disk, two-internal-disk, external-disk, and same-disk cases show clearer target/current-disk checks before storage commands.
