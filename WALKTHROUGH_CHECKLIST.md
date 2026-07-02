@@ -424,7 +424,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add mount layout checkpoint before `pacstrap`.
   - Acceptance: app instructs learner to run `lsblk` and confirm root, boot, and optional swap are mounted/active correctly.
 
-- [ ] Add `fstab` checkpoint before `arch-chroot` or reboot.
+- [x] Add `fstab` checkpoint before `arch-chroot` or reboot.
   - Acceptance: app shows what entries should exist and what common bad entries look like.
 
 - [ ] Add network/DNS checkpoint before package installation.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add the `fstab` checkpoint before `arch-chroot` or reboot so expected root, boot, and optional swap entries are checked before continuing.
+Next KISS implementation step: add the network/DNS checkpoint before package installation so IP connectivity and DNS are tested separately before `pacstrap` or package installs.

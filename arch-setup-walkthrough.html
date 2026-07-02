@@ -2337,6 +2337,33 @@ const sections = [
         fails: "If the file is empty, the partitions may not be mounted. Run lsblk and mount the needed partitions."
       },
       {
+        label: "Inspect generated fstab before chroot",
+        sources: sourceRefs("installGuide", "genfstabMan"),
+        command: "cat /mnt/etc/fstab",
+        purpose: "Displays the generated fstab before entering the new system. This is the moment to verify that the installed system will mount the correct filesystems at boot.",
+        words: [
+          ["cat", "Prints file contents to the terminal."],
+          ["/mnt/etc/fstab", "The fstab file inside the new installed system, not the live ISO's fstab."]
+        ],
+        expected: "A root entry for / exists. UEFI/simple boot paths should have a /boot entry. Swap appears only when swap partition strategy was selected and active before genfstab. UUID= values should appear because genfstab -U was used.",
+        fails: "If / is missing, /boot is missing for a UEFI/simple boot path, swap appears unexpectedly, or the file names the wrong partition, stop. Fix mounts or swap state, then regenerate fstab before arch-chroot or reboot."
+      },
+      {
+        label: "Check fstab mountpoint lines",
+        sources: sourceRefs("genfstabMan", "fileSystems"),
+        command: "grep -E '[[:space:]]/(boot)?[[:space:]]|[[:space:]]none[[:space:]]+swap[[:space:]]' /mnt/etc/fstab",
+        purpose: "Filters fstab to the most important mountpoint lines: root, boot if present, and swap if present.",
+        words: [
+          ["grep", "Searches text for matching lines."],
+          ["-E", "Uses extended regular expressions."],
+          ["[[:space:]]/(boot)?[[:space:]]", "Matches an fstab field for / or /boot."],
+          ["[[:space:]]none[[:space:]]+swap[[:space:]]", "Matches a common swap fstab line where the mount point field is none and the filesystem type is swap."],
+          ["/mnt/etc/fstab", "The generated fstab file inside the mounted target system."]
+        ],
+        expected: "At minimum, a line for / appears. UEFI/simple boot paths should show /boot. Swap appears only for the selected active swap-partition path.",
+        fails: "If grep shows nothing, the fstab may be empty or malformed. If it shows an unexpected swap or boot entry, inspect the full file and regenerate it after correcting mounts."
+      },
+      {
         label: "Enter the new system",
         sources: sourceRefs("installGuide", "archChrootMan"),
         command: "arch-chroot /mnt",
@@ -2947,24 +2974,17 @@ extendSection("Install Base System", {
       text: "The genfstab manual describes it as generating fstab-compatible output by autodetecting mounts under a given mountpoint. That is why the root, boot, and swap mounts must be correct before running it."
     },
     {
+      type: "checkpoint",
+      title: "fstab must match the intended layout",
+      text: "Before arch-chroot or reboot, inspect /mnt/etc/fstab. Root should mount as /, the boot or EFI filesystem should mount as /boot when the selected path uses one, and swap should appear only when the swap-partition path was selected and active before genfstab."
+    },
+    {
       type: "explain",
       title: "What arch-chroot officially adds",
       text: "The arch-chroot manual explains that it wraps chroot while making important filesystems such as /dev and /proc available and exposing resolver configuration. That is why it is preferred over a plain chroot during Arch installation."
     }
   ],
   commands: [
-    {
-      label: "Inspect generated fstab before chroot",
-      sources: sourceRefs("installGuide", "genfstabMan"),
-      command: "cat /mnt/etc/fstab",
-      purpose: "Displays the generated fstab so the learner can verify root, boot, and optional swap entries before first boot.",
-      words: [
-        ["cat", "Prints file contents to the terminal."],
-        ["/mnt/etc/fstab", "The new system's filesystem table."]
-      ],
-      expected: "Lines for the mounted root filesystem, EFI/boot filesystem, and swap if enabled. UUID= values should appear when genfstab -U was used.",
-      fails: "If expected entries are missing, return to lsblk and mount commands, then regenerate fstab."
-    },
     {
       label: "Install sudo after entering chroot if missing",
       sources: sourceRefs("sudo", "pacman"),
