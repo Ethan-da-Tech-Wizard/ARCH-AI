@@ -8383,6 +8383,7 @@ function targetDiskReplacement() {
 function replaceWholeDiskExamples(value, targetDisk) {
   return value
     .replace(/\/dev\/sda(?!\d)/g, targetDisk)
+    .replace(/\/dev\/sdb(?!\d)/g, targetDisk)
     .replace(/\/dev\/nvme0n1(?!p\d)/g, targetDisk);
 }
 
@@ -8391,9 +8392,9 @@ function partitionReplacements() {
   const efiPartition = validMappedPartition("efiPartition");
   const rootPartition = validMappedPartition("rootPartition");
   const swapPartition = validMappedPartition("swapPartition");
-  if (efiPartition) replacements.push([/\/dev\/nvme0n1p1\b/g, efiPartition]);
-  if (rootPartition) replacements.push([/\/dev\/nvme0n1p2\b/g, rootPartition]);
-  if (swapPartition) replacements.push([/\/dev\/nvme0n1p3\b/g, swapPartition]);
+  if (efiPartition) replacements.push([/\/dev\/(nvme0n1p1|sda1|sdb1)\b/g, efiPartition]);
+  if (rootPartition) replacements.push([/\/dev\/(nvme0n1p2|sda2|sdb2)\b/g, rootPartition]);
+  if (swapPartition) replacements.push([/\/dev\/(nvme0n1p3|sda3|sdb3|sdb4)\b/g, swapPartition]);
   return replacements;
 }
 
@@ -8401,8 +8402,43 @@ function replacePartitionExamples(value) {
   return partitionReplacements().reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), value);
 }
 
-function renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement) {
-  if (!hasDiskReplacement && !hasPartitionReplacement) return "";
+function validMappedText(key) {
+  const value = getDeviceValue(key);
+  if (!value || getDeviceUnknown(key)) return null;
+  return value;
+}
+
+function quoteForDoubleQuotedCommand(value) {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
+}
+
+function textReplacements() {
+  const replacements = [];
+  const wifiDevice = validMappedText("wifiDevice");
+  const wifiName = validMappedText("wifiName");
+  const username = validMappedText("username");
+  const hostname = validMappedText("hostname");
+  if (wifiDevice) replacements.push({ pattern: /\bwlan0\b/g, replacement: wifiDevice, label: `Wi-Fi device ${wifiDevice}` });
+  if (wifiName) {
+    const quotedWifi = quoteForDoubleQuotedCommand(wifiName);
+    replacements.push({ pattern: /"Network Name"/g, replacement: quotedWifi, label: `Wi-Fi network ${quotedWifi}` });
+    replacements.push({ pattern: /"YourWiFi"/g, replacement: quotedWifi, label: `Wi-Fi network ${quotedWifi}` });
+  }
+  if (username) replacements.push({ pattern: /\bethan\b/g, replacement: username, label: `username ${username}` });
+  if (hostname) replacements.push({ pattern: /"archbox"/g, replacement: quoteForDoubleQuotedCommand(hostname), label: `hostname ${hostname}` });
+  return replacements;
+}
+
+function applyTextReplacements(value) {
+  return textReplacements().reduce((result, item) => {
+    const next = result.text.replace(item.pattern, item.replacement);
+    if (next !== result.text) result.labels.push(item.label);
+    return { text: next, labels: result.labels };
+  }, { text: value, labels: [] });
+}
+
+function renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement, textReplacementLabels = []) {
+  if (!hasDiskReplacement && !hasPartitionReplacement && !textReplacementLabels.length) return "";
   const targetDisk = targetDiskReplacement();
   const partitionParts = [];
   const efiPartition = validMappedPartition("efiPartition");
@@ -8417,7 +8453,8 @@ function renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement) 
       <p>
         ${hasDiskReplacement && targetDisk ? `Whole-disk examples were replaced with target disk ${escapeHtml(targetDisk)}. ` : ""}
         ${hasPartitionReplacement ? `Partition examples were replaced with ${escapeHtml(partitionParts.join(", "))}. ` : ""}
-        Still verify size, model, transport, serial, mountpoints, and filesystem role before storage-changing commands.
+        ${textReplacementLabels.length ? `Text placeholders were replaced with ${escapeHtml([...new Set(textReplacementLabels)].join(", "))}. ` : ""}
+        Still verify mapped values against discovery output before copying commands.
       </p>
     </section>
   `;
@@ -8427,14 +8464,15 @@ function renderCommandValue(command) {
   const targetDisk = targetDiskReplacement();
   const afterDisk = targetDisk ? replaceWholeDiskExamples(command.command, targetDisk) : command.command;
   const afterPartitions = replacePartitionExamples(afterDisk);
+  const afterText = applyTextReplacements(afterPartitions);
   const hasDiskReplacement = afterDisk !== command.command;
   const hasPartitionReplacement = afterPartitions !== afterDisk;
-  const replaced = afterPartitions;
+  const replaced = afterText.text;
   const personalized = replaced !== command.command;
   return {
     command: replaced,
     personalized,
-    note: renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement),
+    note: renderPersonalizationNote(hasDiskReplacement, hasPartitionReplacement, afterText.labels),
     placeholderWarning: renderPlaceholderWarning(replaced)
   };
 }
@@ -8492,7 +8530,7 @@ function renderCommandWords(command, rendered) {
   const targetDisk = targetDiskReplacement();
   return command.words.map(([word, meaning]) => {
     const afterDisk = targetDisk ? replaceWholeDiskExamples(word, targetDisk) : word;
-    const shownWord = replacePartitionExamples(afterDisk);
+    const shownWord = applyTextReplacements(replacePartitionExamples(afterDisk)).text;
     const extra = shownWord !== word ? ` This was personalized from the example value ${word}.` : "";
     return `<li><code>${escapeHtml(shownWord)}</code>: ${meaning}${extra}</li>`;
   }).join("");

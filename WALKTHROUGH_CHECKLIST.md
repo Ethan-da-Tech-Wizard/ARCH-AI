@@ -268,7 +268,7 @@ Examples:
 - [x] Add placeholder warnings.
   - Acceptance: app clearly labels example values like `/dev/sda`, `/dev/nvme0n1`, `/dev/sdb4`, `PASTE-ROOT-UUID-HERE`, and never lets them look like guaranteed real values.
 
-- [ ] Add command templating.
+- [x] Add command templating.
   - Acceptance: commands render using the user's mapped names, while preserving safety warnings.
 
 - [ ] Add placeholder input fields for every command placeholder.
