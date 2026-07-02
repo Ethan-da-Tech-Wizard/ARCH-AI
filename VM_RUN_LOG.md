@@ -89,15 +89,14 @@ QEMU can boot the Arch ISO to the UEFI boot menu.
 What this does not prove yet:
 
 ```text
-Firefox and audio have not been verified.
-The graphical desktop path has not been verified.
+Audible sound playback has not been verified.
 The GRUB path has not been verified.
 ```
 
 Next practical test path:
 
 ```text
-Use the same VM method for the desktop, Firefox, and audio path, or create a separate fresh disk for GRUB validation.
+Use the same VM method for deeper audio playback checks, or create a separate fresh disk for GRUB validation.
 ```
 
 ## Finished UEFI/systemd-boot Run
@@ -346,17 +345,35 @@ Command exited successfully.
 Desktop/Firefox/audio:
 
 ```text
-graphical login: not tested
-Firefox launch: not tested
-systemctl --user status pipewire: not tested
-systemctl --user status wireplumber: not tested
-pactl info: not tested
+graphical login: PASS. LightDM GTK greeter appeared at 1280x800 with archuser selected.
+Xfce session: PASS. Login as archuser opened the Xfce desktop with panel, launcher, Home icon, File System icon, and default Xfce wallpaper.
+Firefox launch: PASS. Firefox opened in Xfce and loaded https://archlinux.org.
+systemctl --user status pipewire: PASS. pipewire.service was active (running).
+systemctl --user status wireplumber: PASS. wireplumber.service was active (running).
+pactl info: PASS. Server Name reported PulseAudio (on PipeWire 1.6.7).
+pactl list short sinks: PASS. QEMU HDA analog-stereo sink was listed.
+pactl list short sources: PASS. QEMU HDA analog-stereo input and monitor sources were listed.
+audible playback: not tested.
+```
+
+Desktop test-harness note:
+
+```text
+The original archuser password was not recorded in this repository.
+A test-only password reset was performed from the Arch ISO recovery environment:
+- mounted /dev/vda2 at /mnt
+- mounted /dev/vda1 at /mnt/boot
+- verified archuser existed with UID 1000
+- ran chpasswd for archuser
+- passwd -S archuser reported password status P on 2026-07-02
+
+This did not change the walkthrough commands being validated. It only made the disposable VM account accessible for the LightDM/Xfce/Firefox test.
 ```
 
 Commands that matched the guide:
 
 ```text
-Disk identity checks, EFI check, partition creation, mkfs, mount, pacstrap, genfstab, arch-chroot, locale, hostname, user account, NetworkManager enablement, systemd-boot entry creation, first boot mount checks, NetworkManager status, IP ping, DNS ping, and sudo validation matched the intended UEFI/systemd-boot path.
+Disk identity checks, EFI check, partition creation, mkfs, mount, pacstrap, genfstab, arch-chroot, locale, hostname, user account, NetworkManager enablement, systemd-boot entry creation, first boot mount checks, NetworkManager status, IP ping, DNS ping, sudo validation, desktop package installation, LightDM enablement, graphical login, Xfce session startup, Firefox launch, PipeWire/WirePlumber status checks, and pactl diagnostics matched the intended UEFI/systemd-boot path.
 ```
 
 Commands that differed:
@@ -398,13 +415,13 @@ Fix needed in documentation:
 
 ```text
 Document that bootctl can install fallback EFI files even when EFI variable writes are skipped inside a chroot, and that the real proof is a successful boot without the ISO.
-Keep desktop, Firefox, and audio marked as separate untested validation paths.
+Keep audible playback marked as untested unless a future VM or hardware run actually plays and confirms sound.
 ```
 
 Final result:
 
 ```text
-PASS. The UEFI/systemd-boot VM installed Arch, shut down, relaunched without the ISO, booted from the installed qcow2 disk, logged in as archuser, mounted / and /boot correctly, ran NetworkManager, resolved DNS, reached archlinux.org, and validated sudo.
+PASS. The UEFI/systemd-boot VM installed Arch, shut down, relaunched without the ISO, booted from the installed qcow2 disk, logged in as archuser, mounted / and /boot correctly, ran NetworkManager, resolved DNS, reached archlinux.org, validated sudo, installed Xorg/Xfce/LightDM/Firefox/PipeWire packages, showed the LightDM graphical login, started an Xfce session, launched Firefox to archlinux.org, and exposed PipeWire audio sink/source diagnostics through pactl.
 ```
 
 ## ISO Placement

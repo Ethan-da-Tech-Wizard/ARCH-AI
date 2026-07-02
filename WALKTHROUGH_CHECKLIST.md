@@ -535,11 +535,14 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [ ] Run the GRUB path in a VM.
   - Acceptance: VM boots through GRUB and matches the guide.
 
-- [ ] Verify networking steps in the VM.
+- [x] Verify networking steps in the VM.
   - Acceptance: wired networking, DNS, package install, and Firefox install steps match real output.
 
-- [ ] Verify audio steps where possible.
+- [x] Verify audio steps where possible.
   - Acceptance: PipeWire/WirePlumber services and `pactl` diagnostics match real output; hardware-dependent items are clearly marked.
+
+- [x] Verify beginner desktop and Firefox launch in the VM.
+  - Acceptance: LightDM graphical login appears, Xfce starts for the normal user, and Firefox opens in the graphical session.
 
 - [ ] Correct assumptions found during VM testing.
   - Acceptance: every mismatch from real output is either fixed in the app or documented as hardware/environment-specific.
