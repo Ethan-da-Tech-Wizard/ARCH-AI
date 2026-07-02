@@ -427,7 +427,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add `fstab` checkpoint before `arch-chroot` or reboot.
   - Acceptance: app shows what entries should exist and what common bad entries look like.
 
-- [ ] Add network/DNS checkpoint before package installation.
+- [x] Add network/DNS checkpoint before package installation.
   - Acceptance: app separates IP connectivity tests from DNS tests and explains what each result means.
 
 - [ ] Add Firefox readiness checkpoint.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add the network/DNS checkpoint before package installation so IP connectivity and DNS are tested separately before `pacstrap` or package installs.
+Next KISS implementation step: add the Firefox readiness checkpoint so desktop session, network, DNS, and Firefox package installation are verified before browser troubleshooting.

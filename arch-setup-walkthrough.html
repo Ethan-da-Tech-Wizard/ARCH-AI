@@ -2304,6 +2304,60 @@ const sections = [
         fails: "If swap partition strategy is selected and nothing appears, run mkswap and swapon on the exact mapped swap partition before genfstab. Do not activate swap on root or EFI partitions."
       },
       {
+        label: "Inspect network interfaces before package install",
+        sources: sourceRefs("networkConfig"),
+        command: "ip link",
+        purpose: "Shows network interfaces before pacstrap tries to download packages. This confirms whether Ethernet, Wi-Fi, loopback, or other interfaces are visible.",
+        words: [
+          ["ip", "Inspects or changes network settings."],
+          ["link", "Shows network interfaces and link-layer state."],
+          ["lo", "Loopback interface for the machine itself; this does not prove internet access."],
+          ["en...", "Common prefix for Ethernet-style interface names."],
+          ["wl...", "Common prefix for Wi-Fi-style interface names."]
+        ],
+        expected: "The selected network path has a real interface. Ethernet paths usually show an en... interface; Wi-Fi paths usually show a wl... interface after wireless hardware is detected.",
+        fails: "If only lo appears, the network device may be missing, blocked, unsupported, or not detected. Fix interface detection before pacstrap."
+      },
+      {
+        label: "Test raw IP connectivity before package install",
+        sources: sourceRefs("networkConfig"),
+        command: "ping -c 3 1.1.1.1",
+        purpose: "Tests whether packets can reach a public IP address without DNS. This separates basic connectivity and routing from name lookup.",
+        words: [
+          ["ping", "Sends test packets and waits for replies."],
+          ["-c 3", "Send three packets, then stop."],
+          ["1.1.1.1", "A numeric public IP address, so this test does not need DNS."]
+        ],
+        expected: "Replies appear with time values and the summary shows received packets.",
+        fails: "If this fails, fix link, Wi-Fi association, DHCP/IP address, default route, or upstream network before investigating DNS."
+      },
+      {
+        label: "Test DNS and reachability before package install",
+        sources: sourceRefs("networkConfig", "dns"),
+        command: "ping -c 3 archlinux.org",
+        purpose: "Tests DNS name resolution plus network reachability. This should work before pacstrap or pacman package installs.",
+        words: [
+          ["ping", "Sends test packets and waits for replies."],
+          ["-c 3", "Send three packets, then stop."],
+          ["archlinux.org", "A domain name that must be translated into an IP address by DNS before packets can be sent."]
+        ],
+        expected: "The name resolves and replies arrive. This proves DNS and connectivity are both working for a normal domain test.",
+        fails: "If raw IP ping worked but this says name resolution failed, focus on DNS. If the name resolves but replies fail, focus on routing, firewall, or upstream network conditions."
+      },
+      {
+        label: "Query DNS directly before package install",
+        sources: sourceRefs("dns"),
+        command: "resolvectl query archlinux.org",
+        purpose: "Asks the system resolver to look up archlinux.org and shows DNS-specific details without relying on ping output alone.",
+        words: [
+          ["resolvectl", "systemd tool for resolver and DNS queries."],
+          ["query", "Ask DNS to resolve a name."],
+          ["archlinux.org", "The domain name being resolved."]
+        ],
+        expected: "One or more IP addresses are returned for archlinux.org.",
+        fails: "If this fails while raw IP ping works, DNS servers or resolver configuration are the likely problem. Do not retry package installs until DNS is fixed."
+      },
+      {
         label: "Install the base packages",
         sources: sourceRefs("installGuide", "pacstrapMan", "pacman", "networkManagerPackage"),
         command: "pacstrap -K /mnt base linux linux-firmware nano networkmanager",
@@ -2967,6 +3021,11 @@ extendSection("Install Base System", {
       type: "checkpoint",
       title: "Mount layout must be proven before pacstrap",
       text: "pacstrap installs into whatever filesystem is mounted at /mnt. Before running it, confirm that /mnt is the intended root partition, /mnt/boot is the intended boot or EFI partition when the selected path uses one, and swap is active only when the swap-partition path was selected."
+    },
+    {
+      type: "checkpoint",
+      title: "Network and DNS must both work before package downloads",
+      text: "Package installation needs more than a visible network device. Raw IP connectivity proves packets can reach the internet without DNS. A domain test proves DNS can translate names such as archlinux.org. If IP works but DNS fails, fix DNS before pacstrap or pacman."
     },
     {
       type: "explain",
