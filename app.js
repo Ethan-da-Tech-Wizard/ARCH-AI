@@ -2684,10 +2684,37 @@ extendSection("Firefox", {
     {
       type: "checkpoint",
       title: "Browser readiness checkpoint",
-      text: "Before blaming Firefox, test raw connectivity and DNS separately. If an IP address ping works but a domain ping fails, Firefox is not the root problem; DNS is."
+      text: "Before blaming Firefox, prove four basics: a graphical desktop session exists, raw IP connectivity works, DNS works, and the firefox package is installed. If one of those fails, fix that layer before browser troubleshooting."
     }
   ],
   commands: [
+    {
+      label: "Confirm graphical session for Firefox",
+      sources: sourceRefs("firefox"),
+      command: "echo \"$DISPLAY $WAYLAND_DISPLAY $XDG_CURRENT_DESKTOP\"",
+      purpose: "Shows whether the current terminal belongs to a graphical session where Firefox can open a window.",
+      words: [
+        ["echo", "Prints text."],
+        ["$DISPLAY", "Environment variable commonly set for X11 graphical sessions."],
+        ["$WAYLAND_DISPLAY", "Environment variable commonly set for Wayland graphical sessions."],
+        ["$XDG_CURRENT_DESKTOP", "Environment variable that often names the current desktop environment."]
+      ],
+      expected: "At least one display variable is set, and the desktop name may show something such as XFCE.",
+      fails: "If all values are blank, Firefox may be running from a non-graphical console or wrong user session. Log into the graphical desktop and open a terminal there."
+    },
+    {
+      label: "Confirm Firefox package is installed",
+      sources: sourceRefs("firefox", "pacman"),
+      command: "pacman -Q firefox",
+      purpose: "Checks whether the firefox package is installed before troubleshooting browser launch or websites.",
+      words: [
+        ["pacman", "Arch package manager."],
+        ["-Q", "Query installed packages."],
+        ["firefox", "The Firefox browser package."]
+      ],
+      expected: "A line prints with firefox and its installed version.",
+      fails: "If the package is not found, install it with sudo pacman -S firefox after network and DNS are working."
+    },
     {
       label: "Test raw internet connectivity without DNS",
       sources: sourceRefs("networkConfig"),
@@ -6605,10 +6632,11 @@ function commandSafetyType(command) {
   if (/^(sudo\s+)?systemctl\b/.test(text) || /^bootctl\s+(list|status)\b/.test(text)) {
     return "service-control";
   }
-  if (/^(nano|sudo\s+nano|EDITOR=.*\bvisudo\b|ln\s+-sf|locale-gen|echo\b|cat\s+>|genfstab|arch-chroot|mount|swapon)\b/.test(text)) {
+  if (/^(nano|sudo\s+nano|EDITOR=.*\bvisudo\b|ln\s+-sf|locale-gen|echo\s+["']?[A-Z_=$ ]+["']?$|cat\s+>|genfstab|arch-chroot|mount|swapon)\b/.test(text)) {
+    if (/^echo\s+["']?\$/.test(text)) return "safe-inspection";
     return "configuration";
   }
-  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show)\b/.test(text)) {
+  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show|echo\s)/.test(text)) {
     return "safe-inspection";
   }
   if (/^(Ctrl|F\d+$|u$|q$|PID |\/|@|\[|process_count|new_processes|normal baseline|keep,)/.test(text)) {

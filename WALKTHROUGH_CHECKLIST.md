@@ -430,7 +430,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add network/DNS checkpoint before package installation.
   - Acceptance: app separates IP connectivity tests from DNS tests and explains what each result means.
 
-- [ ] Add Firefox readiness checkpoint.
+- [x] Add Firefox readiness checkpoint.
   - Acceptance: app verifies desktop session, network, DNS, and Firefox package installation before browser troubleshooting.
 
 - [ ] Add audio readiness checkpoint.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add the Firefox readiness checkpoint so desktop session, network, DNS, and Firefox package installation are verified before browser troubleshooting.
+Next KISS implementation step: add the audio readiness checkpoint so package installation, user services, sinks, sources, mute state, and recording/playback tests are verified before deeper audio troubleshooting.
