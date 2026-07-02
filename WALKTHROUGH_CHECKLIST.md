@@ -352,7 +352,7 @@ The app must teach how Linux names storage hardware and why names differ.
 - [x] Add internal SSD scenario branching.
   - Acceptance: app distinguishes installing Arch to a separate internal SSD from installing Arch onto the same internal SSD that already contains an operating system.
 
-- [ ] Add partition-if-necessary decision flow.
+- [x] Add partition-if-necessary decision flow.
   - Acceptance: app explains when partitioning is required, when existing partitions can be reused, when formatting is destructive, and when the user should stop and back up before continuing.
 
 - [ ] Add swap strategy branching.
@@ -398,19 +398,19 @@ The app must support two common beginner scenarios before it shows destructive d
 
 ### Partitioning If Necessary
 
-- [ ] Add partition-needed explanation.
+- [x] Add partition-needed explanation.
   - Acceptance: app explains that partitioning is needed when the target disk lacks the required layout or when the user chooses to erase/rebuild the layout.
 
-- [ ] Add reuse-existing-partitions explanation.
+- [x] Add reuse-existing-partitions explanation.
   - Acceptance: app explains that reusing partitions may avoid repartitioning, but formatting a reused partition still erases its data.
 
-- [ ] Add partition table explanation.
+- [x] Add partition table explanation.
   - Acceptance: app explains GPT vs MBR in beginner terms and ties the choice to UEFI/BIOS boot mode.
 
-- [ ] Add safe examples for common layouts.
+- [x] Add safe examples for common layouts.
   - Acceptance: app includes example layouts for UEFI separate SSD, UEFI same SSD erase, BIOS separate SSD with MBR, and BIOS/GPT with BIOS boot partition.
 
-- [ ] Add "do not guess" rule.
+- [x] Add "do not guess" rule.
   - Acceptance: app tells the user to stop if disk identity, partition purpose, or preservation goals are unclear.
 
 ## 3. Add Stronger Validation Checkpoints
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add the partition-if-necessary decision flow so the app explains when partitioning is required, when existing partitions can be reused, and when formatting remains destructive.
+Next KISS implementation step: add swap strategy branching so no-swap, swap-partition, and swap-file choices are explained without mixing commands.

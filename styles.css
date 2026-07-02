@@ -1047,6 +1047,10 @@ code {
   border-left-width: 5px;
 }
 
+.partition-decision-card {
+  border-left-width: 5px;
+}
+
 .boot-path-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

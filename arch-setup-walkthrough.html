@@ -1054,6 +1054,10 @@ code {
   border-left-width: 5px;
 }
 
+.partition-decision-card {
+  border-left-width: 5px;
+}
+
 .boot-path-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2732,6 +2736,11 @@ extendSection("Disk Setup", {
       type: "warn",
       title: "Example layout, not a universal layout",
       text: "The commands here use a common UEFI example: an EFI System Partition and one Linux root partition, optionally with swap. The learner must replace every /dev/nvme0n1... path with their actual target drive and partition names."
+    },
+    {
+      type: "checkpoint",
+      title: "Partition only when the decision says partition",
+      text: "Partitioning is needed when the target disk is being erased or when the disk lacks the required layout. Reusing existing partitions can avoid rewriting the partition table, but formatting a reused partition still erases that partition's old filesystem. If disk identity, partition purpose, or preservation goals are unclear, stop and back up before continuing."
     }
   ],
   commands: [
@@ -6810,6 +6819,113 @@ function diskStrategyTemplate() {
   `;
 }
 
+function partitionDecisionChoice() {
+  const strategy = activeDiskStrategy();
+  const targetDisk = getDeviceValue("targetDisk");
+  const efiPartition = getDeviceValue("efiPartition");
+  const rootPartition = getDeviceValue("rootPartition");
+  const targetMapped = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  const efiMapped = efiPartition && !getDeviceUnknown("efiPartition") && looksLikePartition(efiPartition);
+  const rootMapped = rootPartition && !getDeviceUnknown("rootPartition") && looksLikePartition(rootPartition);
+  if (!setupProfileCompleteEnough()) {
+    return {
+      status: "danger",
+      title: "Partition decision unknown",
+      decision: "Stop before partitioning.",
+      why: "The app cannot know whether to create partitions, reuse partitions, or preserve an existing layout until the Safety Profile is complete.",
+      table: "Unknown until boot mode and install target are known.",
+      layout: [
+        "UEFI examples usually need a FAT32 EFI System Partition plus a Linux root partition.",
+        "Legacy BIOS examples may use MBR, or GPT with a tiny BIOS boot partition for GRUB BIOS.",
+        "Do not choose GPT or MBR from memory. Tie it to boot mode and the target layout."
+      ],
+      checks: [
+        "Complete the profile.",
+        "Map the target disk.",
+        "Map the root and boot-related partitions before formatting or mounting."
+      ]
+    };
+  }
+  if (!strategy.allowsDestructive) {
+    return {
+      status: "danger",
+      title: "Reuse or preserve planning",
+      decision: "Do not repartition from the generic example path.",
+      why: "Preserve/manual mode means something may need to survive. Reusing an existing partition may avoid changing the partition table, but formatting that partition still destroys its old filesystem contents.",
+      table: "Keep the existing partition table unless an explicit preservation plan says otherwise.",
+      layout: [
+        "Existing EFI partitions may be reused for boot files only when the plan says that is safe.",
+        "Existing empty Linux partitions may be reused as root only when the user accepts formatting that exact partition.",
+        "Existing Windows, macOS, Linux, recovery, or personal-data partitions should be treated as preserve-until-proven-erase."
+      ],
+      checks: [
+        "Back up anything that matters before resizing, deleting, or formatting.",
+        "Identify each partition's purpose from filesystem, size, label, mountpoints, and OS clues.",
+        "Stop if the intended root, EFI, or swap partition is not exact."
+      ]
+    };
+  }
+  if (setupProfile.bootMode === "bios") {
+    return {
+      status: targetMapped && rootMapped ? "ready" : "danger",
+      title: "Legacy BIOS partition path",
+      decision: "Partitioning is needed if the target disk is being erased or lacks a BIOS-bootable layout.",
+      why: "Legacy BIOS GRUB does not use an EFI System Partition as its boot mechanism. With MBR, GRUB can install to the disk boot area. With GPT, GRUB BIOS normally needs a tiny BIOS boot partition.",
+      table: "Beginner BIOS path may use MBR for simplicity, or GPT plus a BIOS boot partition when GPT is required.",
+      layout: [
+        "BIOS + MBR example: one Linux root partition, optional swap.",
+        "BIOS + GPT example: tiny BIOS boot partition, Linux root partition, optional swap.",
+        "Do not create an EFI System Partition just because a UEFI example did."
+      ],
+      checks: [
+        `Target disk mapped: ${targetMapped ? targetDisk : "not ready"}.`,
+        `Root partition mapped: ${rootMapped ? rootPartition : "not ready"}.`,
+        "Use the whole disk for BIOS GRUB install later, not a partition path."
+      ]
+    };
+  }
+  return {
+    status: targetMapped && efiMapped && rootMapped ? "ready" : "danger",
+    title: "UEFI partition path",
+    decision: "Partitioning is needed if the target disk is being erased or lacks an EFI System Partition plus a Linux root partition.",
+    why: "UEFI firmware reads bootloader files from a FAT EFI System Partition. Arch still needs a Linux root filesystem for the installed system.",
+    table: "Use GPT for the normal UEFI beginner path.",
+    layout: [
+      "UEFI separate/full-erase example: EFI System Partition, Linux root partition, optional swap.",
+      "UEFI same-disk erase example: rebuild the same disk only after accepting that old OS/data will be removed.",
+      "UEFI preserve/manual example: reuse only the exact partitions chosen by the preservation plan."
+    ],
+    checks: [
+      `Target disk mapped: ${targetMapped ? targetDisk : "not ready"}.`,
+      `EFI partition mapped: ${efiMapped ? efiPartition : "not ready"}.`,
+      `Root partition mapped: ${rootMapped ? rootPartition : "not ready"}.`
+    ]
+  };
+}
+
+function partitionDecisionTemplate() {
+  const decision = partitionDecisionChoice();
+  return `
+    <section class="profile-summary-card partition-decision-card ${decision.status === "danger" ? "profile-danger" : "profile-safe"}">
+      <h4>Partition-if-necessary decision</h4>
+      <p><strong>${decision.title}:</strong> ${decision.decision}</p>
+      <p><strong>Why:</strong> ${decision.why}</p>
+      <p><strong>Partition table rule:</strong> ${decision.table}</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Safe layout examples</strong>
+          <ul>${decision.layout.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>Do not continue until</strong>
+          <ul>${decision.checks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <p><strong>Do not guess:</strong> if disk identity, partition purpose, or preservation goals are unclear, stop and back up before running partition, format, or resize commands.</p>
+    </section>
+  `;
+}
+
 const bootloaderBranchLabels = {
   "systemd-boot": "UEFI systemd-boot",
   "grub-uefi": "UEFI GRUB",
@@ -7288,6 +7404,7 @@ function renderProfileSummary() {
     ${scenarioPathTemplate()}
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
+    ${partitionDecisionTemplate()}
     ${bootloaderPathTemplate()}
     ${networkPathTemplate()}
     ${diskIdentityGateTemplate()}
