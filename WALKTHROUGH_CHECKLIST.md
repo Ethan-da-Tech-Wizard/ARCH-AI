@@ -340,7 +340,7 @@ The app must teach how Linux names storage hardware and why names differ.
 
 ## 2. Make Steps Branch Safely
 
-- [~] Add UEFI vs BIOS branching.
+- [x] Add UEFI vs BIOS branching.
   - Acceptance: app asks which boot mode was detected and shows only matching bootloader instructions by default.
 
 - [x] Add Ethernet vs Wi-Fi branching.
@@ -563,7 +563,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Command cards include beginner explanations.
 - [x] Official source links are attached to lessons and commands.
 - [x] Initial glossary exists.
-- [ ] Branching UI is not implemented.
+- [x] Branching UI is implemented for bootloader, network, and hardware-driver paths.
 - [x] First Setup Profile Wizard pass is implemented with persistent answers and safety summary.
 - [x] Full bootloader configuration covers UEFI `systemd-boot`, UEFI GRUB, and legacy BIOS GRUB paths.
 - [x] Beginner desktop path is added with Xorg, Xfce, LightDM, Firefox, and audio controls.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next continue from `SAFETY_WIZARD_IMPLEMENTATION_PLAN.md`. The immediate next implementation task is the **Setup Profile Wizard**, but it must start with the plan's research checklist: verify official/offline Arch sources for disk naming, partitioning, boot mode, and destructive-command safety before building the UI.
+Next KISS implementation step: add disk strategy branching so full-disk wipe, VM disk, external disk, same-disk preserve, and manual existing-partition paths are not presented as one generic storage flow.

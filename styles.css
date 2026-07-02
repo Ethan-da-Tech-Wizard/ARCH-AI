@@ -633,6 +633,33 @@ h3 {
   display: block;
 }
 
+.branch-notice {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left-width: 5px;
+  border-radius: 8px;
+  background: #f7fbf9;
+}
+
+.branch-notice strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.branch-notice p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.branch-notice-active {
+  border-left-color: var(--ok);
+}
+
+.branch-notice-blocked {
+  border-left-color: var(--danger);
+  background: var(--warn-bg);
+}
+
 .blocks {
   display: grid;
   gap: 14px;

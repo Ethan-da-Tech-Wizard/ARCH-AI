@@ -640,6 +640,33 @@ h3 {
   display: block;
 }
 
+.branch-notice {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left-width: 5px;
+  border-radius: 8px;
+  background: #f7fbf9;
+}
+
+.branch-notice strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.branch-notice p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.branch-notice-active {
+  border-left-color: var(--ok);
+}
+
+.branch-notice-blocked {
+  border-left-color: var(--danger);
+  background: var(--warn-bg);
+}
+
 .blocks {
   display: grid;
   gap: 14px;
@@ -1341,6 +1368,16 @@ dialog::backdrop {
                 <option value="uefi">UEFI</option>
                 <option value="bios">Legacy BIOS</option>
                 <option value="unknown">Unknown / not checked yet</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Bootloader path</span>
+              <select name="bootloaderPath">
+                <option value="">Recommended for boot mode</option>
+                <option value="systemd-boot">UEFI systemd-boot</option>
+                <option value="grub-uefi">UEFI GRUB</option>
+                <option value="grub-bios">Legacy BIOS GRUB</option>
               </select>
             </label>
 
@@ -2450,8 +2487,9 @@ const sections = [
 function extendSection(title, patch) {
   const section = sections.find((item) => item.title === title);
   if (!section) return;
-  section.blocks.push(...(patch.blocks || []));
-  section.commands.push(...(patch.commands || []));
+  const withBranch = (item) => patch.branch ? { ...item, branch: patch.branch } : item;
+  section.blocks.push(...(patch.blocks || []).map(withBranch));
+  section.commands.push(...(patch.commands || []).map(withBranch));
   section.terms = [...new Set([...section.terms, ...(patch.terms || [])])];
 }
 
@@ -3500,6 +3538,7 @@ insertSectionAfter("Post-Install Baseline", {
 });
 
 extendSection("Configure System", {
+  branch: "systemd-boot",
   blocks: [
     {
       type: "checkpoint",
@@ -3720,6 +3759,7 @@ extendSection("Configure System", {
 });
 
 extendSection("Configure System", {
+  branch: "grub-uefi",
   blocks: [
     {
       type: "checkpoint",
@@ -3833,6 +3873,7 @@ extendSection("Configure System", {
 });
 
 extendSection("Configure System", {
+  branch: "grub-bios",
   blocks: [
     {
       type: "checkpoint",
@@ -5485,6 +5526,11 @@ const profileLabels = {
     bios: "legacy BIOS",
     unknown: "boot mode unknown"
   },
+  bootloaderPath: {
+    "systemd-boot": "UEFI systemd-boot",
+    "grub-uefi": "UEFI GRUB",
+    "grub-bios": "legacy BIOS GRUB"
+  },
   networkPath: {
     ethernet: "Ethernet",
     wifi: "Wi-Fi",
@@ -5510,6 +5556,7 @@ function setupProfileCompleteEnough() {
 
 function profileValue(field) {
   const value = setupProfile[field];
+  if (field === "bootloaderPath" && !value) return "recommended for boot mode";
   return profileLabels[field]?.[value] || "not answered";
 }
 
@@ -5582,6 +5629,7 @@ function diskIdentityGatePassed() {
 function bootloaderModeSignature() {
   return JSON.stringify({
     bootMode: setupProfile.bootMode,
+    bootloaderPath: setupProfile.bootloaderPath || "",
     efiPartition: getDeviceValue("efiPartition"),
     targetDisk: getDeviceValue("targetDisk")
   });
@@ -5591,6 +5639,9 @@ function bootloaderModeGateIssues() {
   const issues = [];
   if (!setupProfile.bootMode || setupProfile.bootMode === "unknown") {
     issues.push("Boot mode is unknown. Confirm UEFI versus legacy BIOS before bootloader install commands.");
+  }
+  if (!activeBootloaderBranch() && setupProfile.bootMode && setupProfile.bootMode !== "unknown") {
+    issues.push("Selected bootloader path does not match the selected boot mode.");
   }
   if (setupProfile.bootMode === "uefi") {
     if (getDeviceUnknown("efiPartition") || !getDeviceValue("efiPartition")) {
@@ -6450,23 +6501,106 @@ function bootNetworkPathNotes() {
   return parts;
 }
 
-function bootloaderPathChoice() {
+const bootloaderBranchLabels = {
+  "systemd-boot": "UEFI systemd-boot",
+  "grub-uefi": "UEFI GRUB",
+  "grub-bios": "legacy BIOS GRUB"
+};
+
+function activeBootloaderBranch() {
+  const preference = setupProfile.bootloaderPath || "";
   if (setupProfile.bootMode === "uefi") {
+    if (!preference || preference === "systemd-boot") return "systemd-boot";
+    if (preference === "grub-uefi") return "grub-uefi";
+    return null;
+  }
+  if (setupProfile.bootMode === "bios") {
+    if (!preference || preference === "grub-bios") return "grub-bios";
+    return null;
+  }
+  return null;
+}
+
+function branchMatchesProfile(branch) {
+  if (!branch) return true;
+  return branch === activeBootloaderBranch();
+}
+
+function visibleBlocksForSection(section) {
+  return (section.blocks || []).filter((block) => branchMatchesProfile(block.branch));
+}
+
+function visibleCommandsForSection(section) {
+  return (section.commands || []).filter((command) => branchMatchesProfile(command.branch));
+}
+
+function sectionBranchNotice(section) {
+  const hasBootloaderBranches = [...(section.blocks || []), ...(section.commands || [])].some((item) => item.branch);
+  if (!hasBootloaderBranches) return "";
+  const activeBranch = activeBootloaderBranch();
+  const selectedPath = profileValue("bootloaderPath");
+  if (activeBranch) {
+    return `
+      <section class="branch-notice branch-notice-active">
+        <strong>Bootloader branch shown: ${bootloaderBranchLabels[activeBranch]}</strong>
+        <p>The profile says boot mode is ${profileValue("bootMode")} and bootloader path is ${selectedPath}. Other bootloader branch commands are hidden by default so the learner follows one path at a time.</p>
+      </section>
+    `;
+  }
+  if (!setupProfile.bootMode || setupProfile.bootMode === "unknown") {
+    return `
+      <section class="branch-notice branch-notice-blocked">
+        <strong>Bootloader branches hidden</strong>
+        <p>Select UEFI or legacy BIOS in the Safety Profile before using bootloader instructions. Until then, bootloader install commands stay out of the visible path.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="branch-notice branch-notice-blocked">
+      <strong>Bootloader selection conflict</strong>
+      <p>The selected bootloader path is ${selectedPath}, but the selected boot mode is ${profileValue("bootMode")}. Choose a matching bootloader path before continuing.</p>
+    </section>
+  `;
+}
+
+function bootloaderPathChoice() {
+  const preference = setupProfile.bootloaderPath || "";
+  const activeBranch = activeBootloaderBranch();
+  if (!activeBranch && setupProfile.bootMode && setupProfile.bootMode !== "unknown") {
+    return {
+      status: "danger",
+      title: "Bootloader path conflict",
+      defaultPath: `${profileValue("bootloaderPath")} does not match ${profileValue("bootMode")}.`,
+      active: [
+        "Change the bootloader path to one that matches the detected boot mode.",
+        "UEFI can use systemd-boot or GRUB UEFI.",
+        "Legacy BIOS uses GRUB BIOS in this walkthrough."
+      ],
+      inactive: [
+        "Do not copy bootloader install commands while boot mode and bootloader path disagree.",
+        "Do not use systemd-boot or GRUB UEFI from a legacy BIOS boot.",
+        "Do not use GRUB BIOS from a UEFI boot."
+      ],
+      review: "One install should follow one matching bootloader branch. Fix the profile before continuing."
+    };
+  }
+  if (setupProfile.bootMode === "uefi") {
+    const usingGrub = activeBranch === "grub-uefi";
     return {
       status: "ready",
       title: "UEFI boot mode selected",
-      defaultPath: "Default beginner path: systemd-boot.",
+      defaultPath: usingGrub ? "Selected path: GRUB UEFI." : "Default beginner path: systemd-boot.",
       active: [
-        "Use the systemd-boot UEFI path first unless there is a clear reason to choose GRUB.",
+        usingGrub ? "Use the GRUB UEFI branch because it was selected in the Safety Profile." : "Use the systemd-boot UEFI path first unless there is a clear reason to choose GRUB.",
         "The EFI System Partition must be mapped and mounted at /boot for this simple path.",
         "UEFI paths use firmware variables and EFI boot files. They do not install GRUB to a whole disk MBR-style target."
       ],
       inactive: [
         "Legacy BIOS GRUB is not the active path.",
         "Do not use grub-install --target=i386-pc in a UEFI install path.",
-        "Do not treat a BIOS boot partition as the EFI System Partition."
+        usingGrub ? "systemd-boot is hidden because GRUB UEFI was selected." : "GRUB UEFI remains available only if intentionally selected."
       ],
-      review: "GRUB UEFI remains an alternate UEFI branch for users who intentionally choose GRUB, but beginners should use one bootloader path, not both."
+      review: preference === "grub-uefi" ? "GRUB UEFI is the active branch. Do not also install systemd-boot during the same beginner walkthrough." : "GRUB UEFI remains an alternate UEFI branch for users who intentionally choose GRUB, but beginners should use one bootloader path, not both."
     };
   }
   if (setupProfile.bootMode === "bios") {
@@ -6821,7 +6955,7 @@ function renderProfileSummary() {
         Current environment: ${profileValue("currentEnvironment")}. Install target: ${profileValue("installTarget")}.
         Erase intent: ${profileValue("eraseIntent")}. Internal drives: ${profileValue("internalDriveCount")}.
         External drive: ${profileValue("externalDrive")}. Boot mode: ${profileValue("bootMode")}.
-        Network: ${profileValue("networkPath")}.
+        Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
       </p>
     </section>
     <section class="profile-summary-card">
@@ -6862,6 +6996,8 @@ function render() {
   lessonList.innerHTML = visibleSections.map((section) => {
     const realIndex = sections.indexOf(section);
     const index = realIndex + 1;
+    const visibleBlocks = visibleBlocksForSection(section);
+    const visibleCommands = visibleCommandsForSection(section);
     return `
       <article class="lesson open" id="lesson-${index}" data-index="${realIndex}">
         <button class="lesson-header" type="button" aria-expanded="true">
@@ -6875,13 +7011,14 @@ function render() {
         <div class="lesson-body">
           <div class="blocks">
             ${sourceListTemplate(section.sources, "Official sources for this lesson")}
-            ${section.blocks.map((block) => `
+            ${sectionBranchNotice(section)}
+            ${visibleBlocks.map((block) => `
               <section class="${blockClass(block.type)}">
                 <h4>${block.title}</h4>
                 <p>${block.text}</p>
               </section>
             `).join("")}
-            ${section.commands.map((command) => commandTemplate(command)).join("")}
+            ${visibleCommands.map((command) => commandTemplate(command)).join("")}
             <section class="block">
               <h4>Words to understand before moving on</h4>
               <div class="term-grid">
@@ -6996,7 +7133,7 @@ function renderWizard() {
       <strong>Your active setup profile</strong>
       <p>
         Install target: ${profileValue("installTarget")}. Erase intent: ${profileValue("eraseIntent")}.
-        Boot mode: ${profileValue("bootMode")}. Network: ${profileValue("networkPath")}.
+        Boot mode: ${profileValue("bootMode")}. Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
       </p>
       <p>
         Target disk: ${escapeHtml(getDeviceUnknown("targetDisk") ? "I do not know" : (getDeviceValue("targetDisk") || "not entered"))}.
