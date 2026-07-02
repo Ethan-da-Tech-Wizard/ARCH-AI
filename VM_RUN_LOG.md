@@ -13,19 +13,94 @@ QEMU: /usr/bin/qemu-system-x86_64
 QEMU version: 11.0.1
 UEFI firmware: /usr/share/edk2/x64/OVMF_CODE.4m.fd
 UEFI vars template: /usr/share/edk2/x64/OVMF_VARS.4m.fd
+Arch ISO: /home/ethan/ARCH-AI/iso/archlinux-2026.07.01-x86_64.iso
+Arch ISO SHA256: e86295dc0bdf9b85a5a9256810c553239689d2ae8e80eeec81b4e2e910d8a6c0
+VM disk: /home/ethan/ARCH-AI/vm/arch-uefi-systemdboot.qcow2
+VM disk virtual size: 32 GiB
+UEFI vars file: /home/ethan/ARCH-AI/vm/OVMF_VARS-arch-uefi-systemdboot.fd
 ```
 
 Missing locally:
 
 ```text
-Arch ISO: not found in /home/ethan/ARCH-AI, /home/ethan/Downloads, or /home/ethan within maxdepth 3.
+KVM acceleration: /dev/kvm was not available in this environment.
 ```
 
 Status:
 
 ```text
 UEFI/systemd-boot VM run: pending
-Reason: Arch ISO is not present locally.
+Reason: QEMU reached the Arch UEFI boot menu, but the default ISO boot did not expose a usable live shell through the serial-only console. A graphical VM console or a serial-enabled boot parameter path is needed to complete the install test.
+```
+
+## Completed Local Preparation
+
+Official source checked:
+
+```text
+Arch download page current release: 2026.07.01
+ISO size reported by Arch: about 1.5 GB
+Official SHA256: e86295dc0bdf9b85a5a9256810c553239689d2ae8e80eeec81b4e2e910d8a6c0
+```
+
+Downloaded:
+
+```text
+iso/archlinux-2026.07.01-x86_64.iso
+```
+
+Verified:
+
+```text
+sha256sum iso/archlinux-2026.07.01-x86_64.iso
+e86295dc0bdf9b85a5a9256810c553239689d2ae8e80eeec81b4e2e910d8a6c0  iso/archlinux-2026.07.01-x86_64.iso
+```
+
+Prepared VM files:
+
+```text
+qemu-img create -f qcow2 vm/arch-uefi-systemdboot.qcow2 32G
+cp /usr/share/edk2/x64/OVMF_VARS.4m.fd vm/OVMF_VARS-arch-uefi-systemdboot.fd
+```
+
+Smoke test result:
+
+```text
+QEMU started with OVMF UEFI firmware.
+QEMU loaded the Arch ISO as a UEFI DVD-ROM.
+The Arch boot menu appeared over serial output.
+The selected entry was "Arch Linux install medium (x86_64, UEFI)".
+The boot menu countdown completed.
+After the countdown, no usable live shell appeared on the serial-only console.
+The QEMU process was stopped with Ctrl+C.
+```
+
+What this proves:
+
+```text
+The ISO path is valid.
+The ISO checksum is valid.
+The OVMF firmware path is valid.
+The writable OVMF vars file is valid enough for QEMU to start.
+The qcow2 disk path is valid.
+QEMU can boot the Arch ISO to the UEFI boot menu.
+```
+
+What this does not prove yet:
+
+```text
+The guide's partitioning commands match real output.
+pacstrap has not been run.
+systemd-boot has not been installed.
+The VM has not booted from the installed disk.
+Networking inside the live ISO has not been verified.
+Firefox and audio have not been verified.
+```
+
+Next practical test path:
+
+```text
+Use a graphical QEMU/virt-manager/GNOME Boxes console, or boot the ISO with explicit serial console kernel parameters, then complete the VM_TEST_PLAN.md UEFI/systemd-boot run.
 ```
 
 ## ISO Placement
@@ -33,7 +108,7 @@ Reason: Arch ISO is not present locally.
 Put the official Arch ISO in this repo or another known local path, for example:
 
 ```text
-/home/ethan/ARCH-AI/iso/archlinux-current-x86_64.iso
+/home/ethan/ARCH-AI/iso/archlinux-2026.07.01-x86_64.iso
 ```
 
 The ISO file is the bootable installer image. It is not the installed system. QEMU will boot from it first, then the walkthrough installs Arch onto a separate virtual disk file.
@@ -83,7 +158,7 @@ qemu-system-x86_64 \
   -drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd \
   -drive if=pflash,format=raw,file=/home/ethan/ARCH-AI/vm/OVMF_VARS-arch-uefi-systemdboot.fd \
   -drive file=/home/ethan/ARCH-AI/vm/arch-uefi-systemdboot.qcow2,format=qcow2,if=virtio \
-  -cdrom /home/ethan/ARCH-AI/iso/archlinux-current-x86_64.iso \
+  -cdrom /home/ethan/ARCH-AI/iso/archlinux-2026.07.01-x86_64.iso \
   -boot d \
   -nic user,model=virtio-net-pci \
   -device intel-hda \
