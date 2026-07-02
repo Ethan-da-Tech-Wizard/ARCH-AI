@@ -271,7 +271,7 @@ Examples:
 - [x] Add command templating.
   - Acceptance: commands render using the user's mapped names, while preserving safety warnings.
 
-- [ ] Add placeholder input fields for every command placeholder.
+- [x] Add placeholder input fields for every command placeholder.
   - Acceptance: placeholders such as `"YourWiFi"`, `wlan0`, `/dev/sda`, `/dev/sda1`, `ethan`, `archbox`, and `PASTE-ROOT-UUID-HERE` all have matching inputs or discovery steps before the user is expected to type/copy the command.
 
 - [ ] Disable copy for incomplete templated commands.

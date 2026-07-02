@@ -4232,6 +4232,12 @@ const deviceFields = [
     help: "The partition that will become /, the main installed Arch filesystem."
   },
   {
+    key: "rootUuid",
+    label: "Root filesystem UUID",
+    placeholder: "12345678-90ab-cdef-1234-567890abcdef",
+    help: "The UUID printed by blkid for the Linux root filesystem. This is the value used in systemd-boot root=UUID= entries."
+  },
+  {
     key: "swapPartition",
     label: "Swap partition",
     placeholder: "/dev/sdb3",
@@ -4384,6 +4390,10 @@ function looksLikeWholeDisk(value) {
 
 function looksLikePartition(value) {
   return /^\/dev\/(sd[a-z]\d+|vd[a-z]\d+|xvd[a-z]\d+|nvme\d+n\d+p\d+|mmcblk\d+p\d+)$/.test(value.trim());
+}
+
+function looksLikeUuid(value) {
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value.trim());
 }
 
 function diskIdentitySignature() {
@@ -4575,6 +4585,9 @@ function deviceWarnings() {
       warnings.push(`${field.label} should be a partition such as /dev/sda1 or /dev/nvme0n1p1. The value "${value}" does not look like a partition.`);
     }
   }
+  if (getDeviceValue("rootUuid") && !looksLikeUuid(getDeviceValue("rootUuid"))) {
+    warnings.push(`Root filesystem UUID should look like 12345678-90ab-cdef-1234-567890abcdef. The value "${getDeviceValue("rootUuid")}" does not look like a UUID.`);
+  }
 
   if (getDeviceValue("currentOsDisk") && getDeviceValue("targetDisk") && getDeviceValue("currentOsDisk") === getDeviceValue("targetDisk")) {
     warnings.push("Current OS disk and target install disk are the same. This may be intentional, but it is high risk and requires erase-vs-preserve confirmation.");
@@ -4654,6 +4667,12 @@ function validMappedPartition(key) {
   return value;
 }
 
+function validRootUuid() {
+  const value = getDeviceValue("rootUuid");
+  if (!value || getDeviceUnknown("rootUuid") || !looksLikeUuid(value)) return null;
+  return value;
+}
+
 function renderPartitionCommandPreview() {
   const efiPartition = validMappedPartition("efiPartition");
   const rootPartition = validMappedPartition("rootPartition");
@@ -4687,6 +4706,26 @@ function renderPartitionCommandPreview() {
   `;
 }
 
+function renderRootUuidPreview() {
+  const rootPartition = validMappedPartition("rootPartition");
+  const rootUuid = validRootUuid();
+  if (!rootUuid) {
+    return `
+      <section class="profile-summary-card profile-danger">
+        <h4>Root UUID preview blocked</h4>
+        <p>The systemd-boot entry cannot be finalized until the Root filesystem UUID field is filled from <code>blkid -s UUID -o value ${escapeHtml(rootPartition || "/dev/nvme0n1p2")}</code>. Do not use the EFI partition UUID or swap UUID here.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="profile-summary-card profile-safe">
+      <h4>Rendered root UUID boot line</h4>
+      <pre><code>${escapeHtml(`options root=UUID=${rootUuid} rw`)}</code></pre>
+      <p><code>root=UUID=${escapeHtml(rootUuid)}</code> tells the kernel which filesystem becomes <code>/</code>. This value must match the Linux root filesystem discovered with blkid.</p>
+    </section>
+  `;
+}
+
 function renderDeviceSummary() {
   renderDeviceForm();
   const warnings = deviceWarnings();
@@ -4706,6 +4745,7 @@ function renderDeviceSummary() {
     ${renderWifiCommandPreview()}
     ${renderTargetDiskCommandPreview()}
     ${renderPartitionCommandPreview()}
+    ${renderRootUuidPreview()}
   `;
   renderDiscoveryGuide();
 }
@@ -6907,6 +6947,7 @@ function textReplacements() {
   const wifiName = validMappedText("wifiName");
   const username = validMappedText("username");
   const hostname = validMappedText("hostname");
+  const rootUuid = validRootUuid();
   if (wifiDevice) replacements.push({ pattern: /\bwlan0\b/g, replacement: wifiDevice, label: `Wi-Fi device ${wifiDevice}` });
   if (wifiName) {
     const quotedWifi = quoteForDoubleQuotedCommand(wifiName);
@@ -6915,6 +6956,7 @@ function textReplacements() {
   }
   if (username) replacements.push({ pattern: /\bethan\b/g, replacement: username, label: `username ${username}` });
   if (hostname) replacements.push({ pattern: /"archbox"/g, replacement: quoteForDoubleQuotedCommand(hostname), label: `hostname ${hostname}` });
+  if (rootUuid) replacements.push({ pattern: /\bPASTE-ROOT-UUID-HERE\b/g, replacement: rootUuid, label: `root filesystem UUID ${rootUuid}` });
   return replacements;
 }
 
