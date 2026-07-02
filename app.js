@@ -755,6 +755,59 @@ const sections = [
     ],
     commands: [
       {
+        label: "Verify mount layout before pacstrap",
+        sources: sourceRefs("installGuide", "lsblkMan", "fileSystems"),
+        command: "lsblk -o NAME,FSTYPE,SIZE,TYPE,MOUNTPOINTS",
+        purpose: "Shows the mounted target layout before installing packages. The root partition should be mounted at /mnt, the boot or EFI partition should be mounted at /mnt/boot when that path is used, and swap should be active only when the swap-partition path was chosen.",
+        words: [
+          ["lsblk", "Lists block devices such as disks and partitions."],
+          ["-o", "Chooses which columns to print."],
+          ["NAME", "Linux device name."],
+          ["FSTYPE", "Filesystem type, such as ext4, vfat, or swap."],
+          ["SIZE", "Capacity, useful for confirming the partition is the intended one."],
+          ["TYPE", "Shows whether the row is a disk or partition."],
+          ["MOUNTPOINTS", "Shows where a filesystem is mounted, such as /mnt or /mnt/boot."]
+        ],
+        expected: "The intended root partition shows /mnt. For UEFI or a separate boot partition, the intended boot partition shows /mnt/boot. If swap partition strategy is selected, swap should be active and visible through swapon --show.",
+        fails: "If /mnt is missing, pacstrap would install into the wrong place. If /mnt/boot is missing for the selected UEFI/simple boot path, bootloader files may go to the wrong filesystem. Stop and fix mounts first."
+      },
+      {
+        label: "Confirm /mnt is the mounted root filesystem",
+        sources: sourceRefs("installGuide", "fileSystems"),
+        command: "findmnt /mnt",
+        purpose: "Confirms that /mnt is backed by the intended root partition before pacstrap writes the new Arch system there.",
+        words: [
+          ["findmnt", "Shows mounted filesystems."],
+          ["/mnt", "The temporary mount point that should contain the new system's root filesystem."]
+        ],
+        expected: "A row for /mnt whose source is the mapped root partition.",
+        fails: "If no row appears, mount the root partition at /mnt before running pacstrap. If the source is the wrong partition, unmount it and mount the correct root partition."
+      },
+      {
+        label: "Confirm /mnt/boot when a boot partition is used",
+        sources: sourceRefs("installGuide", "efiSystemPartition", "fileSystems"),
+        command: "findmnt /mnt/boot",
+        purpose: "Confirms the boot mount used by the simple UEFI paths. In this walkthrough, the EFI System Partition is mounted at /mnt/boot before pacstrap and later appears as /boot inside the installed system.",
+        words: [
+          ["findmnt", "Shows mounted filesystems."],
+          ["/mnt/boot", "The boot mount point inside the mounted target system."]
+        ],
+        expected: "For the simple UEFI systemd-boot or GRUB UEFI path, a row appears for /mnt/boot and the source is the mapped EFI partition with a FAT/vfat filesystem.",
+        fails: "If using UEFI and no row appears, create /mnt/boot and mount the EFI partition there before pacstrap. If using a simple BIOS path with no separate boot partition, this check may correctly show nothing."
+      },
+      {
+        label: "Confirm active swap when swap partition is selected",
+        sources: sourceRefs("installGuide", "partitioning"),
+        command: "swapon --show",
+        purpose: "Shows active swap devices. This matters before genfstab because genfstab detects active swap and writes it into fstab.",
+        words: [
+          ["swapon", "Shows or enables swap devices."],
+          ["--show", "Print the currently active swap areas instead of enabling a new one."]
+        ],
+        expected: "If Swap strategy is swap partition, the mapped swap partition appears. If Swap strategy is no swap or swap file later, empty output is expected.",
+        fails: "If swap partition strategy is selected and nothing appears, run mkswap and swapon on the exact mapped swap partition before genfstab. Do not activate swap on root or EFI partitions."
+      },
+      {
         label: "Install the base packages",
         sources: sourceRefs("installGuide", "pacstrapMan", "pacman", "networkManagerPackage"),
         command: "pacstrap -K /mnt base linux linux-firmware nano networkmanager",
@@ -1386,6 +1439,11 @@ extendSection("Install Base System", {
       type: "explain",
       title: "What pacstrap officially does",
       text: "The pacstrap manual describes it as a tool for creating a new system installation from scratch by installing packages into a specified root directory after setting up basic mountpoints. In this walkthrough, that root directory is /mnt."
+    },
+    {
+      type: "checkpoint",
+      title: "Mount layout must be proven before pacstrap",
+      text: "pacstrap installs into whatever filesystem is mounted at /mnt. Before running it, confirm that /mnt is the intended root partition, /mnt/boot is the intended boot or EFI partition when the selected path uses one, and swap is active only when the swap-partition path was selected."
     },
     {
       type: "explain",

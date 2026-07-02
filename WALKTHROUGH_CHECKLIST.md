@@ -421,7 +421,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add destructive command checkpoint before formatting.
   - Acceptance: every `mkfs.*`, `mkswap`, and partition write step has a visible danger block and a confirmation checklist.
 
-- [ ] Add mount layout checkpoint before `pacstrap`.
+- [x] Add mount layout checkpoint before `pacstrap`.
   - Acceptance: app instructs learner to run `lsblk` and confirm root, boot, and optional swap are mounted/active correctly.
 
 - [ ] Add `fstab` checkpoint before `arch-chroot` or reboot.
@@ -574,4 +574,4 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## Next Step
 
-Next KISS implementation step: add the mount layout checkpoint before `pacstrap` so root, boot, and optional swap must be confirmed mounted/active before base-system install.
+Next KISS implementation step: add the `fstab` checkpoint before `arch-chroot` or reboot so expected root, boot, and optional swap entries are checked before continuing.
