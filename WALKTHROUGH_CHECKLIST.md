@@ -277,7 +277,7 @@ Examples:
 - [x] Disable copy for incomplete templated commands.
   - Acceptance: if required values are missing, the command is visibly incomplete and cannot be copied as if it were ready.
 
-- [ ] Render final commands verbatim from user values.
+- [x] Render final commands verbatim from user values.
   - Acceptance: if the user enters Wi-Fi name `Home Network` and Wi-Fi device `wlan0`, the app renders `station wlan0 connect "Home Network"` and explains the quotes and space.
 
 - [ ] Add mismatch warnings.

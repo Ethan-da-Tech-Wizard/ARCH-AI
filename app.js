@@ -4622,7 +4622,7 @@ function renderWifiCommandPreview() {
       </section>
     `;
   }
-  const rendered = `station ${wifiDevice} connect "${wifiName}"`;
+  const rendered = `station ${wifiDevice} connect ${quoteForDoubleQuotedCommand(wifiName)}`;
   return `
     <section class="profile-summary-card profile-safe">
       <h4>Rendered Wi-Fi command</h4>
@@ -7015,22 +7015,35 @@ const commandPlaceholderRules = [
   {
     test: /\/dev\/sda(?!\d)|\/dev\/nvme0n1(?!p\d)|\/dev\/sdb(?!\d)/,
     label: "Example whole disk",
-    warning: "This command still contains an example whole-disk path. A whole disk value must come from this machine's current lsblk output, not from the walkthrough text."
+    warning: "This command still contains an example whole-disk path. A whole disk value must come from this machine's current lsblk output, not from the walkthrough text.",
+    confirmed: (commandText) => {
+      const targetDisk = targetDiskReplacement();
+      return Boolean(targetDisk && commandText.includes(targetDisk));
+    }
   },
   {
     test: /\/dev\/sda\d+|\/dev\/nvme0n1p\d+|\/dev\/sdb\d+/,
     label: "Example partition",
-    warning: "This command still contains an example partition path. A partition value must match the exact EFI, root, or swap partition found on this machine."
+    warning: "This command still contains an example partition path. A partition value must match the exact EFI, root, or swap partition found on this machine.",
+    confirmed: (commandText) => ["efiPartition", "rootPartition", "swapPartition"].some((key) => {
+      const value = validMappedPartition(key);
+      return Boolean(value && commandText.includes(value));
+    })
   },
   {
     test: /\bwlan0\b/,
     label: "Example Wi-Fi device",
-    warning: "wlan0 is an example Wi-Fi device name. Use the name from iwctl device list or ip link."
+    warning: "wlan0 is an example Wi-Fi device name. Use the name from iwctl device list or ip link.",
+    confirmed: (commandText) => validMappedText("wifiDevice") === "wlan0" && /\bwlan0\b/.test(commandText)
   },
   {
     test: /"Network Name"|"YourWiFi"/,
     label: "Example Wi-Fi network",
-    warning: "This command still contains an example Wi-Fi network name. Replace it with the exact SSID, keeping quotes when the name contains spaces."
+    warning: "This command still contains an example Wi-Fi network name. Replace it with the exact SSID, keeping quotes when the name contains spaces.",
+    confirmed: (commandText) => {
+      const wifiName = validMappedText("wifiName");
+      return Boolean(wifiName && commandText.includes(quoteForDoubleQuotedCommand(wifiName)));
+    }
   },
   {
     test: /\bPASTE-ROOT-UUID-HERE\b/,
@@ -7040,17 +7053,19 @@ const commandPlaceholderRules = [
   {
     test: /\barchbox\b/,
     label: "Example hostname",
-    warning: "archbox is an example hostname. Replace it with the computer name you actually want before writing /etc/hostname."
+    warning: "archbox is an example hostname. Replace it with the computer name you actually want before writing /etc/hostname.",
+    confirmed: (commandText) => validMappedText("hostname") === "archbox" && /\barchbox\b/.test(commandText)
   },
   {
     test: /\bethan\b/,
     label: "Example username",
-    warning: "ethan is an example username. Replace it with the real account name before creating users, setting passwords, or changing sudo access."
+    warning: "ethan is an example username. Replace it with the real account name before creating users, setting passwords, or changing sudo access.",
+    confirmed: (commandText) => validMappedText("username") === "ethan" && /\bethan\b/.test(commandText)
   }
 ];
 
 function commandPlaceholderMatches(commandText) {
-  return commandPlaceholderRules.filter((rule) => rule.test.test(commandText));
+  return commandPlaceholderRules.filter((rule) => rule.test.test(commandText) && !(rule.confirmed && rule.confirmed(commandText)));
 }
 
 function renderPlaceholderWarning(matches) {
