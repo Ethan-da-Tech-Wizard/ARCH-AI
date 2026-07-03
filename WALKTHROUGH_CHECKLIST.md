@@ -29,7 +29,7 @@ Every walkthrough page must follow these rules:
 - [x] Explain flags and options individually.
   - Acceptance: every option such as `-l`, `-h`, `-R`, `-S`, `-U`, `--now`, and `--target=x86_64-efi` has its own explanation.
 
-- [ ] Explain paths as data, not magic text.
+- [x] Explain paths as data, not magic text.
   - Acceptance: every path such as `/mnt`, `/boot`, `/etc/fstab`, `/dev/nvme0n1p2`, and `/sys/firmware/efi/efivars` explains what the path points to and whether it is an example or a real user-specific value.
 
 - [ ] Show full file contents for file edits.

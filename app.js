@@ -7290,6 +7290,7 @@ function wizardCommandPreview(command, title) {
       ${renderLiteralPlaceholderNote(rendered)}
       ${renderCommandCombinationNote(command, rendered)}
       ${renderCommandOptionsNote(rendered)}
+      ${renderCommandPathsNote(rendered)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -7773,6 +7774,61 @@ function renderCommandOptionsNote(rendered) {
   `;
 }
 
+function commandPathTokens(commandText) {
+  const matches = commandText.match(/(^|[\s=:])\/[A-Za-z0-9._@%+/-]+/g) || [];
+  return [...new Set(matches.map((match) => match.trim().replace(/^[=:]/, "").replace(/[),]+$/g, "")))];
+}
+
+function pathExplanation(path) {
+  if (path.startsWith("/dev/")) {
+    return "Device path. This points to hardware or a partition exposed by Linux. Treat it as machine-specific data from discovery output, not magic text to copy from an example.";
+  }
+  if (path === "/mnt" || path.startsWith("/mnt/")) {
+    return "Temporary install mount path. During installation, /mnt is where the new Arch system is attached before pacstrap, fstab generation, and chroot work.";
+  }
+  if (path === "/boot" || path.startsWith("/boot/")) {
+    return "Boot-files path inside the installed system. It contains kernel, initramfs, bootloader, or EFI-related files depending on the selected boot path.";
+  }
+  if (path.startsWith("/etc/systemd/")) {
+    return "System configuration path for systemd. Files here affect services, units, slices, or drop-ins on the installed system.";
+  }
+  if (path.startsWith("/etc/security/")) {
+    return "Security/login configuration path. Files here can affect PAM limits and user sessions, so edits must be exact and recoverable.";
+  }
+  if (path.startsWith("/etc/")) {
+    return "System configuration path. Files under /etc change installed-system behavior such as locale, hostname, mounts, shells, or service configuration.";
+  }
+  if (path.startsWith("/sys/")) {
+    return "Kernel-provided evidence path. This is not a normal file to edit; it exposes live system/firmware information for inspection.";
+  }
+  if (path.startsWith("/usr/share/zoneinfo/")) {
+    return "Time zone data path. This points to an installed time zone file used when linking /etc/localtime.";
+  }
+  if (path === "/bin/bash" || path === "/bin/rbash") {
+    return "Shell program path. This names the login shell executable assigned to a user account.";
+  }
+  if (path === "/path/to/command") {
+    return "Placeholder file path. Replace it with the real command path before using the command.";
+  }
+  if (path === "/vmlinuz-linux" || path === "/initramfs-linux.img" || path === "/intel-ucode.img" || path === "/amd-ucode.img") {
+    return "Boot entry path relative to the boot partition. In a systemd-boot entry, this tells the bootloader which kernel, initramfs, or microcode file to load.";
+  }
+  return "Absolute filesystem path. It starts at /, the root of the Linux filesystem. Verify whether this path is a fixed system location or a value specific to this machine before using it.";
+}
+
+function renderCommandPathsNote(rendered) {
+  const paths = commandPathTokens(rendered.command);
+  if (!paths.length) return "";
+  return `
+    <section class="command-paths-note">
+      <strong>Paths as data</strong>
+      <ul>
+        ${paths.map((path) => `<li><code>${escapeHtml(path)}</code>: ${escapeHtml(pathExplanation(path))}</li>`).join("")}
+      </ul>
+    </section>
+  `;
+}
+
 function commandTemplate(command) {
   const blocked = commandBlockedBySafetyGate(command);
   const safetyType = commandSafetyType(command);
@@ -7829,6 +7885,7 @@ function commandTemplate(command) {
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       ${renderCommandCombinationNote(command, rendered)}
       ${renderCommandOptionsNote(rendered)}
+      ${renderCommandPathsNote(rendered)}
       <div class="explain-grid">
         <div class="explain-box">
           <strong>What this command does</strong>
