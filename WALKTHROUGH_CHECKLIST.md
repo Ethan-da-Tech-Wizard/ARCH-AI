@@ -384,7 +384,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Teach how to identify the existing OS disk.
   - Acceptance: app explains clues such as existing EFI partition, Windows/Linux partitions, large mounted filesystems, recovery partitions, and disk model/size.
 
-- [ ] Add an erase-versus-preserve decision.
+- [x] Add an erase-versus-preserve decision.
   - Acceptance: app requires the user to choose between erasing the whole disk and preserving/shrinking existing partitions before any partition command is shown.
 
 - [ ] Add whole-disk erase path for the same SSD.

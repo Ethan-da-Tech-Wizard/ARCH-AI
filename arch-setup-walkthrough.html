@@ -7241,9 +7241,22 @@ function diskStrategyAllowsDestructiveCommands() {
   return activeDiskStrategy().allowsDestructive === true;
 }
 
+function sameDiskPathSelected() {
+  return setupProfile.installTarget === "same-existing";
+}
+
+function sameDiskMappingProven() {
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentReady = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const targetReady = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  return currentReady && targetReady && currentOsDisk === targetDisk;
+}
+
 function diskStrategyCommandVisible(section, command) {
   if (section.title !== "Disk Setup") return true;
   if (commandSafetyType(command) !== "disk-write") return true;
+  if (sameDiskPathSelected()) return setupProfile.eraseIntent === "yes" && sameDiskMappingProven();
   return diskStrategyAllowsDestructiveCommands();
 }
 
@@ -7265,6 +7278,59 @@ function diskStrategyTemplate() {
         </div>
       </div>
       <p><strong>KISS rule:</strong> Do not make a preserve/manual storage situation look like a full-disk wipe. Show destructive commands only when erase intent is explicit.</p>
+    </section>
+  `;
+}
+
+function sameDiskDecisionTemplate() {
+  if (!sameDiskPathSelected()) return "";
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentReady = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const targetReady = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  const sameDiskMapped = sameDiskMappingProven();
+  const erase = setupProfile.eraseIntent === "yes";
+  const preserve = setupProfile.eraseIntent === "no-preserve";
+  const status = erase && sameDiskMapped ? "ready" : "danger";
+  const decision = erase
+    ? "Erase whole disk selected. This means the existing OS and files on the mapped target disk are expected to be removed."
+    : preserve
+      ? "Preserve selected. Generic partitioning, formatting, and wipe commands must stay blocked until a specific shrink/reuse plan exists."
+      : "Erase decision is unsure. Stop before partitioning, formatting, shrinking, or deleting anything.";
+  const allowed = erase
+    ? [
+        "Continue only after backups are confirmed outside this disk.",
+        "Current OS disk and Target install disk should intentionally be the same whole disk.",
+        "Use the normal full-disk erase flow only after the Disk identity gate passes."
+      ]
+    : [
+        "Do not delete existing EFI, recovery, Windows, macOS, Linux, home, or data partitions.",
+        "Do not use cfdisk, fdisk, parted, mkfs, mkswap, or wipefs from a generic example.",
+        "Create a preservation plan that names the exact partitions to keep, shrink, reuse, or leave untouched."
+      ];
+  return `
+    <section class="profile-summary-card ${status === "danger" ? "profile-danger" : "profile-safe"}">
+      <h4>Same-disk erase versus preserve decision</h4>
+      <p><strong>Decision:</strong> ${escapeHtml(decision)}</p>
+      <ul>
+        <li><strong>Current OS disk:</strong> ${escapeHtml(currentReady ? currentOsDisk : "not mapped as a whole disk yet")}</li>
+        <li><strong>Target install disk:</strong> ${escapeHtml(targetReady ? targetDisk : "not mapped as a whole disk yet")}</li>
+        <li><strong>Same disk proven:</strong> ${sameDiskMapped ? "yes" : "no"}</li>
+      </ul>
+      <div class="boot-path-grid">
+        <div>
+          <strong>${erase ? "Erase path requirements" : "Preserve/unsure requirements"}</strong>
+          <ul>${allowed.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <strong>What remains blocked</strong>
+          <ul>
+            <li>Partition commands are not copy-ready until the decision and disk identity agree.</li>
+            <li>Formatting commands are not copy-ready while preserve or unsure is selected.</li>
+            <li>Recovery, EFI, and personal-data partitions are not safe to modify unless the whole disk erase path is intentional.</li>
+          </ul>
+        </div>
+      </div>
     </section>
   `;
 }
@@ -8190,6 +8256,7 @@ function renderProfileSummary() {
     ${scenarioPathTemplate()}
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
+    ${sameDiskDecisionTemplate()}
     ${partitionDecisionTemplate()}
     ${separateSsdPartitionPlanTemplate()}
     ${separateSsdFormatMountTemplate()}
