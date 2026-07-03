@@ -1060,6 +1060,32 @@ h3 {
   line-height: 1.55;
 }
 
+.expected-output-note {
+  padding: 12px;
+  border: 1px solid #c8d7e6;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #f6fbf8;
+  color: #315743;
+}
+
+.expected-output-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.expected-output-grid span {
+  color: #244c36;
+  font-weight: 800;
+}
+
+.expected-output-grid p {
+  margin: 5px 0 0;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;

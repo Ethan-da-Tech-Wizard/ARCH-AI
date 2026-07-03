@@ -7291,6 +7291,7 @@ function wizardCommandPreview(command, title) {
       ${renderCommandCombinationNote(command, rendered)}
       ${renderCommandOptionsNote(rendered)}
       ${renderCommandPathsNote(rendered)}
+      ${renderExpectedOutputNote(command)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -7829,6 +7830,39 @@ function renderCommandPathsNote(rendered) {
   `;
 }
 
+function normalSilenceExplanation(command) {
+  const expected = command.expected.toLowerCase();
+  if (/(no output|usually no output|prints nothing|no text|silent|without an error|without error|returns without an error)/.test(expected)) {
+    return "Silence or a return to the prompt can be normal for this command, but only when the command's expected-result text says that no output or no error is the success signal.";
+  }
+  if (/^(nano|sudo\s+nano|editor=.*visudo|htop|pavucontrol|firefox|xfce4-terminal)\b/i.test(command.command.trim())) {
+    return "This command opens an interactive program or editor. Normal success may be a screen change, editor window, graphical app, or prompt inside that program instead of a simple printed line.";
+  }
+  return "Plain silence is not the main success signal for this command. If nothing appears, compare that behavior with the expected-result text and do not assume success until the next verification command confirms it.";
+}
+
+function renderExpectedOutputNote(command) {
+  return `
+    <section class="expected-output-note">
+      <strong>Expected output, normal silence, and danger signs</strong>
+      <div class="expected-output-grid">
+        <div>
+          <span>Success looks like</span>
+          <p>${escapeHtml(command.expected)}</p>
+        </div>
+        <div>
+          <span>Normal silence means</span>
+          <p>${escapeHtml(normalSilenceExplanation(command))}</p>
+        </div>
+        <div>
+          <span>Failure or danger looks like</span>
+          <p>${escapeHtml(command.fails)}</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function commandTemplate(command) {
   const blocked = commandBlockedBySafetyGate(command);
   const safetyType = commandSafetyType(command);
@@ -7886,6 +7920,7 @@ function commandTemplate(command) {
       ${renderCommandCombinationNote(command, rendered)}
       ${renderCommandOptionsNote(rendered)}
       ${renderCommandPathsNote(rendered)}
+      ${renderExpectedOutputNote(command)}
       <div class="explain-grid">
         <div class="explain-box">
           <strong>What this command does</strong>

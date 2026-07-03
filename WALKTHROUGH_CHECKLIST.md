@@ -44,7 +44,7 @@ Every walkthrough page must follow these rules:
 - [x] Distinguish literal text from placeholders.
   - Acceptance: placeholders such as `PASTE-ROOT-UUID-HERE`, `/dev/sda`, `ethan`, and `"Network Name"` are visually and verbally marked as values the user must replace.
 
-- [ ] Explain expected output in detail.
+- [x] Explain expected output in detail.
   - Acceptance: each command explains what success looks like, what normal silence means, and what output indicates failure or danger.
 
 - [ ] Explain failure before recovery.
