@@ -177,16 +177,16 @@ Hard rule: destructive disk operations must never appear as generic copy/paste i
 
 ### Option Explanation Standard
 
-- [ ] Explain all meaningful options.
+- [x] Explain all meaningful options.
   - Acceptance: when the user reaches a decision point, the app lists every reasonable beginner-relevant option, explains what it does, explains when to choose it, and marks the default.
 
-- [ ] Mark the default option clearly.
+- [x] Mark the default option clearly.
   - Acceptance: each decision point says which option is the default, why it is default, and what tradeoff it makes.
 
-- [ ] Hide irrelevant option paths after selection.
+- [x] Hide irrelevant option paths after selection.
   - Acceptance: after the user chooses a path, unrelated OS/hardware/boot/disk instructions are hidden by default to reduce confusion.
 
-- [ ] Allow review of hidden alternatives.
+- [x] Allow review of hidden alternatives.
   - Acceptance: user can still expand other options intentionally, but the primary wizard path stays focused on their setup.
 
 ## Setup Profile Wizard Requirement

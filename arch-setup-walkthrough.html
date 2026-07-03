@@ -415,6 +415,37 @@ h3 {
   padding-left: 20px;
 }
 
+.decision-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.decision-option-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(215, 182, 111, 0.7);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.decision-option-card h5 {
+  margin: 0;
+  color: #3b3120;
+  font-size: 0.95rem;
+}
+
+.decision-option-card p {
+  margin: 0;
+}
+
+.decision-option-card summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 800;
+}
+
 .gate-confirm {
   display: flex;
   align-items: flex-start;
@@ -7035,6 +7066,194 @@ function bootNetworkPathNotes() {
   return parts;
 }
 
+const profileDecisionCatalog = [
+  {
+    field: "guideDevice",
+    title: "Guide device",
+    defaultValue: "second-computer",
+    whyDefault: "Default is a second screen because the target computer may reboot, lose networking, or be partitioned while the guide remains visible.",
+    options: [
+      ["second-computer", "Second computer", "Choose this when another laptop or desktop is available for reading the guide.", "Same-computer reading warnings are less central."],
+      ["phone", "Phone", "Choose this when the guide is read from a phone beside the target machine.", "Large-screen assumptions are hidden."],
+      ["tablet", "Tablet", "Choose this when the guide is read from a tablet beside the target machine.", "Same-computer reading warnings are less central."],
+      ["same-computer", "Same computer", "Choose this only when the target computer can still display the guide safely.", "Second-device assumptions are hidden, but reboot/partition interruption warnings matter more."],
+      ["printed", "Printed copy", "Choose this when commands are being read from paper.", "Clickable source and copy-button convenience are not the active reading path."]
+    ]
+  },
+  {
+    field: "machineType",
+    title: "Machine type",
+    defaultValue: "other",
+    whyDefault: "Default is other/unsure until the user identifies whether this is a PC, laptop, Mac, or VM.",
+    options: [
+      ["other", "Other / unsure", "Choose this until the machine type is known.", "Model-specific assumptions are hidden."],
+      ["generic-pc", "Generic PC", "Choose this for a normal desktop or tower PC.", "Laptop, Mac, and VM-specific assumptions are secondary."],
+      ["laptop", "Laptop", "Choose this for portable PCs with built-in Wi-Fi, battery, touchpad, and often firmware-specific behavior.", "Desktop-only assumptions are secondary."],
+      ["mac", "Mac", "Choose this for Apple hardware.", "Generic PC external-disk assumptions are adjusted for macOS/Apple disk clues."],
+      ["vm", "Virtual machine", "Choose this when installing inside QEMU, VirtualBox, VMware, or another VM.", "Physical-disk assumptions are hidden unless passthrough storage is used."]
+    ]
+  },
+  {
+    field: "currentEnvironment",
+    title: "Current environment",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until the user says what screen or OS the target is currently running.",
+    options: [
+      ["unknown", "Unknown", "Choose this when the current screen/environment is not known.", "OS-specific discovery paths stay secondary."],
+      ["arch-iso", "Booted into the Arch ISO", "Choose this when the target computer is already at the Arch live environment.", "Windows/macOS pre-boot discovery paths are hidden by default."],
+      ["windows", "Windows", "Choose this when the target is currently in Windows.", "Linux/macOS disk naming assumptions are hidden."],
+      ["macos", "macOS", "Choose this when the target is currently in macOS.", "Windows and generic Linux disk-management assumptions are hidden."],
+      ["linux", "Linux", "Choose this when the target is currently in an installed Linux system.", "Windows/macOS discovery assumptions are hidden."]
+    ]
+  },
+  {
+    field: "installTarget",
+    title: "Install target",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until the user proves where Arch will be installed. Unknown keeps storage commands in discovery mode.",
+    options: [
+      ["unknown", "Unknown", "Choose this when the target disk is not proven yet.", "Destructive disk paths stay hidden."],
+      ["only-internal", "Only internal SSD/disk", "Choose this when Arch will use the computer's internal disk and anything on that target can follow the selected erase/preserve decision.", "External and separate-second-disk paths are hidden."],
+      ["second-internal", "Separate second internal SSD/disk", "Choose this when the current OS disk and Arch target disk are different internal disks.", "Same-disk assumptions are hidden."],
+      ["external", "External SSD/USB drive", "Choose this when the install target is removable or externally attached storage.", "Internal-only disk assumptions are hidden."],
+      ["same-existing", "Same disk as an existing OS", "Choose this when Arch shares or replaces a disk that already contains Windows, macOS, or Linux.", "Separate-disk shortcuts are hidden."],
+      ["vm-disk", "Virtual disk", "Choose this for a VM virtual disk after confirming it is not host passthrough storage.", "Physical-disk host assumptions are hidden."]
+    ]
+  },
+  {
+    field: "eraseIntent",
+    title: "Erase intent",
+    defaultValue: "unsure",
+    whyDefault: "Default is unsure because preserving data is safer than accidentally erasing it.",
+    options: [
+      ["unsure", "Unsure", "Choose this until the user knows what must survive.", "Partitioning and formatting stay hidden."],
+      ["yes", "Yes, erase the target disk", "Choose this only when the target disk can be destroyed and backups are already handled.", "Preserve/manual storage paths are hidden from the normal flow."],
+      ["no-preserve", "No, preserve existing data/OS", "Choose this when any OS, recovery partition, or personal data must survive.", "Whole-disk wipe commands stay hidden."]
+    ]
+  },
+  {
+    field: "bootMode",
+    title: "Boot mode",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until the ISO boot mode is verified from the machine, not guessed.",
+    options: [
+      ["unknown", "Unknown / not checked yet", "Choose this until UEFI versus legacy BIOS has been checked.", "Bootloader install commands stay hidden."],
+      ["uefi", "UEFI", "Choose this when /sys/firmware/efi/efivars exists in the booted ISO.", "Legacy BIOS GRUB commands are hidden."],
+      ["bios", "Legacy BIOS", "Choose this when the ISO booted without UEFI firmware variables.", "UEFI systemd-boot and GRUB UEFI commands are hidden."]
+    ]
+  },
+  {
+    field: "bootloaderPath",
+    title: "Bootloader path",
+    defaultValue: "",
+    whyDefault: "Default follows boot mode: UEFI defaults to systemd-boot, legacy BIOS defaults to GRUB BIOS.",
+    options: [
+      ["", "Recommended for boot mode", "Choose this unless there is a specific reason to override the bootloader path.", "Nonmatching bootloader branches are hidden."],
+      ["systemd-boot", "UEFI systemd-boot", "Choose this for the simple UEFI path.", "GRUB UEFI and BIOS GRUB branches are hidden."],
+      ["grub-uefi", "UEFI GRUB", "Choose this when the user intentionally wants GRUB on UEFI.", "systemd-boot and BIOS GRUB branches are hidden."],
+      ["grub-bios", "Legacy BIOS GRUB", "Choose this only for legacy BIOS mode.", "UEFI bootloader branches are hidden."]
+    ]
+  },
+  {
+    field: "networkPath",
+    title: "Network path",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until the user proves Ethernet or Wi-Fi with real interface evidence.",
+    options: [
+      ["unknown", "Unknown", "Choose this before the network hardware/path is known.", "Package installation should wait for connectivity tests."],
+      ["ethernet", "Ethernet", "Choose this when a wired interface and cable are being used.", "Wi-Fi iwctl setup is hidden from the primary path."],
+      ["wifi", "Wi-Fi", "Choose this when the machine must connect through wireless networking.", "Ethernet-only assumptions are hidden."]
+    ]
+  },
+  {
+    field: "internalDriveCount",
+    title: "Internal drive count",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until disk discovery proves how many internal drives exist.",
+    options: [
+      ["unknown", "Unknown", "Choose this before internal storage has been counted.", "Separate-disk and one-disk assumptions stay cautious."],
+      ["one", "One", "Choose this when the machine has one internal disk.", "Separate-internal-SSD assumptions are hidden."],
+      ["two", "Two", "Choose this when the machine has two internal disks.", "One-internal-disk shortcuts are hidden."],
+      ["three-plus", "Three or more", "Choose this when there are at least three internal disks.", "Simple one-disk assumptions are hidden."]
+    ]
+  },
+  {
+    field: "externalDrive",
+    title: "External drive",
+    defaultValue: "unknown",
+    whyDefault: "Default is unknown until attached USB/external storage is identified.",
+    options: [
+      ["unknown", "Unknown", "Choose this until external storage has been checked.", "External-disk assumptions stay cautious."],
+      ["yes", "Yes", "Choose this when an external SSD, USB drive, or removable storage is connected.", "Internal-only assumptions are secondary."],
+      ["no", "No", "Choose this when no external storage is connected besides the installer media.", "External target guidance is hidden unless install target says external."]
+    ]
+  },
+  {
+    field: "swapStrategy",
+    title: "Swap strategy",
+    defaultValue: "",
+    whyDefault: "Default is no swap for now because it avoids extra partitioning during a beginner install.",
+    options: [
+      ["", "No swap for now", "Choose this for the simplest first install.", "Swap partition commands are hidden."],
+      ["swap-partition", "Swap partition", "Choose this only when a specific swap partition is planned and mapped.", "No-swap and swap-file assumptions are not the active path."],
+      ["swap-file", "Swap file after install", "Choose this when swap should be handled later inside the installed filesystem.", "Live ISO swap partition commands are hidden."]
+    ]
+  },
+  {
+    field: "audioTarget",
+    title: "Audio target",
+    defaultValue: "",
+    whyDefault: "Default is internal audio because it is the simplest baseline before HDMI, USB, or Bluetooth layers.",
+    options: [
+      ["", "Internal speakers / microphone", "Choose this for built-in speakers and built-in microphone testing.", "HDMI, USB, and Bluetooth-specific troubleshooting are secondary."],
+      ["hdmi-displayport", "HDMI / DisplayPort audio", "Choose this when sound should come through a monitor or TV.", "Internal-speaker assumptions are not the primary path."],
+      ["usb-headset", "USB headset or USB audio", "Choose this for USB headsets, microphones, DACs, or audio interfaces.", "Internal and HDMI assumptions are not the primary path."],
+      ["bluetooth", "Bluetooth audio", "Choose this only after the basic PipeWire stack works.", "Bluetooth-specific steps stay separate because they add pairing and radio state."],
+      ["unknown", "Unknown / not checked yet", "Choose this until the target output/input device is known.", "Specific audio troubleshooting paths stay secondary."]
+    ]
+  }
+];
+
+function optionMatchesSelected(optionValue, selectedValue, defaultValue) {
+  return optionValue === selectedValue || (!selectedValue && optionValue === defaultValue);
+}
+
+function profileDecisionGuideTemplate() {
+  return `
+    <section class="profile-summary-card decision-guide-card">
+      <h4>Decision guide and hidden-path review</h4>
+      <p>Each decision has a default. The default is the safest beginner assumption for that decision, not proof that the machine matches it. After a choice is made, unrelated paths are hidden in the lessons by default, while the review lists below keep alternatives visible on purpose.</p>
+      <div class="decision-guide-grid">
+        ${profileDecisionCatalog.map((decision) => {
+          const selectedValue = setupProfile[decision.field] ?? "";
+          const selectedOption = decision.options.find(([value]) => optionMatchesSelected(value, selectedValue, decision.defaultValue)) || decision.options[0];
+          const defaultOption = decision.options.find(([value]) => value === decision.defaultValue) || decision.options[0];
+          return `
+            <section class="decision-option-card">
+              <h5>${escapeHtml(decision.title)}</h5>
+              <p><strong>Active:</strong> ${escapeHtml(selectedOption[1])}${selectedValue ? "" : " (default while unset)"}</p>
+              <p><strong>Default:</strong> ${escapeHtml(defaultOption[1])}. ${escapeHtml(decision.whyDefault)}</p>
+              <p><strong>When to choose active option:</strong> ${escapeHtml(selectedOption[2])}</p>
+              <p><strong>Hidden by this choice:</strong> ${escapeHtml(selectedOption[3])}</p>
+              <details>
+                <summary>Review all options</summary>
+                <ul>
+                  ${decision.options.map(([value, label, when, hidden]) => `
+                    <li>
+                      <strong>${escapeHtml(label)}${value === decision.defaultValue ? " (default)" : ""}:</strong>
+                      ${escapeHtml(when)} Hidden path effect: ${escapeHtml(hidden)}
+                    </li>
+                  `).join("")}
+                </ul>
+              </details>
+            </section>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function separateInternalDiskRequired() {
   return setupProfile.installTarget === "second-internal" || setupProfile.internalDriveCount === "two" || setupProfile.internalDriveCount === "three-plus";
 }
@@ -8400,6 +8619,7 @@ function renderProfileSummary() {
       <h4>Recommended safe path right now</h4>
       <p>${recommendedPath()}</p>
     </section>
+    ${profileDecisionGuideTemplate()}
     ${scenarioPathTemplate()}
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
