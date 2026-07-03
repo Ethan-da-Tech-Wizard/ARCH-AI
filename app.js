@@ -7288,6 +7288,7 @@ function wizardCommandPreview(command, title) {
       ${destructiveCommandWarning(safetyType)}
       ${rendered.note}
       ${renderLiteralPlaceholderNote(rendered)}
+      ${renderCommandCombinationNote(command, rendered)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -7689,6 +7690,25 @@ function renderCommandWords(command, rendered) {
   }).join("");
 }
 
+function renderedCommandWordList(command) {
+  const targetDisk = targetDiskReplacement();
+  return command.words.map(([word]) => {
+    const afterDisk = targetDisk ? replaceWholeDiskExamples(word, targetDisk) : word;
+    return applyTextReplacements(replacePartitionExamples(afterDisk)).text;
+  });
+}
+
+function renderCommandCombinationNote(command, rendered) {
+  const words = renderedCommandWordList(command);
+  const wordList = words.length ? words.map((word) => `<code>${escapeHtml(word)}</code>`).join(", ") : `<code>${escapeHtml(rendered.command)}</code>`;
+  return `
+    <section class="command-combination-note">
+      <strong>How the pieces combine</strong>
+      <p>The command is built from these explained pieces: ${wordList}. Together, those pieces mean: ${command.purpose}</p>
+    </section>
+  `;
+}
+
 function commandTemplate(command) {
   const blocked = commandBlockedBySafetyGate(command);
   const safetyType = commandSafetyType(command);
@@ -7743,6 +7763,7 @@ function commandTemplate(command) {
       ${renderLiteralPlaceholderNote(rendered)}
       ${sourceListTemplate(command.sources, "Official source for this command", true)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
+      ${renderCommandCombinationNote(command, rendered)}
       <div class="explain-grid">
         <div class="explain-box">
           <strong>What this command does</strong>

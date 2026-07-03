@@ -23,7 +23,7 @@ Every walkthrough page must follow these rules:
 - [ ] Explain every command word.
   - Acceptance: each command has a word-by-word map. Example: `ls /mnt` must explain that `ls` means list and `/mnt` is the directory being listed.
 
-- [ ] Explain command combinations.
+- [x] Explain command combinations.
   - Acceptance: the app explains how individual pieces combine into the command's meaning. Example: `ls` means list, `/mnt` means the `/mnt` directory, so `ls /mnt` means list what is inside `/mnt`.
 
 - [ ] Explain flags and options individually.

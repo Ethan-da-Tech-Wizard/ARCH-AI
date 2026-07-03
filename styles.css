@@ -1016,6 +1016,20 @@ h3 {
   color: #6d552a;
 }
 
+.command-combination-note {
+  padding: 12px;
+  border: 1px solid #c8d7e6;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #f6f9fc;
+  color: #2d4d64;
+}
+
+.command-combination-note p {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;
