@@ -6680,6 +6680,15 @@ function renderDiscoveryGuide() {
         <h4>Stop rule</h4>
         <p>If the disk contains EFI, Windows, macOS, Linux, recovery, home, or personal-data partitions and you are not intentionally erasing the whole disk, stop. The correct next step is an explicit preserve plan, not a generic partitioning command.</p>
       </section>
+      <section class="profile-summary-card profile-danger">
+        <h4>Stop and back up checkpoint</h4>
+        <ul>
+          <li>Stop before resizing any partition that contains an OS, home directory, recovery data, or personal files.</li>
+          <li>Stop before deleting any partition whose purpose is not fully understood.</li>
+          <li>Stop before formatting any partition that contains data you want to keep.</li>
+          <li>Back up wanted files to storage outside the disk being changed before continuing.</li>
+        </ul>
+      </section>
     </section>
     ${showWindowsDiscovery ? `
     <section class="discovery-card">
@@ -7419,6 +7428,15 @@ function sameDiskPreservePlanTemplate() {
         </div>
       </div>
       <p><strong>KISS rule:</strong> preserving another OS requires an exact partition plan. If the plan is not exact, stop and keep Device Mapping fields marked <strong>I do not know</strong>.</p>
+      <section class="profile-summary-card profile-danger">
+        <h4>Stop and back up checkpoint</h4>
+        <ul>
+          <li>Stop before resizing the existing OS partition unless the backup is complete and the shrink target is exact.</li>
+          <li>Stop before deleting EFI, recovery, boot, home, data, Windows, macOS, or Linux partitions that may be needed later.</li>
+          <li>Stop before formatting any partition unless it is the exact Arch target partition and all old contents can be lost.</li>
+          <li>Backups must live outside the same physical disk. A backup on the disk being repartitioned is not enough.</li>
+        </ul>
+      </section>
     </section>
   `;
 }

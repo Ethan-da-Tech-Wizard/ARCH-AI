@@ -393,7 +393,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add preserve-existing-OS planning path.
   - Acceptance: app explains that preserving another OS requires free space or shrinking partitions, backups, and extra care; destructive commands remain hidden until the user confirms the exact free space/partition plan.
 
-- [ ] Add "stop and back up" checkpoints.
+- [x] Add "stop and back up" checkpoints.
   - Acceptance: app warns the user to stop before resizing, deleting, or formatting any partition containing data they want to keep.
 
 ### Partitioning If Necessary
