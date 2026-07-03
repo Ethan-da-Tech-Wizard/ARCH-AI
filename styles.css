@@ -705,6 +705,13 @@ h3 {
   font-size: 0.92rem;
 }
 
+.source-review-note {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .block p,
 .block li {
   color: var(--muted);
@@ -759,6 +766,11 @@ h3 {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.35;
+}
+
+.source-links .offline-source-key {
+  color: #315f73;
+  font-weight: 700;
 }
 
 .compact .source-links {

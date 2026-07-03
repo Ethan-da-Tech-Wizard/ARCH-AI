@@ -7538,16 +7538,32 @@ function sourceListTemplate(sources = [], title = "Official sources", compact = 
   return `
     <section class="${compact ? "source-list compact" : "source-list"}">
       <h4>${title}</h4>
+      ${compact ? "" : "<p class=\"source-review-note\">Official links are the technical authority. The surrounding command explanations, expected-output notes, and failure notes are app-authored beginner review text.</p>"}
       <div class="source-links">
         ${safeSources.map((source) => `
           <a href="${source.url}" target="_blank" rel="noreferrer">
             <span>${source.label}</span>
             <small>${source.note}</small>
+            ${offlineSourceTemplate(source)}
           </a>
         `).join("")}
       </div>
     </section>
   `;
+}
+
+function offlineArchWikiKey(source) {
+  const match = source.url.match(/^https:\/\/wiki\.archlinux\.org\/title\/([^#?]+)/);
+  if (!match) return "";
+  return decodeURIComponent(match[1]);
+}
+
+function offlineSourceTemplate(source) {
+  const key = offlineArchWikiKey(source);
+  if (!key) {
+    return `<small class="offline-source-key">Offline ArchWiki: not applicable</small>`;
+  }
+  return `<small class="offline-source-key">Offline ArchWiki key: ${escapeHtml(key)}</small>`;
 }
 
 function escapeHtml(value) {

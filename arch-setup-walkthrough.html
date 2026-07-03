@@ -712,6 +712,13 @@ h3 {
   font-size: 0.92rem;
 }
 
+.source-review-note {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .block p,
 .block li {
   color: var(--muted);
@@ -766,6 +773,11 @@ h3 {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.35;
+}
+
+.source-links .offline-source-key {
+  color: #315f73;
+  font-weight: 700;
 }
 
 .compact .source-links {
@@ -1312,6 +1324,8 @@ dialog::backdrop {
           <p>
             Each lesson links back to ArchWiki, Arch manual pages, or official Arch package pages. When the
             Arch docs change, the walkthrough should be checked against those links before the app text is changed.
+            A local official `arch-wiki-lite` archive is kept at `offline-sources/arch-wiki-lite/` for offline
+            ArchWiki review; source cards show the matching offline article key when the source is an ArchWiki page.
           </p>
         </section>
 
@@ -9061,16 +9075,32 @@ function sourceListTemplate(sources = [], title = "Official sources", compact = 
   return `
     <section class="${compact ? "source-list compact" : "source-list"}">
       <h4>${title}</h4>
+      ${compact ? "" : "<p class=\"source-review-note\">Official links are the technical authority. The surrounding command explanations, expected-output notes, and failure notes are app-authored beginner review text.</p>"}
       <div class="source-links">
         ${safeSources.map((source) => `
           <a href="${source.url}" target="_blank" rel="noreferrer">
             <span>${source.label}</span>
             <small>${source.note}</small>
+            ${offlineSourceTemplate(source)}
           </a>
         `).join("")}
       </div>
     </section>
   `;
+}
+
+function offlineArchWikiKey(source) {
+  const match = source.url.match(/^https:\/\/wiki\.archlinux\.org\/title\/([^#?]+)/);
+  if (!match) return "";
+  return decodeURIComponent(match[1]);
+}
+
+function offlineSourceTemplate(source) {
+  const key = offlineArchWikiKey(source);
+  if (!key) {
+    return `<small class="offline-source-key">Offline ArchWiki: not applicable</small>`;
+  }
+  return `<small class="offline-source-key">Offline ArchWiki key: ${escapeHtml(key)}</small>`;
 }
 
 function escapeHtml(value) {

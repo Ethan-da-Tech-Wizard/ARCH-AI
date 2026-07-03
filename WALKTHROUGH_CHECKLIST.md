@@ -492,16 +492,16 @@ This module belongs after the user has a bootable system, working networking, Fi
 
 ## 4. Improve Source Fidelity
 
-- [ ] Install or otherwise obtain official offline ArchWiki content.
+- [x] Install or otherwise obtain official offline ArchWiki content.
   - Acceptance: local source exists from `arch-wiki-docs`, `arch-wiki-lite`, or another official Arch package/source and can be searched offline.
 
-- [ ] Map every lesson to official source pages.
+- [x] Map every lesson to official source pages.
   - Acceptance: each lesson lists its ArchWiki/manual/package source and the app content can be traced back to it.
 
-- [ ] Map every command to an official source where possible.
+- [x] Map every command to an official source where possible.
   - Acceptance: install-specific commands use ArchWiki/manual sources; package commands use package/manual sources.
 
-- [ ] Add source review notes for non-official explanatory text.
+- [x] Add source review notes for non-official explanatory text.
   - Acceptance: app distinguishes official technical facts from beginner explanations written by us.
 
 - [x] Add a source update process.
@@ -569,7 +569,7 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Beginner desktop path is added with Xorg, Xfce, LightDM, Firefox, and audio controls.
 - [x] Post-install baseline is added with required, desktop-path, and hardware-specific package guidance.
 - [x] Hardware detection path separates Intel CPU, AMD CPU, Intel graphics, AMD graphics, and NVIDIA graphics choices.
-- [ ] Offline ArchWiki source ingestion is not complete.
+- [x] Offline ArchWiki source ingestion is complete with local `arch-wiki-lite` content.
 - [x] Core VM install and bootloader verification is complete; audible audio playback remains hardware-dependent and untested.
 
 ## Next Step
