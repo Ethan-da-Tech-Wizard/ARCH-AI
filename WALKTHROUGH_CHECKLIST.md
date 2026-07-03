@@ -47,7 +47,7 @@ Every walkthrough page must follow these rules:
 - [x] Explain expected output in detail.
   - Acceptance: each command explains what success looks like, what normal silence means, and what output indicates failure or danger.
 
-- [ ] Explain failure before recovery.
+- [x] Explain failure before recovery.
   - Acceptance: troubleshooting text first explains what the error means, then gives the recovery command or decision.
 
 - [ ] Never hide destructive meaning.

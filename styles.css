@@ -1086,6 +1086,32 @@ h3 {
   line-height: 1.55;
 }
 
+.failure-recovery-note {
+  padding: 12px;
+  border: 1px solid var(--warn-line);
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: var(--warn-bg);
+  color: #6d552a;
+}
+
+.failure-recovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.failure-recovery-grid span {
+  color: #5a331f;
+  font-weight: 800;
+}
+
+.failure-recovery-grid p {
+  margin: 5px 0 0;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;

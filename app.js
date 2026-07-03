@@ -7292,6 +7292,7 @@ function wizardCommandPreview(command, title) {
       ${renderCommandOptionsNote(rendered)}
       ${renderCommandPathsNote(rendered)}
       ${renderExpectedOutputNote(command)}
+      ${renderFailureRecoveryNote(command)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -7863,6 +7864,42 @@ function renderExpectedOutputNote(command) {
   `;
 }
 
+function splitFailureExplanation(fails) {
+  const parts = fails
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= 1) {
+    return {
+      meaning: "This means the command did not produce the expected result, or the visible result is not enough evidence to safely continue.",
+      recovery: fails
+    };
+  }
+  return {
+    meaning: parts[0],
+    recovery: parts.slice(1).join(" ")
+  };
+}
+
+function renderFailureRecoveryNote(command) {
+  const split = splitFailureExplanation(command.fails);
+  return `
+    <section class="failure-recovery-note">
+      <strong>Failure before recovery</strong>
+      <div class="failure-recovery-grid">
+        <div>
+          <span>What the failure means</span>
+          <p>${escapeHtml(split.meaning)}</p>
+        </div>
+        <div>
+          <span>What to do next</span>
+          <p>${escapeHtml(split.recovery)}</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function commandTemplate(command) {
   const blocked = commandBlockedBySafetyGate(command);
   const safetyType = commandSafetyType(command);
@@ -7921,6 +7958,7 @@ function commandTemplate(command) {
       ${renderCommandOptionsNote(rendered)}
       ${renderCommandPathsNote(rendered)}
       ${renderExpectedOutputNote(command)}
+      ${renderFailureRecoveryNote(command)}
       <div class="explain-grid">
         <div class="explain-box">
           <strong>What this command does</strong>
