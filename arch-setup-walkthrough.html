@@ -6625,6 +6625,62 @@ function renderDiscoveryGuide() {
         <p><code>blkid</code> can help identify filesystems, but it does not decide what is safe to erase. Safety still depends on matching multiple facts: device name, size, model, transport, serial, partition table, filesystem type, UUID, and mountpoints.</p>
       </section>
     </section>
+    <section class="discovery-card">
+      <div>
+        <p class="eyebrow">Discovery path: existing OS disk</p>
+        <h4>Find the disk that currently contains Windows, macOS, or Linux</h4>
+      </div>
+      <p>
+        Use this path before any same-disk erase or preserve decision. The goal is to identify the parent whole disk that owns the existing operating-system partitions.
+        This is observation only: do not partition, format, shrink, delete, mount for writing, or repair anything from this card.
+      </p>
+      <pre><code>lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MODEL,TRAN,SERIAL,MOUNTPOINTS</code></pre>
+      <div class="discovery-grid">
+        <div class="discovery-box">
+          <strong>Existing OS clues</strong>
+          <ul>
+            <li>A small <code>vfat</code> partition with an EFI-related label or partition type is often an EFI System Partition.</li>
+            <li><code>ntfs</code> partitions often belong to Windows. Large NTFS partitions may contain the Windows system, user files, games, or data.</li>
+            <li><code>ext4</code>, <code>btrfs</code>, or <code>xfs</code> partitions may belong to an existing Linux install.</li>
+            <li>Recovery partitions are common on Windows and some vendor systems. Treat them as preserve-until-proven-erase.</li>
+            <li>Large mounted filesystems, especially mountpoints such as <code>/</code>, <code>/boot</code>, <code>/home</code>, or obvious data labels, are strong signs that the disk is currently in use.</li>
+          </ul>
+        </div>
+        <div class="discovery-box">
+          <strong>How to find the parent disk</strong>
+          <ul>
+            <li>First find the partition row with the existing OS clue.</li>
+            <li>Then look upward in the tree to the parent row where <code>TYPE</code> is <code>disk</code>.</li>
+            <li>The parent disk is the whole disk to record as <strong>Current OS disk</strong> in Device Mapping.</li>
+            <li>For example, if <code>nvme0n1p3</code> is a large Windows or Linux partition, the parent whole disk is <code>/dev/nvme0n1</code>.</li>
+            <li>For example, if <code>sda2</code> is a large NTFS partition, the parent whole disk is <code>/dev/sda</code>.</li>
+          </ul>
+        </div>
+        <div class="discovery-box">
+          <strong>Cross-check before deciding</strong>
+          <ul>
+            <li>Compare disk capacity against the known size of the internal drive.</li>
+            <li>Compare model and serial when Linux can read them.</li>
+            <li>Check whether the disk has multiple OS-looking partitions: EFI, system/data, recovery, swap, or Linux root/home.</li>
+            <li>If booted from the installed OS instead of the Arch ISO, <code>findmnt /</code> can show the currently running root filesystem. Its parent disk is the current OS disk.</li>
+            <li>If the clues disagree, keep Current OS disk marked <strong>I do not know</strong> and stop before partitioning.</li>
+          </ul>
+        </div>
+        <div class="discovery-box">
+          <strong>What this means for same-disk installs</strong>
+          <ul>
+            <li>If Current OS disk and Target install disk are the same whole disk, this is a same-disk path.</li>
+            <li>Same-disk erase means the old OS and data on that disk are expected to be destroyed.</li>
+            <li>Same-disk preserve means the app must not show generic delete, resize, partition, or format commands yet.</li>
+            <li>The next decision must be erase versus preserve before any partition command is treated as usable.</li>
+          </ul>
+        </div>
+      </div>
+      <section class="profile-summary-card profile-danger">
+        <h4>Stop rule</h4>
+        <p>If the disk contains EFI, Windows, macOS, Linux, recovery, home, or personal-data partitions and you are not intentionally erasing the whole disk, stop. The correct next step is an explicit preserve plan, not a generic partitioning command.</p>
+      </section>
+    </section>
     ${showWindowsDiscovery ? `
     <section class="discovery-card">
       <div>

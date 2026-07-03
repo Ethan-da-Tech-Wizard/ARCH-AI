@@ -381,7 +381,7 @@ The app must support two common beginner scenarios before it shows destructive d
 
 ### Scenario B: Arch Goes On The Same Internal SSD As An Existing OS
 
-- [ ] Teach how to identify the existing OS disk.
+- [x] Teach how to identify the existing OS disk.
   - Acceptance: app explains clues such as existing EFI partition, Windows/Linux partitions, large mounted filesystems, recovery partitions, and disk model/size.
 
 - [ ] Add an erase-versus-preserve decision.
