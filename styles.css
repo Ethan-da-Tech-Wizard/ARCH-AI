@@ -1030,6 +1030,21 @@ h3 {
   line-height: 1.55;
 }
 
+.command-options-note {
+  padding: 12px;
+  border: 1px solid #c8d7e6;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #f8fbff;
+  color: #2d4d64;
+}
+
+.command-options-note ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;

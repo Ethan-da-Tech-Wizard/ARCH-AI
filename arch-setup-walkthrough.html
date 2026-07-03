@@ -1037,6 +1037,21 @@ h3 {
   line-height: 1.55;
 }
 
+.command-options-note {
+  padding: 12px;
+  border: 1px solid #c8d7e6;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #f8fbff;
+  color: #2d4d64;
+}
+
+.command-options-note ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.55;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;
@@ -8891,6 +8906,7 @@ function wizardCommandPreview(command, title) {
       ${rendered.note}
       ${renderLiteralPlaceholderNote(rendered)}
       ${renderCommandCombinationNote(command, rendered)}
+      ${renderCommandOptionsNote(rendered)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -9311,6 +9327,69 @@ function renderCommandCombinationNote(command, rendered) {
   `;
 }
 
+const optionExplanationMap = {
+  "-A3": "grep option meaning print 3 lines after each matching line, so related device-driver context appears with the match.",
+  "-F": "mkfs.fat option meaning FAT size. In mkfs.fat -F 32, it creates a FAT32 filesystem.",
+  "-G": "useradd option meaning add the new user to supplementary groups listed after the option.",
+  "-K": "pacstrap option meaning initialize a fresh pacman keyring in the new target system.",
+  "-KILL": "kill signal argument meaning send SIGKILL, the force-kill signal that the process cannot handle or clean up from.",
+  "-Q": "pacman query option meaning inspect installed package database instead of installing packages.",
+  "-Qo": "pacman query-owner option meaning find which installed package owns a file path.",
+  "-R": "umount option meaning recursive, so nested mounts under the target mount point are unmounted too.",
+  "-S": "pacman sync/install option meaning install packages from enabled repositories.",
+  "-Syu": "pacman combined sync/update options: -S selects repository sync mode, y refreshes package databases, and u upgrades installed packages.",
+  "-TERM": "kill signal argument meaning send SIGTERM, a normal terminate request that gives the process a chance to exit cleanly.",
+  "-U": "genfstab option meaning write filesystem identifiers as UUIDs instead of unstable device names.",
+  "-ap": "pstree combined options: -a shows command arguments and -p shows process IDs.",
+  "-apu": "pstree combined options: -a shows command arguments, -p shows process IDs, and -u shows user changes.",
+  "-c": "count option. For ping, -c 3 means stop after 3 packets instead of running forever.",
+  "-d": "duration option. For arecord, -d 5 means record for 5 seconds.",
+  "-e": "ps option meaning show every process.",
+  "-E": "grep option meaning extended regular expression syntax.",
+  "-eo": "ps combined options: -e selects every process and -o chooses the output columns.",
+  "-k": "lspci option meaning show kernel drivers handling each PCI device.",
+  "-l": "list or long-format option, depending on the command. Read the command card and official source for the exact command-specific meaning.",
+  "-lh": "ls combined options: -l uses long listing format and -h makes sizes human-readable.",
+  "-m": "useradd option meaning create the user's home directory.",
+  "-n": "journalctl option meaning show only the requested number of recent log lines.",
+  "-o": "output option. It selects an output format or column list for commands such as lsblk, blkid, ps, or grub-mkconfig.",
+  "-p": "select-by-property option. For ps or systemctl show, it selects the process ID or property name listed after it.",
+  "-s": "selector option. Its exact meaning depends on the command, such as selecting a UUID field in blkid or selecting a shell in useradd/chsh.",
+  "-sf": "ln combined options: -s creates a symbolic link and -f replaces an existing destination if needed.",
+  "-u": "user option. It filters or targets a user for commands such as ps, pkill, or journalctl.",
+  "-v": "invert-match option for grep, meaning show lines that do not match.",
+  "--bootloader-id=GRUB": "grub-install option setting the UEFI bootloader identifier/name to GRUB.",
+  "--efi-directory=/boot": "grub-install option telling GRUB where the EFI System Partition is mounted.",
+  "--no-headers": "ps option hiding the header row so counts and scripts receive only process rows.",
+  "--now": "systemctl option meaning start the unit immediately while also applying the requested enable action.",
+  "--show": "swapon option meaning list active swap devices instead of enabling a new one.",
+  "--sort=ppid": "ps option sorting the output by parent process ID.",
+  "--systohc": "hwclock option meaning write the current system clock into the hardware clock.",
+  "--target=i386-pc": "grub-install option selecting the legacy BIOS GRUB target.",
+  "--target=x86_64-efi": "grub-install option selecting the 64-bit UEFI GRUB target.",
+  "--user": "systemctl option meaning operate on the current user's systemd manager instead of the system manager."
+};
+
+function commandOptionTokens(commandText) {
+  return [...new Set(commandText
+    .split(/\s+/)
+    .map((token) => token.trim().replace(/^[("'`]+|[)"'`,]+$/g, ""))
+    .filter((token) => /^-{1,2}[A-Za-z0-9]/.test(token)))];
+}
+
+function renderCommandOptionsNote(rendered) {
+  const options = commandOptionTokens(rendered.command);
+  if (!options.length) return "";
+  return `
+    <section class="command-options-note">
+      <strong>Flags and options</strong>
+      <ul>
+        ${options.map((option) => `<li><code>${escapeHtml(option)}</code>: ${escapeHtml(optionExplanationMap[option] || "Dash-prefixed option or signal argument. This app has detected it as option-like syntax; verify the exact meaning in the official source for this command before relying on it.")}</li>`).join("")}
+      </ul>
+    </section>
+  `;
+}
+
 function commandTemplate(command) {
   const blocked = commandBlockedBySafetyGate(command);
   const safetyType = commandSafetyType(command);
@@ -9366,6 +9445,7 @@ function commandTemplate(command) {
       ${sourceListTemplate(command.sources, "Official source for this command", true)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       ${renderCommandCombinationNote(command, rendered)}
+      ${renderCommandOptionsNote(rendered)}
       <div class="explain-grid">
         <div class="explain-box">
           <strong>What this command does</strong>

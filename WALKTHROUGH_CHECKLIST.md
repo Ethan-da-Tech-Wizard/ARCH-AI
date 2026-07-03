@@ -26,7 +26,7 @@ Every walkthrough page must follow these rules:
 - [x] Explain command combinations.
   - Acceptance: the app explains how individual pieces combine into the command's meaning. Example: `ls` means list, `/mnt` means the `/mnt` directory, so `ls /mnt` means list what is inside `/mnt`.
 
-- [ ] Explain flags and options individually.
+- [x] Explain flags and options individually.
   - Acceptance: every option such as `-l`, `-h`, `-R`, `-S`, `-U`, `--now`, and `--target=x86_64-efi` has its own explanation.
 
 - [ ] Explain paths as data, not magic text.
