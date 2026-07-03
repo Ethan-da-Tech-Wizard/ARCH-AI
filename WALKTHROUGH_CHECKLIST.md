@@ -41,7 +41,7 @@ Every walkthrough page must follow these rules:
 - [ ] Explain syntax character by character when fragile.
   - Acceptance: fragile syntax such as `UUID=...`, `>>`, `>`, quotes, spaces, `#` comments, `options root=UUID=... rw`, and `/dev/nvme0n1p2` partition names includes character-level or token-level explanation where needed.
 
-- [ ] Distinguish literal text from placeholders.
+- [x] Distinguish literal text from placeholders.
   - Acceptance: placeholders such as `PASTE-ROOT-UUID-HERE`, `/dev/sda`, `ethan`, and `"Network Name"` are visually and verbally marked as values the user must replace.
 
 - [ ] Explain expected output in detail.

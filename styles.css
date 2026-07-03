@@ -996,6 +996,26 @@ h3 {
   line-height: 1.55;
 }
 
+.literal-placeholder-note {
+  padding: 12px;
+  border: 1px solid #cadbd5;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #f7fbf9;
+  color: #315f73;
+}
+
+.literal-placeholder-note p {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+
+.literal-placeholder-note.placeholder-active {
+  border-color: var(--warn-line);
+  background: var(--warn-bg);
+  color: #6d552a;
+}
+
 .blocked-command,
 .gate-blocked {
   padding: 14px;

@@ -7287,6 +7287,7 @@ function wizardCommandPreview(command, title) {
       <p class="command-safety-note">${safety.explanation}</p>
       ${destructiveCommandWarning(safetyType)}
       ${rendered.note}
+      ${renderLiteralPlaceholderNote(rendered)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <p><strong>Meaning:</strong> ${command.purpose}</p>
       <p><strong>Expected:</strong> ${command.expected}</p>
@@ -7661,6 +7662,23 @@ function renderPlaceholderWarning(matches) {
   `;
 }
 
+function renderLiteralPlaceholderNote(rendered) {
+  if (rendered.placeholderMatches.length) {
+    return `
+      <section class="literal-placeholder-note placeholder-active">
+        <strong>Literal text versus placeholders</strong>
+        <p>Type literal command words exactly as shown, but do not copy this command yet. The highlighted example values must be replaced first: ${escapeHtml(rendered.placeholderMatches.map((match) => match.label).join(", "))}.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="literal-placeholder-note">
+      <strong>Literal text versus placeholders</strong>
+      <p>This rendered command has no known walkthrough placeholders left. Command words and punctuation are literal. Any disk, partition, UUID, Wi-Fi, username, or hostname value shown here must still match the current machine's verified Device Mapping evidence.</p>
+    </section>
+  `;
+}
+
 function renderCommandWords(command, rendered) {
   const targetDisk = targetDiskReplacement();
   return command.words.map(([word, meaning]) => {
@@ -7722,6 +7740,7 @@ function commandTemplate(command) {
       ${destructiveCommandWarning(safetyType)}
       ${rendered.note}
       ${rendered.placeholderWarning}
+      ${renderLiteralPlaceholderNote(rendered)}
       ${sourceListTemplate(command.sources, "Official source for this command", true)}
       <pre><code>${escapeHtml(rendered.command)}</code></pre>
       <div class="explain-grid">
