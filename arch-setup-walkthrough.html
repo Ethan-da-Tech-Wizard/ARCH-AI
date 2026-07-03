@@ -7382,6 +7382,47 @@ function sameDiskErasePathTemplate() {
   `;
 }
 
+function sameDiskPreservePlanTemplate() {
+  if (!sameDiskPathSelected() || setupProfile.eraseIntent === "yes") return "";
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentReady = currentOsDisk && !getDeviceUnknown("currentOsDisk") && looksLikeWholeDisk(currentOsDisk);
+  const targetReady = targetDisk && !getDeviceUnknown("targetDisk") && looksLikeWholeDisk(targetDisk);
+  const sameDiskMapped = sameDiskMappingProven();
+  const preserve = setupProfile.eraseIntent === "no-preserve";
+  return `
+    <section class="profile-summary-card profile-danger">
+      <h4>Same-disk preserve planning path</h4>
+      <p><strong>${preserve ? "Preserve selected" : "Decision still unsure"}:</strong> destructive partitioning, formatting, wipe, and resize commands stay hidden. Preserving another OS is not the normal full-disk erase flow.</p>
+      <ul>
+        <li><strong>Current OS disk:</strong> ${escapeHtml(currentReady ? currentOsDisk : "not mapped as a whole disk yet")}</li>
+        <li><strong>Target install disk:</strong> ${escapeHtml(targetReady ? targetDisk : "not mapped as a whole disk yet")}</li>
+        <li><strong>Same disk proven:</strong> ${sameDiskMapped ? "yes" : "no"}</li>
+      </ul>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Required before any preserve install</strong>
+          <ul>
+            <li>Back up important files somewhere outside the same physical disk.</li>
+            <li>Identify the existing EFI, recovery, OS, home, and data partitions by size, filesystem, label, UUID, and mountpoints.</li>
+            <li>Decide whether Arch will use already-free unallocated space or whether an existing partition must be shrunk first.</li>
+            <li>Name the exact partition or free-space region intended for Arch root, and name every partition that must remain untouched.</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Still blocked in this KISS path</strong>
+          <ul>
+            <li>No generic <code>cfdisk</code>, <code>fdisk</code>, <code>parted</code>, <code>mkfs</code>, <code>mkswap</code>, or <code>wipefs</code> commands are treated as usable.</li>
+            <li>No resizing command is shown until a later explicit resize plan exists.</li>
+            <li>No existing EFI, recovery, Windows, macOS, Linux, home, or personal-data partition should be changed from a generic example.</li>
+          </ul>
+        </div>
+      </div>
+      <p><strong>KISS rule:</strong> preserving another OS requires an exact partition plan. If the plan is not exact, stop and keep Device Mapping fields marked <strong>I do not know</strong>.</p>
+    </section>
+  `;
+}
+
 function partitionDecisionChoice() {
   const strategy = activeDiskStrategy();
   const targetDisk = getDeviceValue("targetDisk");
@@ -8305,6 +8346,7 @@ function renderProfileSummary() {
     ${diskStrategyTemplate()}
     ${sameDiskDecisionTemplate()}
     ${sameDiskErasePathTemplate()}
+    ${sameDiskPreservePlanTemplate()}
     ${partitionDecisionTemplate()}
     ${separateSsdPartitionPlanTemplate()}
     ${separateSsdFormatMountTemplate()}
