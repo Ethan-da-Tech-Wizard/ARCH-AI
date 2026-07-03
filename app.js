@@ -1357,11 +1357,11 @@ extendSection("Boot Into The ISO", {
       label: "Open the Wi-Fi control shell",
       sources: sourceRefs("installGuide", "networkConfig"),
       command: "iwctl",
-      purpose: "Starts the interactive iwd control prompt used for Wi-Fi connections in the Arch ISO.",
+      purpose: "Opens the interactive iwd wireless control shell. After this command, the next Wi-Fi commands are typed at the iwctl prompt instead of the normal shell prompt.",
       words: [
-        ["iwctl", "Interactive command tool for iwd wireless networking."]
+        ["iwctl", "Interactive command tool for iwd wireless networking. It starts a separate prompt for controlling Wi-Fi devices in the Arch ISO."]
       ],
-      expected: "The prompt changes to something like [iwd]#.",
+      expected: "The prompt changes to something like [iwd]#. That prompt means iwctl is waiting for iwd-specific commands such as device list and station wlan0 scan.",
       fails: "If iwctl is not found or cannot connect to iwd, verify the ISO environment and wireless device support."
     },
     {
@@ -1370,8 +1370,8 @@ extendSection("Boot Into The ISO", {
       command: "device list",
       purpose: "Inside iwctl, lists wireless devices that iwd can control.",
       words: [
-        ["device", "iwctl object type for wireless adapters."],
-        ["list", "Print the available devices."]
+        ["device", "iwctl object category for wireless adapters. In this command, device means the Wi-Fi hardware iwd can see."],
+        ["list", "Action that prints the available Wi-Fi devices."]
       ],
       expected: "A table with a device name such as wlan0 or wlp2s0.",
       fails: "If no device appears, the Wi-Fi adapter may need firmware, may be disabled in firmware settings, or may not be supported by the live ISO."
@@ -1382,9 +1382,9 @@ extendSection("Boot Into The ISO", {
       command: "station wlan0 scan",
       purpose: "Asks the Wi-Fi device to scan for nearby networks. Replace wlan0 with the device name shown by device list.",
       words: [
-        ["station", "iwctl object type for Wi-Fi station/client operations."],
-        ["wlan0", "Example Wi-Fi device name."],
-        ["scan", "Search for nearby wireless networks."]
+        ["station", "iwctl object category for Wi-Fi client operations. A station is the computer's Wi-Fi adapter acting as a client."],
+        ["wlan0", "Example Wi-Fi device name. Replace it if device list shows a different name such as wlp2s0."],
+        ["scan", "Action that tells the chosen Wi-Fi device to search for nearby wireless networks."]
       ],
       expected: "Usually no output. The scan results are cached for the next command.",
       fails: "If the device name is wrong, use the exact name from device list."
@@ -1395,24 +1395,51 @@ extendSection("Boot Into The ISO", {
       command: "station wlan0 get-networks",
       purpose: "Displays nearby Wi-Fi network names after scanning.",
       words: [
-        ["station wlan0", "Operate on the wlan0 Wi-Fi device."],
-        ["get-networks", "Print visible network names and security information."]
+        ["station", "iwctl object category for Wi-Fi client operations."],
+        ["wlan0", "Example Wi-Fi device name. Replace it with the exact device name from device list if yours is different."],
+        ["get-networks", "Action that prints networks found by the last scan."]
       ],
-      expected: "A list of SSIDs, signal indicators, and security flags.",
+      expected: "A table of visible networks. The Network name column is the SSID you connect to. The Security column shows whether the network is open or protected. The Signal column shows rough signal strength.",
       fails: "If the list is empty, move closer to the router or rescan."
     },
     {
       label: "Connect to Wi-Fi",
       sources: sourceRefs("installGuide", "networkConfig"),
-      command: "station wlan0 connect \"Network Name\"",
-      purpose: "Connects to a Wi-Fi network. Replace wlan0 and Network Name with the learner's real device and SSID.",
+      command: "station wlan0 connect \"YourWiFi\"",
+      purpose: "Connects to a Wi-Fi network. Replace wlan0 with the real Wi-Fi device and replace YourWiFi with the exact SSID from get-networks.",
       words: [
-        ["station wlan0", "Operate on the chosen Wi-Fi device."],
-        ["connect", "Start a connection to a network."],
-        ["\"Network Name\"", "Quoted SSID. Quotes help when the Wi-Fi name contains spaces."]
+        ["station", "iwctl object category for Wi-Fi client operations."],
+        ["wlan0", "Example Wi-Fi device name. Replace it with the exact device name from device list if yours is different."],
+        ["connect", "Action that starts a connection to the named Wi-Fi network."],
+        ["\"YourWiFi\"", "Placeholder SSID in double quotes. Replace YourWiFi with the real network name. Keep the quotes, especially when the Wi-Fi name contains spaces."]
       ],
       expected: "If the network is protected, iwctl asks for a passphrase. After success, the prompt returns without an error.",
       fails: "If authentication fails, retype the passphrase carefully. If DHCP fails afterward, check ip addr and ping tests."
+    },
+    {
+      label: "Leave the Wi-Fi control shell",
+      sources: sourceRefs("installGuide", "networkConfig"),
+      command: "exit",
+      purpose: "Leaves the interactive iwctl shell and returns to the normal shell prompt so ordinary Linux commands can be typed again.",
+      words: [
+        ["exit", "Command that closes the current interactive shell or prompt. Here it leaves iwctl, not the whole Arch ISO."]
+      ],
+      expected: "The prompt changes back from [iwd]# to the normal root shell prompt.",
+      fails: "If the prompt still says [iwd]#, type exit again or press Ctrl+D to leave the iwctl prompt."
+    },
+    {
+      label: "Test DNS and internet after Wi-Fi",
+      sources: sourceRefs("networkConfig", "dns"),
+      command: "ping -c 3 archlinux.org",
+      purpose: "Tests that the machine can resolve a domain name with DNS and reach the internet after the Wi-Fi connection.",
+      words: [
+        ["ping", "Sends small test packets and waits for replies."],
+        ["-c", "Option that limits how many ping attempts run."],
+        ["3", "The count used by -c, so the test stops after three attempts instead of running forever."],
+        ["archlinux.org", "Domain name used for the test. Because this is a name, not a raw IP address, success proves DNS and network reachability together."]
+      ],
+      expected: "Three reply lines appear, followed by a summary with 0% packet loss or another low packet-loss number.",
+      fails: "If the name cannot be resolved, DNS is the likely problem. If DNS resolves but replies fail, the Wi-Fi connection, route, captive portal, router, or upstream internet may be the problem."
     }
   ],
   terms: ["iwctl", "IP address", "route", "firmware", "systemd"]

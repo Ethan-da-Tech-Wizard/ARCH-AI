@@ -114,25 +114,25 @@ ping archlinux.org
 
 Required expansion:
 
-- [ ] Explain `iwctl` as its own command.
+- [x] Explain `iwctl` as its own command.
   - Acceptance: page explains that `iwctl` opens the interactive iwd wireless control shell.
 
-- [ ] Explain `device list` as its own command.
+- [x] Explain `device list` as its own command.
   - Acceptance: page explains `device` as the iwctl object category for wireless adapters and `list` as the action that shows available Wi-Fi devices.
 
-- [ ] Explain `station wlan0 scan` as its own command.
+- [x] Explain `station wlan0 scan` as its own command.
   - Acceptance: page explains `station`, `wlan0`, and `scan`; it also says `wlan0` is an example and must be replaced with the user's actual Wi-Fi device if different.
 
-- [ ] Explain `station wlan0 get-networks` as its own command.
+- [x] Explain `station wlan0 get-networks` as its own command.
   - Acceptance: page explains that this lists networks found by the scan and explains every visible output column shown in the app.
 
-- [ ] Explain `station wlan0 connect "YourWiFi"` as its own command.
+- [x] Explain `station wlan0 connect "YourWiFi"` as its own command.
   - Acceptance: page explains `station`, `wlan0`, `connect`, the quoted Wi-Fi name, why quotes matter, and that `YourWiFi` is a placeholder.
 
-- [ ] Explain `exit` as its own command.
+- [x] Explain `exit` as its own command.
   - Acceptance: page explains that `exit` leaves the interactive `iwctl` shell and returns to the normal shell prompt.
 
-- [ ] Explain `ping archlinux.org` as its own command.
+- [x] Explain `ping archlinux.org` as its own command.
   - Acceptance: page explains `ping`, `archlinux.org`, DNS, network reachability, expected replies, and failure meanings.
 
 Hard rule: never present a command sequence as "just type these" without the full per-line and per-token explanation on the same page or click-through state.
