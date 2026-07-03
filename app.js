@@ -5812,6 +5812,53 @@ function sameDiskDecisionTemplate() {
   `;
 }
 
+function sameDiskErasePathTemplate() {
+  if (!sameDiskPathSelected()) return "";
+  const targetDisk = getDeviceValue("targetDisk");
+  const currentOsDisk = getDeviceValue("currentOsDisk");
+  const eraseReady = setupProfile.eraseIntent === "yes" && sameDiskMappingProven();
+  const efiPartition = getDeviceValue("efiPartition") || "not mapped yet";
+  const rootPartition = getDeviceValue("rootPartition") || "not mapped yet";
+  const swapPartition = activeSwapStrategy().key === "swap-partition" ? (getDeviceValue("swapPartition") || "not mapped yet") : "not used by current swap strategy";
+  if (!eraseReady) {
+    return `
+      <section class="profile-summary-card profile-danger">
+        <h4>Same-disk whole-disk erase path blocked</h4>
+        <p>The normal full-disk partitioning flow is blocked for this same-disk install until erase intent is <strong>target disk can be erased</strong> and Current OS disk equals Target install disk as the same mapped whole disk.</p>
+        <p>This prevents a preserve or unsure path from looking like a wipe-and-reinstall path.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="profile-summary-card profile-danger">
+      <h4>Same-disk whole-disk erase path</h4>
+      <p><strong>Data-loss warning:</strong> ${escapeHtml(targetDisk)} is both the Current OS disk and the Target install disk. The existing operating system, recovery layout, applications, user files, and partitions on this disk are expected to be removed by the full-disk erase flow.</p>
+      <div class="boot-path-grid">
+        <div>
+          <strong>Route into the normal full-disk flow</strong>
+          <ul>
+            <li>Use the same partitioning, formatting, mounting, pacstrap, fstab, and bootloader lessons as a normal full target-disk erase.</li>
+            <li>Use <code>cfdisk ${escapeHtml(targetDisk)}</code> only after the Disk identity gate passes.</li>
+            <li>Create the boot-mode layout selected in the Safety Profile: UEFI uses an EFI System Partition; legacy BIOS uses the matching GRUB BIOS layout.</li>
+            <li>Do not follow preserve, shrink, or dual-boot instructions in this erase path.</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Mapped target values</strong>
+          <ul>
+            <li><strong>Whole disk to erase:</strong> ${escapeHtml(targetDisk)}</li>
+            <li><strong>Current OS disk being erased:</strong> ${escapeHtml(currentOsDisk)}</li>
+            <li><strong>EFI partition after partitioning:</strong> ${escapeHtml(efiPartition)}</li>
+            <li><strong>Root partition after partitioning:</strong> ${escapeHtml(rootPartition)}</li>
+            <li><strong>Swap partition:</strong> ${escapeHtml(swapPartition)}</li>
+          </ul>
+        </div>
+      </div>
+      <p><strong>Final stop check:</strong> continue only if wanted files are backed up somewhere outside ${escapeHtml(targetDisk)} and the user intends to remove the existing OS from this disk.</p>
+    </section>
+  `;
+}
+
 function partitionDecisionChoice() {
   const strategy = activeDiskStrategy();
   const targetDisk = getDeviceValue("targetDisk");
@@ -6734,6 +6781,7 @@ function renderProfileSummary() {
     ${internalScenarioTemplate()}
     ${diskStrategyTemplate()}
     ${sameDiskDecisionTemplate()}
+    ${sameDiskErasePathTemplate()}
     ${partitionDecisionTemplate()}
     ${separateSsdPartitionPlanTemplate()}
     ${separateSsdFormatMountTemplate()}

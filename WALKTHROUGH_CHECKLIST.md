@@ -387,7 +387,7 @@ The app must support two common beginner scenarios before it shows destructive d
 - [x] Add an erase-versus-preserve decision.
   - Acceptance: app requires the user to choose between erasing the whole disk and preserving/shrinking existing partitions before any partition command is shown.
 
-- [ ] Add whole-disk erase path for the same SSD.
+- [x] Add whole-disk erase path for the same SSD.
   - Acceptance: app makes it clear that the existing operating system and files will be removed, then routes to the normal full-disk partitioning flow.
 
 - [ ] Add preserve-existing-OS planning path.
