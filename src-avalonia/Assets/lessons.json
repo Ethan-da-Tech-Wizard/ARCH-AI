@@ -29,7 +29,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Make sure the learner knows what machine they are installing onto, what device they are reading this guide from, and what data is at risk."
+          "text": "Make sure you knows what machine they are installing onto, what device they are reading this guide from, and what data is at risk."
         },
         {
           "type": "explain",
@@ -39,7 +39,7 @@
         {
           "type": "warn",
           "title": "What will be erased",
-          "text": "Disk setup can erase the selected drive. The guide must repeatedly ask the learner to compare disk sizes and names before formatting anything."
+          "text": "Disk setup can erase the selected drive. this walkthrough will repeatedly ask you to compare disk sizes and names before formatting anything."
         },
         {
           "type": "explain",
@@ -49,7 +49,7 @@
         {
           "type": "checkpoint",
           "title": "Minimum decisions before typing install commands",
-          "text": "Know whether the target drive can be erased, whether the machine boots in UEFI mode, whether Wi-Fi or Ethernet will be used, and whether the learner wants a simple single-root layout or a more advanced layout."
+          "text": "Know whether the target drive can be erased, whether the machine boots in UEFI mode, whether Wi-Fi or Ethernet will be used, and whether you wants a simple single-root layout or a more advanced layout."
         }
       ],
       "commands": [
@@ -110,7 +110,7 @@
           "fails": "If it says the keymap cannot be found, run localectl list-keymaps and choose an exact name."
         },
         {
-          "label": "Show the current shell user",
+          "label": "Verify installer administrator privileges",
           "sources": [
             {
               "label": "ArchWiki: Installation guide",
@@ -119,7 +119,7 @@
             }
           ],
           "command": "whoami",
-          "purpose": "Confirms which user account is running commands in the live ISO. The Arch ISO normally starts as root.",
+          "purpose": "Confirms that you are currently running commands as root, the system administrator. The live ISO installer starts as root automatically, which is required to partition and format drives.",
           "words": [
             [
               "whoami",
@@ -139,7 +139,7 @@
             }
           ],
           "command": "man pacstrap",
-          "purpose": "Opens the official local manual page for pacstrap so the learner can compare this walkthrough with the real command reference.",
+          "purpose": "Opens the official local manual page for pacstrap so you can compare this walkthrough with the real command reference.",
           "words": [
             [
               "man",
@@ -200,7 +200,7 @@
         {
           "type": "checkpoint",
           "title": "Checkpoint",
-          "text": "You should see an Arch Linux shell prompt. That means the computer is running the temporary ISO environment."
+          "text": "you should see an Arch Linux shell prompt. That means the computer is running the temporary ISO environment."
         },
         {
           "type": "explain",
@@ -725,7 +725,7 @@
         {
           "type": "warn",
           "title": "Danger zone",
-          "text": "This is the part that can destroy data. A beginner guide should make the learner write down the target disk name and size before any partitioning command."
+          "text": "This is the part that can destroy data. you should write down the target disk name and size before any partitioning command."
         },
         {
           "type": "explain",
@@ -735,12 +735,12 @@
         {
           "type": "explain",
           "title": "Device names are not promises",
-          "text": "A disk might appear as /dev/nvme0n1, /dev/sda, /dev/vda, or another name. Partitions add suffixes such as p1 or 1. The guide must teach the learner to identify by size, model, and mountpoints, not by copying an example blindly."
+          "text": "A disk might appear as /dev/nvme0n1, /dev/sda, /dev/vda, or another name. Partitions add suffixes such as p1 or 1. this walkthrough will teach you to identify by size, model, and mountpoints, not by copying an example blindly."
         },
         {
           "type": "warn",
           "title": "Example layout, not a universal layout",
-          "text": "The commands here use a common UEFI example: an EFI System Partition and one Linux root partition, optionally with swap. The learner must replace every /dev/nvme0n1... path with their actual target drive and partition names."
+          "text": "The commands here use a common UEFI example: an EFI System Partition and one Linux root partition, optionally with swap. you must replace every /dev/nvme0n1... path with their actual target drive and partition names."
         },
         {
           "type": "checkpoint",
@@ -1021,7 +1021,7 @@
             }
           ],
           "command": "mkswap /dev/nvme0n1p3",
-          "purpose": "Initializes a partition for swap use. This is optional and only applies if the learner created a swap partition.",
+          "purpose": "Initializes a partition for swap use. This is optional and only applies if you created a swap partition.",
           "words": [
             [
               "mkswap",
@@ -1933,7 +1933,7 @@
         {
           "type": "warn",
           "title": "The root identifier must match the real root filesystem",
-          "text": "The example entry uses root=UUID=... because UUIDs are stable. The learner must copy the UUID of the Linux root filesystem, not the EFI partition and not the swap partition.",
+          "text": "The example entry uses root=UUID=... because UUIDs are stable. you must copy the UUID of the Linux root filesystem, not the EFI partition and not the swap partition.",
           "branch": "systemd-boot"
         },
         {
@@ -2066,7 +2066,7 @@
             }
           ],
           "command": "nano /etc/locale.gen",
-          "purpose": "Opens the locale list so the learner can enable a language/encoding such as en_US.UTF-8 UTF-8.",
+          "purpose": "Opens the locale list so you can enable a language/encoding such as en_US.UTF-8 UTF-8.",
           "words": [
             [
               "nano",
@@ -2290,7 +2290,7 @@
             }
           ],
           "command": "grep -v '^#' /etc/locale.gen",
-          "purpose": "Shows uncommented locale entries so the learner can confirm a UTF-8 locale was selected before locale-gen.",
+          "purpose": "Shows uncommented locale entries so you can confirm a UTF-8 locale was selected before locale-gen.",
           "words": [
             [
               "grep",
@@ -2546,7 +2546,7 @@
               "A safety wrapper utility that edits the sudoers configuration file. Sudoers controls which users and groups can run commands as administrator. visudo locks the file to prevent concurrent editing and parses its syntax before saving to prevent lockouts."
             ]
           ],
-          "expected": "nano opens the sudoers file. The learner should uncomment the wheel group sudo line if following that policy.",
+          "expected": "nano opens the sudoers file. you should uncomment the wheel group sudo line if following that policy.",
           "fails": "Do not edit sudoers with a plain editor. A syntax error can break sudo access."
         },
         {
@@ -3444,7 +3444,7 @@
             }
           ],
           "command": "efibootmgr",
-          "purpose": "Lists firmware boot entries so the learner can verify a GRUB entry was registered.",
+          "purpose": "Lists firmware boot entries so you can verify a GRUB entry was registered.",
           "words": [
             [
               "efibootmgr",
@@ -3556,7 +3556,7 @@
             }
           ],
           "command": "lsblk -o NAME,SIZE,TYPE,MODEL,MOUNTPOINTS",
-          "purpose": "Shows the disk and partition layout so the learner can identify the whole target disk, not a partition.",
+          "purpose": "Shows the disk and partition layout so you can identify the whole target disk, not a partition.",
           "words": [
             [
               "lsblk",
@@ -3834,7 +3834,7 @@
         {
           "type": "explain",
           "title": "Why sudo appears now",
-          "text": "Inside the ISO and chroot, many commands run as root. After first boot, the learner should use a normal account and use sudo only when administrator privileges are needed."
+          "text": "Inside the ISO and chroot, many commands run as root. After first boot, you should use a normal account and use sudo only when administrator privileges are needed."
         },
         {
           "type": "explain",
@@ -3985,7 +3985,7 @@
             }
           ],
           "command": "whoami",
-          "purpose": "After first boot, confirms whether the learner logged in as the normal user instead of root.",
+          "purpose": "After first boot, confirms whether you logged in as the normal user instead of root.",
           "words": [
             [
               "whoami",
@@ -4051,7 +4051,7 @@
             }
           ],
           "command": "ip addr",
-          "purpose": "Displays assigned IP addresses so the learner can tell whether the machine actually joined a network.",
+          "purpose": "Displays assigned IP addresses so you can tell whether the machine actually joined a network.",
           "words": [
             [
               "ip",
@@ -4132,7 +4132,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Move from a working console login to a graphical desktop where the learner can open a terminal, launch Firefox, adjust volume, and continue troubleshooting from a more familiar interface."
+          "text": "Move from a working console login to a graphical desktop where you can open a terminal, launch Firefox, adjust volume, and continue troubleshooting from a more familiar interface."
         },
         {
           "type": "explain",
@@ -6652,7 +6652,7 @@
               "The recorded test file."
             ]
           ],
-          "expected": "The learner hears the recorded microphone audio.",
+          "expected": "you hears the recorded microphone audio.",
           "fails": "If playback is silent, check output device, volume, mute state, and whether test.wav actually contains audio."
         }
       ],

@@ -77,6 +77,21 @@
     <Style Selector="Button.secondary:disabled">
       <Setter Property="Opacity" Value="0.3"/>
     </Style>
+
+    <!-- ComboBox font and sizing -->
+    <Style Selector="ComboBox">
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="MaxDropDownHeight" Value="180"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ComboBoxItem">
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="Padding" Value="12,8"/>
+    </Style>
+    <Style Selector="UniformGrid > StackPanel > StackPanel > TextBlock">
+      <Setter Property="FontSize" Value="15"/>
+    </Style>
   </Window.Styles>
 
   <Grid RowDefinitions="Auto,*,Auto">
@@ -110,13 +125,13 @@
     <Grid Grid.Row="1">
       
       <!-- VIEW 1: SAFETY PROFILE FORM -->
-      <ScrollViewer x:Name="ViewProfile" IsVisible="True" Margin="24">
+      <ScrollViewer x:Name="ViewProfile" IsVisible="True" Margin="24" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="24" MaxWidth="900" HorizontalAlignment="Center">
           <!-- Welcome and Description -->
           <StackPanel Spacing="8">
-            <TextBlock Text="Arch Linux Installation Safety Profile" FontSize="24" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="Arch Linux Installation Safety Profile" FontSize="30" FontWeight="Bold" Foreground="White"/>
             <TextBlock Text="Answer the 12 profile questions below. This creates your machine safety profile and customizes commands. All questions must be answered to begin." 
-                       TextWrapping="Wrap" FontSize="14" Foreground="#8a99a0"/>
+                       TextWrapping="Wrap" FontSize="16" Foreground="#8a99a0"/>
           </StackPanel>
 
           <!-- The Form -->
@@ -323,7 +338,7 @@
           <Grid RowDefinitions="Auto,*">
             <Border Grid.Row="0" Height="50" Background="#1e2528" BorderBrush="#333f44" BorderThickness="0,0,0,1" Padding="15,0">
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Text="Theory &amp; Reference" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock Text="Theory &amp; Reference" FontWeight="Bold" FontSize="16" Foreground="White" VerticalAlignment="Center"/>
                 <Button Grid.Column="1" Content="✕" Classes="secondary" Padding="8,4" FontSize="11" Click="OnCloseDrawerClick"/>
               </Grid>
             </Border>
@@ -341,9 +356,9 @@
         <Border Background="#262f33" BorderBrush="#333f44" BorderThickness="1" CornerRadius="12" Padding="40" MaxWidth="600" HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel Spacing="24" HorizontalAlignment="Center">
             <TextBlock Text="🎉" FontSize="64" HorizontalAlignment="Center"/>
-            <TextBlock Text="Installation Walkthrough Completed!" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock Text="Installation Walkthrough Completed!" FontSize="26" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
             <TextBlock Text="You have completed all instructions. Ensure you have unmounted partitions and rebooted your target computer successfully. You can close this window now." 
-                       TextWrapping="Wrap" TextAlignment="Center" Foreground="#cbd5d9" FontSize="14"/>
+                       TextWrapping="Wrap" TextAlignment="Center" Foreground="#cbd5d9" FontSize="16"/>
             <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
               <Button Content="Restart Setup" Classes="secondary" Click="OnRestartSetupClick"/>
               <Button Content="Close App" Classes="primary" Click="OnExitClick"/>
@@ -361,7 +376,7 @@
         <Button x:Name="BtnBack" Grid.Column="0" Content="&lt; Back" Classes="secondary" Width="100" VerticalAlignment="Center" Click="OnBackClick" IsEnabled="False"/>
         
         <!-- Step Indicator label -->
-        <TextBlock x:Name="FooterStepIndicator" Grid.Column="1" Text="Safety Profile" FontSize="13" Foreground="#8a99a0" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock x:Name="FooterStepIndicator" Grid.Column="1" Text="Safety Profile" FontSize="15" Foreground="#8a99a0" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
         <!-- Next Button -->
         <Button x:Name="BtnNext" Grid.Column="2" Content="Next &gt;" Classes="primary" Width="100" VerticalAlignment="Center" Click="OnNextClick" IsEnabled="False"/>
@@ -372,9 +387,9 @@
     <Grid x:Name="ModalOverlay" Grid.RowSpan="3" Background="#cc000000" IsVisible="False">
       <Border Background="#262f33" BorderBrush="#333f44" BorderThickness="1" CornerRadius="8" Padding="24" Width="550" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel Spacing="16">
-          <TextBlock x:Name="ModalTitle" Text="Question Explanation" FontSize="18" FontWeight="Bold" Foreground="White"/>
+          <TextBlock x:Name="ModalTitle" Text="Question Explanation" FontSize="22" FontWeight="Bold" Foreground="White"/>
           <ScrollViewer MaxHeight="400">
-            <TextBlock x:Name="ModalBody" Text="Explanation content" TextWrapping="Wrap" FontSize="14" Foreground="#cbd5d9"/>
+            <TextBlock x:Name="ModalBody" Text="Explanation content" TextWrapping="Wrap" FontSize="16" Foreground="#cbd5d9"/>
           </ScrollViewer>
           <Button Content="Close" Classes="primary" HorizontalAlignment="Right" Click="OnCloseModalClick"/>
         </StackPanel>

@@ -662,9 +662,9 @@ namespace src_avalonia
         private void RenderDeviceMappingStep(WizardStep step)
         {
             var header = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 0, 0, 16) };
-            header.Children.Add(new TextBlock { Text = "Device Mapping", Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 12, FontWeight = FontWeight.Bold });
-            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 14, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
+            header.Children.Add(new TextBlock { Text = "Device Mapping", Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 14, FontWeight = FontWeight.Bold });
+            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 28, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 16, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
             WizardStageContainer.Children.Add(header);
 
             var formCard = new Border { Background = new SolidColorBrush(Color.FromRgb(38, 47, 51)), CornerRadius = new CornerRadius(8), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(20) };
@@ -689,8 +689,8 @@ namespace src_avalonia
                 var map = _deviceMap[key];
 
                 var labelPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-                labelPanel.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 13, Foreground = Brushes.White });
-                labelPanel.Children.Add(new TextBlock { Text = help, FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), VerticalAlignment = VerticalAlignment.Center });
+                labelPanel.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 15, Foreground = Brushes.White });
+                labelPanel.Children.Add(new TextBlock { Text = help, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), VerticalAlignment = VerticalAlignment.Center });
                 fieldPanel.Children.Add(labelPanel);
 
                 var input = new TextBox { Tag = key, Text = map.Value, HorizontalAlignment = HorizontalAlignment.Stretch, IsEnabled = !map.Unknown };
@@ -717,9 +717,9 @@ namespace src_avalonia
         private void RenderMilestoneStep(WizardStep step)
         {
             var header = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 0, 0, 16) };
-            header.Children.Add(new TextBlock { Text = $"{step.SectionTitle} Milestone", Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 12, FontWeight = FontWeight.Bold });
-            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 14, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
+            header.Children.Add(new TextBlock { Text = $"{step.SectionTitle} Milestone", Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 14, FontWeight = FontWeight.Bold });
+            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 28, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 16, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
             WizardStageContainer.Children.Add(header);
 
             var listPanel = new StackPanel { Spacing = 16 };
@@ -731,8 +731,8 @@ namespace src_avalonia
                 {
                     var blockCard = new Border { Background = new SolidColorBrush(Color.FromRgb(38, 47, 51)), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(16) };
                     var stack = new StackPanel { Spacing = 6 };
-                    stack.Children.Add(new TextBlock { Text = block.Title, FontSize = 14, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-                    stack.Children.Add(new TextBlock { Text = block.Text, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                    stack.Children.Add(new TextBlock { Text = block.Title, FontSize = 16, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+                    stack.Children.Add(new TextBlock { Text = block.Text, FontSize = 15, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                     blockCard.Child = stack;
                     listPanel.Children.Add(blockCard);
                 }
@@ -745,8 +745,8 @@ namespace src_avalonia
                 {
                     var warnCard = new Border { Background = new SolidColorBrush(Color.FromArgb(30, 157, 73, 50)), BorderBrush = new SolidColorBrush(Color.FromRgb(157, 73, 50)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(16) };
                     var stack = new StackPanel { Spacing = 6 };
-                    stack.Children.Add(new TextBlock { Text = $"⚠️ {warn.Title}", FontSize = 14, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)) });
-                    stack.Children.Add(new TextBlock { Text = warn.Text, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                    stack.Children.Add(new TextBlock { Text = $"⚠️ {warn.Title}", FontSize = 16, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)) });
+                    stack.Children.Add(new TextBlock { Text = warn.Text, FontSize = 15, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                     warnCard.Child = stack;
                     listPanel.Children.Add(warnCard);
                 }
@@ -759,8 +759,8 @@ namespace src_avalonia
                 {
                     var cpCard = new Border { Background = new SolidColorBrush(Color.FromArgb(30, 94, 116, 69)), BorderBrush = new SolidColorBrush(Color.FromRgb(94, 116, 69)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(16) };
                     var stack = new StackPanel { Spacing = 6 };
-                    stack.Children.Add(new TextBlock { Text = $"✓ {cp.Title}", FontSize = 14, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(94, 116, 69)) });
-                    stack.Children.Add(new TextBlock { Text = cp.Text, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                    stack.Children.Add(new TextBlock { Text = $"✓ {cp.Title}", FontSize = 16, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(94, 116, 69)) });
+                    stack.Children.Add(new TextBlock { Text = cp.Text, FontSize = 15, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                     cpCard.Child = stack;
                     listPanel.Children.Add(cpCard);
                 }
@@ -775,9 +775,9 @@ namespace src_avalonia
             if (command == null) return;
 
             var header = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 0, 0, 16) };
-            header.Children.Add(new TextBlock { Text = step.SectionTitle, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 12, FontWeight = FontWeight.Bold });
-            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 14, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
+            header.Children.Add(new TextBlock { Text = step.SectionTitle, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 14, FontWeight = FontWeight.Bold });
+            header.Children.Add(new TextBlock { Text = step.Title, FontSize = 28, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+            header.Children.Add(new TextBlock { Text = step.Summary, FontSize = 16, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
             WizardStageContainer.Children.Add(header);
 
             string safetyType = GetCommandSafetyType(command);
@@ -788,7 +788,7 @@ namespace src_avalonia
             if (!string.IsNullOrEmpty(warningMessage))
             {
                 var warnBorder = new Border { Background = new SolidColorBrush(Color.FromArgb(30, 157, 73, 50)), BorderBrush = new SolidColorBrush(Color.FromRgb(157, 73, 50)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12) };
-                warnBorder.Child = new TextBlock { Text = warningMessage, FontSize = 12, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)), TextWrapping = TextWrapping.Wrap };
+                warnBorder.Child = new TextBlock { Text = warningMessage, FontSize = 14, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)), TextWrapping = TextWrapping.Wrap };
                 WizardStageContainer.Children.Add(warnBorder);
             }
 
@@ -798,7 +798,7 @@ namespace src_avalonia
             // Badge Row
             var badgeRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var labelStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-            labelStack.Children.Add(new TextBlock { Text = GetCommandSafetyLabel(safetyType), FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
+            labelStack.Children.Add(new TextBlock { Text = GetCommandSafetyLabel(safetyType), FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontSize = 14, VerticalAlignment = VerticalAlignment.Center });
             badgeRow.Children.Add(labelStack);
             stack.Children.Add(badgeRow);
 
@@ -806,8 +806,8 @@ namespace src_avalonia
             {
                 var blockedBorder = new Border { Background = new SolidColorBrush(Color.FromArgb(20, 157, 73, 50)), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(16) };
                 var blockedStack = new StackPanel { Spacing = 8 };
-                blockedStack.Children.Add(new TextBlock { Text = "🔒 Command Locked Due to Safety Policy", FontSize = 14, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)) });
-                blockedStack.Children.Add(new TextBlock { Text = GetBlockedReason(command), FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                blockedStack.Children.Add(new TextBlock { Text = "🔒 Command Locked Due to Safety Policy", FontSize = 16, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(157, 73, 50)) });
+                blockedStack.Children.Add(new TextBlock { Text = GetBlockedReason(command), FontSize = 15, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                 blockedBorder.Child = blockedStack;
                 stack.Children.Add(blockedBorder);
             }
@@ -821,7 +821,7 @@ namespace src_avalonia
                 {
                     Text = personalizedCommand,
                     FontFamily = new FontFamily("Courier New, monospace"),
-                    FontSize = 14,
+                    FontSize = 16,
                     Background = new SolidColorBrush(Color.FromRgb(22, 26, 28)),
                     Foreground = new SolidColorBrush(Color.FromRgb(94, 141, 147)),
                     IsReadOnly = true,
@@ -860,7 +860,7 @@ namespace src_avalonia
             // Box 2: Verbatim Mappings
             var box2 = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(6) };
             var box2Stack = new StackPanel { Spacing = 6 };
-            box2Stack.Children.Add(new TextBlock { Text = "Command pieces", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+            box2Stack.Children.Add(new TextBlock { Text = "Command pieces", FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
             var wordsPanel = new StackPanel { Spacing = 4 };
             foreach (var wordPair in command.Words)
             {
@@ -871,7 +871,7 @@ namespace src_avalonia
                     wordsPanel.Children.Add(new TextBlock
                     {
                         Text = $"• {word}: {meaning}",
-                        FontSize = 11,
+                        FontSize = 13,
                         TextWrapping = TextWrapping.Wrap,
                         Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217))
                     });
@@ -898,11 +898,11 @@ namespace src_avalonia
             {
                 var flagsCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
                 var flagsStack = new StackPanel { Spacing = 6 };
-                flagsStack.Children.Add(new TextBlock { Text = "Flags and options", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+                flagsStack.Children.Add(new TextBlock { Text = "Flags and options", FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
                 foreach (var opt in options)
                 {
                     string exp = OptionExplanations.TryGetValue(opt, out var ex) ? ex : "Dash-prefixed option or argument flag. Refer to command manuals for details.";
-                    flagsStack.Children.Add(new TextBlock { Text = $"• {opt}: {exp}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+                    flagsStack.Children.Add(new TextBlock { Text = $"• {opt}: {exp}", FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
                 }
                 flagsCard.Child = flagsStack;
                 stack.Children.Add(flagsCard);
@@ -914,11 +914,11 @@ namespace src_avalonia
             {
                 var pathsCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
                 var pathsStack = new StackPanel { Spacing = 6 };
-                pathsStack.Children.Add(new TextBlock { Text = "Paths as data", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+                pathsStack.Children.Add(new TextBlock { Text = "Paths as data", FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
                 foreach (var p in paths)
                 {
                     string exp = GetPathExplanation(p);
-                    pathsStack.Children.Add(new TextBlock { Text = $"• {p}: {exp}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+                    pathsStack.Children.Add(new TextBlock { Text = $"• {p}: {exp}", FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
                 }
                 pathsCard.Child = pathsStack;
                 stack.Children.Add(pathsCard);
@@ -927,8 +927,8 @@ namespace src_avalonia
             // Render Normal Silence Explanation
             var silenceCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
             var silenceStack = new StackPanel { Spacing = 6 };
-            silenceStack.Children.Add(new TextBlock { Text = "Normal silence means", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
-            silenceStack.Children.Add(new TextBlock { Text = GetNormalSilenceExplanation(command), FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            silenceStack.Children.Add(new TextBlock { Text = "Normal silence means", FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
+            silenceStack.Children.Add(new TextBlock { Text = GetNormalSilenceExplanation(command), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
             silenceCard.Child = silenceStack;
             stack.Children.Add(silenceCard);
 
@@ -936,9 +936,9 @@ namespace src_avalonia
             var failSplit = SplitFailureExplanation(command.Fails);
             var recoveryCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12) };
             var recoveryStack = new StackPanel { Spacing = 6 };
-            recoveryStack.Children.Add(new TextBlock { Text = "Failure recovery actions", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
-            recoveryStack.Children.Add(new TextBlock { Text = $"Meaning: {failSplit.Meaning}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
-            recoveryStack.Children.Add(new TextBlock { Text = $"What to do next: {failSplit.Recovery}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            recoveryStack.Children.Add(new TextBlock { Text = "Failure recovery actions", FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
+            recoveryStack.Children.Add(new TextBlock { Text = $"Meaning: {failSplit.Meaning}", FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            recoveryStack.Children.Add(new TextBlock { Text = $"What to do next: {failSplit.Recovery}", FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
             recoveryCard.Child = recoveryStack;
             stack.Children.Add(recoveryCard);
 
@@ -950,8 +950,8 @@ namespace src_avalonia
         {
             var border = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(6) };
             var stack = new StackPanel { Spacing = 6 };
-            stack.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
-            stack.Children.Add(new TextBlock { Text = body, FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+            stack.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 14, Foreground = Brushes.White });
+            stack.Children.Add(new TextBlock { Text = body, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
             border.Child = stack;
             return border;
         }
@@ -966,8 +966,8 @@ namespace src_avalonia
             if (!string.IsNullOrEmpty(step.SectionExplainText))
             {
                 var block = new StackPanel { Spacing = 6 };
-                block.Children.Add(new TextBlock { Text = "General Context", FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-                block.Children.Add(new TextBlock { Text = step.SectionExplainText, FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                block.Children.Add(new TextBlock { Text = "General Context", FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+                block.Children.Add(new TextBlock { Text = step.SectionExplainText, FontSize = 14, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                 DrawerContentContainer.Children.Add(block);
             }
 
@@ -977,7 +977,7 @@ namespace src_avalonia
             // 3. Glossary terms for this step
             if (step.SectionTerms != null && step.SectionTerms.Count > 0 && _glossaryDb != null)
             {
-                var termHeader = new TextBlock { Text = "📚 Glossary Definitions", FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Brushes.White, Margin = new Avalonia.Thickness(0, 10, 0, 0) };
+                var termHeader = new TextBlock { Text = "📚 Glossary Definitions", FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Brushes.White, Margin = new Avalonia.Thickness(0, 10, 0, 0) };
                 DrawerContentContainer.Children.Add(termHeader);
 
                 var termsStack = new StackPanel { Spacing = 10 };
@@ -988,11 +988,11 @@ namespace src_avalonia
                         var border = new Border { Background = new SolidColorBrush(Color.FromRgb(38, 47, 51)), CornerRadius = new CornerRadius(4), Padding = new Avalonia.Thickness(10) };
                         var vstack = new StackPanel { Spacing = 4 };
 
-                        var linkBtn = new Button { Content = termName, Background = Brushes.Transparent, BorderThickness = new Avalonia.Thickness(0), Padding = new Avalonia.Thickness(0), Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontWeight = FontWeight.Bold, FontSize = 12 };
+                        var linkBtn = new Button { Content = termName, Background = Brushes.Transparent, BorderThickness = new Avalonia.Thickness(0), Padding = new Avalonia.Thickness(0), Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontWeight = FontWeight.Bold, FontSize = 14 };
                         linkBtn.Click += (s, ev) => OpenGlossaryModal(termName);
                         vstack.Children.Add(linkBtn);
 
-                        vstack.Children.Add(new TextBlock { Text = meaning, FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
+                        vstack.Children.Add(new TextBlock { Text = meaning, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)), TextWrapping = TextWrapping.Wrap });
                         border.Child = vstack;
                         termsStack.Children.Add(border);
                     }
@@ -1003,7 +1003,7 @@ namespace src_avalonia
             // 4. Source manuals list
             if (step.Sources != null && step.Sources.Count > 0)
             {
-                var sourceHeader = new TextBlock { Text = "🔗 References & Manuals", FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Brushes.White, Margin = new Avalonia.Thickness(0, 10, 0, 0) };
+                var sourceHeader = new TextBlock { Text = "🔗 References & Manuals", FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Brushes.White, Margin = new Avalonia.Thickness(0, 10, 0, 0) };
                 DrawerContentContainer.Children.Add(sourceHeader);
 
                 var sourceStack = new StackPanel { Spacing = 8 };
@@ -1011,15 +1011,15 @@ namespace src_avalonia
                 {
                     var sourceBorder = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(4), Padding = new Avalonia.Thickness(10) };
                     var sstack = new StackPanel { Spacing = 4 };
-                    sstack.Children.Add(new TextBlock { Text = source.Label, FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
-                    sstack.Children.Add(new TextBlock { Text = source.Note, FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
+                    sstack.Children.Add(new TextBlock { Text = source.Label, FontSize = 14, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+                    sstack.Children.Add(new TextBlock { Text = source.Note, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap });
 
                     // Append wiki keys if applicable
                     var match = Regex.Match(source.Url, @"^https://wiki\.archlinux\.org/title/([^#?]+)");
                     if (match.Success)
                     {
                         string wikiKey = Uri.UnescapeDataString(match.Groups[1].Value);
-                        sstack.Children.Add(new TextBlock { Text = $"Offline key: {wikiKey}", FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontWeight = FontWeight.Bold });
+                        sstack.Children.Add(new TextBlock { Text = $"Offline key: {wikiKey}", FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(37, 99, 111)), FontWeight = FontWeight.Bold });
                     }
 
                     sourceBorder.Child = sstack;
@@ -1055,7 +1055,7 @@ namespace src_avalonia
 
             var safetyCard = new Border { Background = new SolidColorBrush(Color.FromRgb(38, 47, 51)), CornerRadius = new CornerRadius(6), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 10, 0, 0) };
             var safetyStack = new StackPanel { Spacing = 10 };
-            safetyStack.Children.Add(new TextBlock { Text = "🔒 Safety Gates Checklist", FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
+            safetyStack.Children.Add(new TextBlock { Text = "🔒 Safety Gates Checklist", FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Brushes.White });
 
             var gates = new[]
             {
@@ -1068,14 +1068,14 @@ namespace src_avalonia
             foreach (var (key, title, help) in gates)
             {
                 var row = new StackPanel { Spacing = 4 };
-                var chk = new CheckBox { Content = title, IsChecked = _safetyGates[key], FontSize = 12, FontWeight = FontWeight.Bold };
+                var chk = new CheckBox { Content = title, IsChecked = _safetyGates[key], FontSize = 14, FontWeight = FontWeight.Bold };
                 chk.IsCheckedChanged += (s, ev) =>
                 {
                     _safetyGates[key] = chk.IsChecked ?? false;
                     RenderActiveStep(); // Refresh active command blocks to unlock/lock
                 };
                 row.Children.Add(chk);
-                row.Children.Add(new TextBlock { Text = help, FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap, Margin = new Avalonia.Thickness(28, 0, 0, 0) });
+                row.Children.Add(new TextBlock { Text = help, FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(138, 153, 160)), TextWrapping = TextWrapping.Wrap, Margin = new Avalonia.Thickness(28, 0, 0, 0) });
                 safetyStack.Children.Add(row);
             }
 
