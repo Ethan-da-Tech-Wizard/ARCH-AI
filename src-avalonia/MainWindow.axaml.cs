@@ -52,6 +52,23 @@ namespace src_avalonia
             LoadState();
             SyncProfileView();
             TransitionToView(_currentView);
+            this.SizeChanged += OnWindowSizeChanged;
+        }
+
+        private void OnWindowSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            if (ProfileFormGrid != null)
+            {
+                ProfileFormGrid.Columns = e.NewSize.Width < 800 ? 1 : 2;
+            }
+
+            if (e.NewSize.Width < 950)
+            {
+                if (DrawerPanel != null && DrawerPanel.IsVisible)
+                {
+                    DrawerPanel.IsVisible = false;
+                }
+            }
         }
 
         private void LoadDataAssets()

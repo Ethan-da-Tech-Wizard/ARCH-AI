@@ -147,7 +147,7 @@
               </Grid>
 
               <!-- Form Grid -->
-              <UniformGrid Columns="2" Rows="6">
+              <UniformGrid x:Name="ProfileFormGrid" Columns="2" Rows="6">
                 
                 <!-- Q1: Guide Device -->
                 <StackPanel Spacing="6" Margin="10,8">
@@ -328,7 +328,7 @@
       <Grid x:Name="ViewWizard" ColumnDefinitions="*,Auto" IsVisible="False">
         <!-- Main action area -->
         <ScrollViewer Grid.Column="0" Padding="24">
-          <StackPanel x:Name="WizardStageContainer" Spacing="24" MaxWidth="800" HorizontalAlignment="Center" Width="750">
+          <StackPanel x:Name="WizardStageContainer" Spacing="24" MaxWidth="800" HorizontalAlignment="Stretch">
             <!-- Populated dynamically via code-behind -->
           </StackPanel>
         </ScrollViewer>
