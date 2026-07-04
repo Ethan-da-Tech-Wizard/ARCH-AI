@@ -29,20 +29,56 @@ namespace src_avalonia
         private GlossaryDatabase? _glossaryDb;
 
         // Info popup help content mappings
-        private static readonly Dictionary<string, (string Title, string Body)> ProfileHelpDetails = new()
+        private static readonly Dictionary<string, (string Title, string Body)> QuestionHelpTexts = new()
         {
-            { "guideDevice", ("Reading device source", "Identify the device you are using to read this walkthrough right now. Since installing Arch Linux starts in a console prompt with no web browser, it is highly recommended to read this from a second device (like a phone, tablet, or separate laptop) so it remains visible.") },
-            { "machineType", ("Target machine type", "Different physical or virtual machines need different kernel drivers and configurations later. Laptops need wireless packages and touchpad settings, while Virtual Machines need host-specific guest utility services.") },
-            { "currentEnvironment", ("Active OS / Environment", "You cannot install Arch Linux commands inside Windows or macOS. You must boot the computer into the Arch live installer environment (the Arch ISO). Choose your current status so the wizard knows how to instruct you.") },
-            { "installTarget", ("Installation target drive", "This filter defines where Arch goes. If you choose 'Same disk as an existing OS', you will be dual-booting, which requires partition resizing. Wiping is much simpler and is the standard pathway.") },
-            { "eraseIntent", ("Can target disk be fully erased?", "Selecting 'Yes' unlocks CFDisk and disk-writing formatting commands. Selecting 'No' or 'Unsure' hides destructive partitioning/formatting steps to keep your data safe.") },
-            { "internalDriveCount", ("Number of internal drives", "Knowing the internal drive count prevents copying a generic example drive path (like /dev/sda) blindly, which could overwrite files on a secondary data drive.") },
-            { "externalDrive", ("Is an external drive connected?", "If you have an external storage drive connected, it will appear in block device lists (lsblk) and must be carefully separated from your internal target disk.") },
-            { "bootMode", ("Boot mode detected or expected", "UEFI is modern motherboard firmware; BIOS is legacy. They require completely different partitioning maps and bootloader installations. A mismatch means your machine will fail to boot.") },
-            { "bootloaderPath", ("Bootloader choice", "Systemd-boot is highly recommended for UEFI (lightweight and simple). GRUB is a traditional bootloader suitable for legacy BIOS or dual-boot menus.") },
-            { "networkPath", ("Network path", "Arch packages are downloaded from the internet during installation. Ethernet connects automatically; Wi-Fi requires connecting via the iwctl shell.") },
-            { "swapStrategy", ("Swap strategy", "Swap acts as overflow memory. A swap file (created inside the root filesystem after install) is highly recommended because it is very easy to resize or delete without re-partitioning.") },
-            { "audioTarget", ("Audio playback route", "Sets whether sound is routed to internal speakers, HDMI displays, USB headsets, or Bluetooth devices, tailoring audio diagnostic steps.") }
+            { "guideDevice", (
+                "Reading device source", 
+                "This determines how you are viewing these instructions while running installation commands. If you are reading from a mobile phone, tablet, or a second computer, you can safely display commands without worrying about browser windows blocking your target terminal. If you are inside a Virtual Machine on the same computer, you can run this setup wizard side-by-side with your terminal. Knowing this helps structure the guide's warnings—such as preventing you from copy-pasting commands that might target your host machine instead of the virtual guest machine."
+            ) },
+            { "machineType", (
+                "Target machine type", 
+                "Different physical computers require completely different drivers and configuration setups:\n\n• Laptops: Need power management configurations (like battery saving utilities), touchpad drivers (libinput), and wireless drivers.\n• Generic PCs (Desktops): Typically use wired Ethernet and have dedicated graphics cards (Nvidia, AMD, Intel) that need correct driver kernels.\n• Macs: Require specialized bootloader entries and wireless chip patches (like Broadcom drivers).\n• Virtual Machines (VMs): Do not need physical Wi-Fi or battery tuning, but need VM Guest Additions (like spice-vdagent or virtualbox-guest-utils) for display scaling and clipboard sharing."
+            ) },
+            { "currentEnvironment", (
+                "Active OS / Environment", 
+                "This identifies the environment you are using to build the install media or run the installer:\n\n• Booted into the Arch ISO: You have written the installer image to a USB flash drive, restarted your machine, pressed your motherboard's boot-menu key (e.g., F12, F11, or F8), and selected the Arch installer. You are at the command line prompt.\n• Windows / macOS / Linux: You are still preparing your install media, mapping files, or reading documentation from a working desktop environment. Selecting this tells the wizard to start with media-creation instructions."
+            ) },
+            { "installTarget", (
+                "Installation target drive", 
+                "This determines where your new Arch Linux operating system will be physically installed:\n\n• Internal SSD/disk: The main drive permanently installed inside your computer.\n• Second internal SSD: Installing onto a separate drive inside your PC, leaving your primary drive (possibly with Windows) untouched.\n• External USB/SSD: Installing onto a removable drive that you can plug into different computers. This requires special boot configurations so it doesn't break your computer's internal boot settings.\n• Same disk as an existing OS: Dual-booting on the same drive. This requires careful partition resizing to avoid wiping your existing Windows or macOS files."
+            ) },
+            { "eraseIntent", (
+                "Can target disk be fully erased?", 
+                "This is the most critical safety setting in the setup wizard:\n\n• Yes, erase target disk: The installer will completely wipe the target drive, deleting all existing operating systems, files, and partitions. It creates a brand-new partition table.\n• No, preserve existing data/OS: If you want to keep Windows or another OS on the same drive (dual-booting). The installer will guide you through shrinking existing partitions to make free space instead of wiping the disk. This requires manually selecting the exact partition offsets."
+            ) },
+            { "internalDriveCount", (
+                "Number of internal drives", 
+                "Knowing how many storage drives are physically plugged into your computer is vital for safety:\n\n• 1 disk: If you only have one drive (e.g., /dev/sda or /dev/nvme0n1), it is much harder to make a mistake since there is only one target.\n• 2 or more disks: You must be extremely careful. Linux names drives dynamically based on which controller initializes first. Your main data drive might be /dev/sda on one boot and /dev/sdb on the next. You must identify drives by their exact size (e.g., 500GB vs 2TB) or model name to prevent formatting the wrong drive."
+            ) },
+            { "externalDrive", (
+                "Is an external drive connected?", 
+                "When you boot the Arch installer, any connected external backup drives, USB flash drives, or external SSDs will show up in command listings alongside your internal drives. If you do not identify them, you might accidentally partition your backup drive thinking it is your target disk. It is highly recommended to disconnect all external backup drives before installing."
+            ) },
+            { "bootMode", (
+                "Boot mode detected or expected", 
+                "Motherboards use firmware to start your computer, and they fall into two categories:\n\n• UEFI (Unified Extensible Firmware Interface): The modern standard used by almost all computers made after 2011. It boots from a dedicated fat32 partition (the EFI System Partition) using stable boot files. UEFI requires a GPT (GUID Partition Table) disk layout.\n• Legacy BIOS (Basic Input/Output System): The older standard used on vintage computers. It boots by executing code stored in the very first sectors of the drive (the Master Boot Record, or MBR).\n\nWhy this matters: A UEFI system cannot boot a Legacy BIOS installation, and vice versa. Mixing UEFI partition commands on a BIOS machine (or vice versa) results in a non-bootable system. You can verify this by checking if '/sys/firmware/efi' exists inside the installer environment."
+            ) },
+            { "bootloaderPath", (
+                "Bootloader choice", 
+                "A bootloader is the first program that loads when you turn on your computer, allowing you to select and launch Arch Linux:\n\n• systemd-boot: A modern, lightweight bootloader built directly into the systemd suite. It only works on UEFI systems. It reads simple text configuration files and boots extremely quickly. It is highly recommended for beginners installing on modern UEFI hardware.\n• GRUB (Grand Unified Bootloader): A feature-rich, traditional bootloader. It supports both UEFI and Legacy BIOS systems. It is more complex, uses a generated database config file (grub.cfg), and is ideal if you are setting up a dual-boot menu with Windows or running on older hardware."
+            ) },
+            { "networkPath", (
+                "Network path", 
+                "The Arch Linux installer does not include pre-packaged software on the ISO. Instead, it downloads the latest packages directly from online repositories:\n\n• Ethernet (Wired): If you plug in a network cable, the installer's background service (dhcpcd or systemd-networkd) will automatically assign your computer an IP address. You are connected instantly.\n• Wi-Fi (Wireless): Requires active configuration. You must run the 'iwctl' tool inside the console, scan for your router's SSID, and type your Wi-Fi password. This setup wizard customizes the network section to show the exact wireless commands if you select Wi-Fi."
+            ) },
+            { "swapStrategy", (
+                "Swap strategy", 
+                "Swap is a dedicated space on your storage drive that acts as overflow memory (RAM) when your computer runs out of physical RAM. It is also required for hibernation:\n\n• Swap File (Recommended): A simple file (usually called /swapfile) created inside your root directory. It requires no partition changes, and you can easily resize, delete, or recreate it at any time with basic commands.\n• Swap Partition: A dedicated physical partition on your drive (formatted as swap space). It is slightly faster on old mechanical hard drives, but resizing it later requires modifying your partition table, which carries data loss risks."
+            ) },
+            { "audioTarget", (
+                "Audio playback route", 
+                "Arch Linux does not configure audio out of the box. You must install sound server software (like PipeWire or PulseAudio):\n\n• Internal Speakers / Analogue Jacks: Requires base audio drivers (alsa-utils and pipewire-alsa).\n• HDMI / DisplayPort: Sound travels through your graphics card's cable to your monitor or TV. Requires configuring digital output channels.\n• USB Headsets / Bluetooth: Requires installing Bluetooth managers (bluez, bluez-utils) and audio protocol controllers (like WirePlumber) so the system can dynamically route sound to external devices when connected."
+            ) }
         };
 
         public MainWindow()
@@ -261,7 +297,7 @@ namespace src_avalonia
         // ================= EVENT HANDLERS =================
         private void OnShowInfoClick(object? sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string key && ProfileHelpDetails.TryGetValue(key, out var help))
+            if (sender is Button btn && btn.Tag is string key && QuestionHelpTexts.TryGetValue(key, out var help))
             {
                 ModalTitle.Text = help.Title;
                 ModalBody.Text = help.Body;
