@@ -775,80 +775,6 @@
           "fails": "If you cannot tell which disk is correct, stop. Unplug extra drives if possible and run lsblk again."
         },
         {
-          "label": "Format the Linux root partition",
-          "sources": [
-            {
-              "label": "ArchWiki: Installation guide",
-              "url": "https://wiki.archlinux.org/title/Installation_guide",
-              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
-            },
-            {
-              "label": "ArchWiki: File systems",
-              "url": "https://wiki.archlinux.org/title/File_systems",
-              "note": "Filesystem types, creation, and mounting background."
-            }
-          ],
-          "command": "mkfs.ext4 /dev/nvme0n1p2",
-          "purpose": "Creates an ext4 filesystem on the root partition. Replace the device path with the correct partition.",
-          "words": [
-            [
-              "mkfs.ext4",
-              "Make ext4 Filesystem. A program that formats a target partition with the ext4 journaled filesystem layout, which is the standard, reliable filesystem format used by default on Arch Linux."
-            ],
-            [
-              " ",
-              "A space character used to separate the command name from its device argument."
-            ],
-            [
-              "/dev/nvme0n1p2",
-              "The target block device path for the partition being formatted. /dev/ represents the device directory, nvme0n1 is the first NVMe SSD, and p2 represents its second partition."
-            ]
-          ],
-          "expected": "Progress text ending with filesystem accounting information.",
-          "fails": "If it says the device is mounted, unmount it first. If the device name is wrong, do not guess."
-        },
-        {
-          "label": "Mount the new root filesystem",
-          "sources": [
-            {
-              "label": "ArchWiki: Installation guide",
-              "url": "https://wiki.archlinux.org/title/Installation_guide",
-              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
-            },
-            {
-              "label": "ArchWiki: File systems",
-              "url": "https://wiki.archlinux.org/title/File_systems",
-              "note": "Filesystem types, creation, and mounting background."
-            }
-          ],
-          "command": "mount /dev/nvme0n1p2 /mnt",
-          "purpose": "Attaches the new root partition at /mnt so pacstrap can install Arch into it.",
-          "words": [
-            [
-              "mount",
-              "A command that attaches the filesystem of a physical disk partition to a specific directory node in the active Linux directory tree."
-            ],
-            [
-              " ",
-              "A space character used to separate the mount command from the source device path."
-            ],
-            [
-              "/dev/nvme0n1p2",
-              "The source partition path containing the filesystem to mount."
-            ],
-            [
-              " ",
-              "A space character used to separate the source device path from the destination directory path."
-            ],
-            [
-              "/mnt",
-              "The target mount point directory. On the live ISO, /mnt is the temporary workspace where the target operating system files will be installed."
-            ]
-          ],
-          "expected": "Usually no output. Running lsblk should show /mnt in the MOUNTPOINTS column.",
-          "fails": "If /mnt is busy or the partition is wrong, check lsblk before continuing."
-        },
-        {
           "label": "Show detailed disk names and models",
           "sources": [
             {
@@ -1007,6 +933,39 @@
           "fails": "If the partition is not the EFI partition, stop. Formatting the wrong partition erases its contents."
         },
         {
+          "label": "Format the Linux root partition",
+          "sources": [
+            {
+              "label": "ArchWiki: Installation guide",
+              "url": "https://wiki.archlinux.org/title/Installation_guide",
+              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
+            },
+            {
+              "label": "ArchWiki: File systems",
+              "url": "https://wiki.archlinux.org/title/File_systems",
+              "note": "Filesystem types, creation, and mounting background."
+            }
+          ],
+          "command": "mkfs.ext4 /dev/nvme0n1p2",
+          "purpose": "Creates an ext4 filesystem on the root partition. Replace the device path with the correct partition.",
+          "words": [
+            [
+              "mkfs.ext4",
+              "Make ext4 Filesystem. A program that formats a target partition with the ext4 journaled filesystem layout, which is the standard, reliable filesystem format used by default on Arch Linux."
+            ],
+            [
+              " ",
+              "A space character used to separate the command name from its device argument."
+            ],
+            [
+              "/dev/nvme0n1p2",
+              "The target block device path for the partition being formatted. /dev/ represents the device directory, nvme0n1 is the first NVMe SSD, and p2 represents its second partition."
+            ]
+          ],
+          "expected": "Progress text ending with filesystem accounting information.",
+          "fails": "If it says the device is mounted, unmount it first. If the device name is wrong, do not guess."
+        },
+        {
           "label": "Create swap space on a swap partition",
           "sources": [
             {
@@ -1066,6 +1025,47 @@
           ],
           "expected": "Usually no output. swapon --show should list the swap device.",
           "fails": "If swapon says the device is invalid, mkswap may not have been run or the wrong partition was chosen."
+        },
+        {
+          "label": "Mount the new root filesystem",
+          "sources": [
+            {
+              "label": "ArchWiki: Installation guide",
+              "url": "https://wiki.archlinux.org/title/Installation_guide",
+              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
+            },
+            {
+              "label": "ArchWiki: File systems",
+              "url": "https://wiki.archlinux.org/title/File_systems",
+              "note": "Filesystem types, creation, and mounting background."
+            }
+          ],
+          "command": "mount /dev/nvme0n1p2 /mnt",
+          "purpose": "Attaches the new root partition at /mnt so pacstrap can install Arch into it.",
+          "words": [
+            [
+              "mount",
+              "A command that attaches the filesystem of a physical disk partition to a specific directory node in the active Linux directory tree."
+            ],
+            [
+              " ",
+              "A space character used to separate the mount command from the source device path."
+            ],
+            [
+              "/dev/nvme0n1p2",
+              "The source partition path containing the filesystem to mount."
+            ],
+            [
+              " ",
+              "A space character used to separate the source device path from the destination directory path."
+            ],
+            [
+              "/mnt",
+              "The target mount point directory. On the live ISO, /mnt is the temporary workspace where the target operating system files will be installed."
+            ]
+          ],
+          "expected": "Usually no output. Running lsblk should show /mnt in the MOUNTPOINTS column.",
+          "fails": "If /mnt is busy or the partition is wrong, check lsblk before continuing."
         },
         {
           "label": "Create the boot mount directory",
@@ -3864,6 +3864,42 @@
           "fails": "If nested shells were opened, exit may need to be typed more than once."
         },
         {
+          "label": "Unmount all filesystems under /mnt",
+          "sources": [
+            {
+              "label": "ArchWiki: Installation guide",
+              "url": "https://wiki.archlinux.org/title/Installation_guide",
+              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
+            }
+          ],
+          "command": "umount -R /mnt",
+          "purpose": "Recursively unmounts the target system before rebooting.",
+          "words": [
+            [
+              "umount",
+              "Unmount. The utility that detaches a mounted filesystem from the system directory tree."
+            ],
+            [
+              " ",
+              "A space character used to separate the utility name from its options flag."
+            ],
+            [
+              "-R",
+              "Recursive. The option flag that recursively unmounts the target folder and all sub-mountpoints nested inside it (like /mnt/boot)."
+            ],
+            [
+              " ",
+              "A space character used to separate option flags from the mount directory path."
+            ],
+            [
+              "/mnt",
+              "The target root mount path to detach."
+            ]
+          ],
+          "expected": "Usually no output.",
+          "fails": "If a target is busy, make sure you exited chroot and no process is using files under /mnt."
+        },
+        {
           "label": "Reboot",
           "sources": [
             {
@@ -3933,42 +3969,6 @@
           ],
           "expected": "Package database refresh and any available upgrades.",
           "fails": "If DNS fails, check NetworkManager and resolv.conf. If permission is denied, confirm the user is in the wheel group and sudo is configured."
-        },
-        {
-          "label": "Unmount all filesystems under /mnt",
-          "sources": [
-            {
-              "label": "ArchWiki: Installation guide",
-              "url": "https://wiki.archlinux.org/title/Installation_guide",
-              "note": "Canonical install sequence for booting the ISO, preparing disks, installing packages, chrooting, and basic system configuration."
-            }
-          ],
-          "command": "umount -R /mnt",
-          "purpose": "Recursively unmounts the target system before rebooting.",
-          "words": [
-            [
-              "umount",
-              "Unmount. The utility that detaches a mounted filesystem from the system directory tree."
-            ],
-            [
-              " ",
-              "A space character used to separate the utility name from its options flag."
-            ],
-            [
-              "-R",
-              "Recursive. The option flag that recursively unmounts the target folder and all sub-mountpoints nested inside it (like /mnt/boot)."
-            ],
-            [
-              " ",
-              "A space character used to separate option flags from the mount directory path."
-            ],
-            [
-              "/mnt",
-              "The target root mount path to detach."
-            ]
-          ],
-          "expected": "Usually no output.",
-          "fails": "If a target is busy, make sure you exited chroot and no process is using files under /mnt."
         },
         {
           "label": "Check the logged-in user",
@@ -6890,6 +6890,34 @@
           ],
           "expected": "systemctl returns without an error. The service should now be enabled and active.",
           "fails": "If the service does not exist, confirm the ufw package installed. If remote access stops working, use local console or recovery access and adjust firewall rules."
+        },
+        {
+          "label": "Activate the firewall rules",
+          "sources": [
+            {
+              "label": "ArchWiki: Uncomplicated Firewall",
+              "url": "https://wiki.archlinux.org/title/Uncomplicated_Firewall",
+              "note": "ArchWiki guidance for UFW firewall setup and service usage."
+            }
+          ],
+          "command": "sudo ufw enable",
+          "purpose": "Activates the firewall immediately, writing the enabled state persistently to its configuration so rules are loaded at boot.",
+          "words": [
+            [
+              "sudo",
+              "Runs the command with administrator privileges."
+            ],
+            [
+              "ufw",
+              "Uncomplicated Firewall command."
+            ],
+            [
+              "enable",
+              "Activates UFW rules, loads firewall kernel hooks, and marks the firewall persistently enabled."
+            ]
+          ],
+          "expected": "Firewall is active and enabled on system startup.",
+          "fails": "If you are using ssh and did not allow port 22, this could lock you out. Run sudo ufw allow 22 first if running headless."
         },
         {
           "label": "Verify firewall status",
