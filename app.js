@@ -624,8 +624,9 @@ const sections = [
         command: "loadkeys uk",
         purpose: "Changes the keyboard layout in the live ISO. Replace uk with the layout you need.",
         words: [
-          ["loadkeys", "Loads a keyboard map for the current console."],
-          ["uk", "The layout name. This is an argument, not a magic word."]
+          ["loadkeys", "A console utility that tells the Linux kernel to load a translation table for keyboard input, re-mapping physical keystrokes to target characters on your terminal."],
+          [" ", "A space character used to separate the command name (loadkeys) from its layout argument."],
+          ["uk", "United Kingdom keyboard layout name. This is the argument passed to specify the target keyboard configuration. If you do not use a UK keyboard, replace this code with your target layout (e.g. 'us', 'de', 'fr', 'es')."]
         ],
         expected: "Usually no output. The keyboard should type using the selected layout.",
         fails: "If it says the keymap cannot be found, run localectl list-keymaps and choose an exact name."
@@ -701,10 +702,7 @@ const sections = [
         command: "lsblk",
         purpose: "Shows block devices: internal drives, USB sticks, and their partitions.",
         words: [
-          ["lsblk", "List block devices. A block device is storage Linux reads in chunks."],
-          ["NAME", "Device name, such as nvme0n1 or sda."],
-          ["SIZE", "Capacity. Use this to recognize the internal disk."],
-          ["TYPE", "disk means whole drive; part means partition."]
+          ["lsblk", "List block devices. A console utility that queries the Linux kernel to list all connected storage drives (like NVMe SSDs, SATA SSDs, HDDs, and USB keys) and their active partition maps."]
         ],
         expected: "A tree of devices. The USB stick and internal drive should have different sizes.",
         fails: "If you cannot tell which disk is correct, stop. Unplug extra drives if possible and run lsblk again."
@@ -715,8 +713,9 @@ const sections = [
         command: "mkfs.ext4 /dev/nvme0n1p2",
         purpose: "Creates an ext4 filesystem on the root partition. Replace the device path with the correct partition.",
         words: [
-          ["mkfs.ext4", "Make an ext4 filesystem."],
-          ["/dev/nvme0n1p2", "Example partition path. This must match the learner's real root partition."]
+          ["mkfs.ext4", "Make ext4 Filesystem. A program that formats a target partition with the ext4 journaled filesystem layout, which is the standard, reliable filesystem format used by default on Arch Linux."],
+          [" ", "A space character used to separate the command name from its device argument."],
+          ["/dev/nvme0n1p2", "The target block device path for the partition being formatted. /dev/ represents the device directory, nvme0n1 is the first NVMe SSD, and p2 represents its second partition."]
         ],
         expected: "Progress text ending with filesystem accounting information.",
         fails: "If it says the device is mounted, unmount it first. If the device name is wrong, do not guess."
@@ -727,9 +726,11 @@ const sections = [
         command: "mount /dev/nvme0n1p2 /mnt",
         purpose: "Attaches the new root partition at /mnt so pacstrap can install Arch into it.",
         words: [
-          ["mount", "Attach a filesystem to a directory."],
-          ["/dev/nvme0n1p2", "The partition being attached."],
-          ["/mnt", "The temporary folder where the new system will appear."]
+          ["mount", "A command that attaches the filesystem of a physical disk partition to a specific directory node in the active Linux directory tree."],
+          [" ", "A space character used to separate the mount command from the source device path."],
+          ["/dev/nvme0n1p2", "The source partition path containing the filesystem to mount."],
+          [" ", "A space character used to separate the source device path from the destination directory path."],
+          ["/mnt", "The target mount point directory. On the live ISO, /mnt is the temporary workspace where the target operating system files will be installed."]
         ],
         expected: "Usually no output. Running lsblk should show /mnt in the MOUNTPOINTS column.",
         fails: "If /mnt is busy or the partition is wrong, check lsblk before continuing."
@@ -760,13 +761,11 @@ const sections = [
         command: "lsblk -o NAME,FSTYPE,SIZE,TYPE,MOUNTPOINTS",
         purpose: "Shows the mounted target layout before installing packages. The root partition should be mounted at /mnt, the boot or EFI partition should be mounted at /mnt/boot when that path is used, and swap should be active only when the swap-partition path was chosen.",
         words: [
-          ["lsblk", "Lists block devices such as disks and partitions."],
-          ["-o", "Chooses which columns to print."],
-          ["NAME", "Linux device name."],
-          ["FSTYPE", "Filesystem type, such as ext4, vfat, or swap."],
-          ["SIZE", "Capacity, useful for confirming the partition is the intended one."],
-          ["TYPE", "Shows whether the row is a disk or partition."],
-          ["MOUNTPOINTS", "Shows where a filesystem is mounted, such as /mnt or /mnt/boot."]
+          ["lsblk", "List block devices. A console utility that queries the Linux kernel to list all active storage drives and partition maps."],
+          [" ", "A space character used to separate the command name from its options flag."],
+          ["-o", "The output columns option flag that tells lsblk to print only the specific columns listed next."],
+          [" ", "A space character used to separate the options flag from the column argument list."],
+          ["NAME,FSTYPE,SIZE,TYPE,MOUNTPOINTS", "A comma-separated list of output columns. NAME is the partition device name, FSTYPE is the formatted filesystem type (like ext4, vfat, or swap), SIZE is the storage capacity, TYPE designates drive vs partition, and MOUNTPOINTS is the path where the filesystem is attached (like /mnt)."]
         ],
         expected: "The intended root partition shows /mnt. For UEFI or a separate boot partition, the intended boot partition shows /mnt/boot. If swap partition strategy is selected, swap should be active and visible through swapon --show.",
         fails: "If /mnt is missing, pacstrap would install into the wrong place. If /mnt/boot is missing for the selected UEFI/simple boot path, bootloader files may go to the wrong filesystem. Stop and fix mounts first."
@@ -777,8 +776,9 @@ const sections = [
         command: "findmnt /mnt",
         purpose: "Confirms that /mnt is backed by the intended root partition before pacstrap writes the new Arch system there.",
         words: [
-          ["findmnt", "Shows mounted filesystems."],
-          ["/mnt", "The temporary mount point that should contain the new system's root filesystem."]
+          ["findmnt", "A command-line utility used to query and display the status of mounted filesystems in the active system."],
+          [" ", "A space character used to separate the command name from its directory argument."],
+          ["/mnt", "The target directory path being queried to confirm what partition is mounted there."]
         ],
         expected: "A row for /mnt whose source is the mapped root partition.",
         fails: "If no row appears, mount the root partition at /mnt before running pacstrap. If the source is the wrong partition, unmount it and mount the correct root partition."
@@ -789,8 +789,9 @@ const sections = [
         command: "findmnt /mnt/boot",
         purpose: "Confirms the boot mount used by the simple UEFI paths. In this walkthrough, the EFI System Partition is mounted at /mnt/boot before pacstrap and later appears as /boot inside the installed system.",
         words: [
-          ["findmnt", "Shows mounted filesystems."],
-          ["/mnt/boot", "The boot mount point inside the mounted target system."]
+          ["findmnt", "A command-line utility used to query and display the status of mounted filesystems in the active system."],
+          [" ", "A space character used to separate the command name from its directory argument."],
+          ["/mnt/boot", "The target directory path being queried to confirm that your EFI or boot partition is mounted there."]
         ],
         expected: "For the simple UEFI systemd-boot or GRUB UEFI path, a row appears for /mnt/boot and the source is the mapped EFI partition with a FAT/vfat filesystem.",
         fails: "If using UEFI and no row appears, create /mnt/boot and mount the EFI partition there before pacstrap. If using a simple BIOS path with no separate boot partition, this check may correctly show nothing."
@@ -801,8 +802,9 @@ const sections = [
         command: "swapon --show",
         purpose: "Shows active swap devices. This matters before genfstab because genfstab detects active swap and writes it into fstab.",
         words: [
-          ["swapon", "Shows or enables swap devices."],
-          ["--show", "Print the currently active swap areas instead of enabling a new one."]
+          ["swapon", "Swap On. The command used to enable devices or files for paging/virtual memory swap space."],
+          [" ", "A space character used to separate the command name from its option flag."],
+          ["--show", "The option flag that instructs swapon to print a summary table of currently active swap devices/files to the terminal instead of enabling a new swap area."]
         ],
         expected: "If Swap strategy is swap partition, the mapped swap partition appears. If Swap strategy is no swap or swap file later, empty output is expected.",
         fails: "If swap partition strategy is selected and nothing appears, run mkswap and swapon on the exact mapped swap partition before genfstab. Do not activate swap on root or EFI partitions."
@@ -813,8 +815,9 @@ const sections = [
         command: "ip link",
         purpose: "Shows network interfaces before pacstrap tries to download packages. This confirms whether Ethernet, Wi-Fi, loopback, or other interfaces are visible.",
         words: [
-          ["ip", "Inspects or changes network settings."],
-          ["link", "Shows network interfaces and link-layer state."],
+          ["ip", "A powerful utility used to show and configure network interfaces, routing tables, and policy routing."],
+          [" ", "A space character used to separate the command name from the object argument."],
+          ["link", "The object argument that tells the ip command to manage or display network interface link states (like physical Ethernet or Wi-Fi cards)."],
           ["lo", "Loopback interface for the machine itself; this does not prove internet access."],
           ["en...", "Common prefix for Ethernet-style interface names."],
           ["wl...", "Common prefix for Wi-Fi-style interface names."]
@@ -828,8 +831,10 @@ const sections = [
         command: "ping -c 3 1.1.1.1",
         purpose: "Tests whether packets can reach a public IP address without DNS. This separates basic connectivity and routing from name lookup.",
         words: [
-          ["ping", "Sends test packets and waits for replies."],
-          ["-c 3", "Send three packets, then stop."],
+          ["ping", "A utility that sends ICMP Echo Request packets to network hosts to test reachability and round-trip delay."],
+          [" ", "A space character used to separate the command name from its option flag."],
+          ["-c 3", "The packet count option flag that tells ping to send exactly three packets and then stop, preventing the command from running infinitely."],
+          [" ", "A space character used to separate the option flag from the target IP address."],
           ["1.1.1.1", "A numeric public IP address, so this test does not need DNS."]
         ],
         expected: "Replies appear with time values and the summary shows received packets.",
@@ -841,9 +846,11 @@ const sections = [
         command: "ping -c 3 archlinux.org",
         purpose: "Tests DNS name resolution plus network reachability. This should work before pacstrap or pacman package installs.",
         words: [
-          ["ping", "Sends test packets and waits for replies."],
-          ["-c 3", "Send three packets, then stop."],
-          ["archlinux.org", "A domain name that must be translated into an IP address by DNS before packets can be sent."]
+          ["ping", "A utility that sends ICMP Echo Request packets to network hosts to test reachability and round-trip delay."],
+          [" ", "A space character used to separate the command name from its option flag."],
+          ["-c 3", "The packet count option flag that tells ping to send exactly three packets and then stop."],
+          [" ", "A space character used to separate the option flag from the domain name argument."],
+          ["archlinux.org", "The target domain name being pinged. The system resolver must translate this name into an IP address using DNS before packets can be sent."]
         ],
         expected: "The name resolves and replies arrive. This proves DNS and connectivity are both working for a normal domain test.",
         fails: "If raw IP ping worked but this says name resolution failed, focus on DNS. If the name resolves but replies fail, focus on routing, firewall, or upstream network conditions."
@@ -854,9 +861,11 @@ const sections = [
         command: "resolvectl query archlinux.org",
         purpose: "Asks the system resolver to look up archlinux.org and shows DNS-specific details without relying on ping output alone.",
         words: [
-          ["resolvectl", "systemd tool for resolver and DNS queries."],
-          ["query", "Ask DNS to resolve a name."],
-          ["archlinux.org", "The domain name being resolved."]
+          ["resolvectl", "systemd command-line tool used to resolve domain names, IP addresses, and DNS resource records."],
+          [" ", "A space character used to separate the utility name from the command argument."],
+          ["query", "The command argument that instructs resolvectl to perform a name resolution lookup."],
+          [" ", "A space character used to separate the query command from the domain name argument."],
+          ["archlinux.org", "The domain name query being looked up in the DNS namespace."]
         ],
         expected: "One or more IP addresses are returned for archlinux.org.",
         fails: "If this fails while raw IP ping works, DNS servers or resolver configuration are the likely problem. Do not retry package installs until DNS is fixed."
@@ -867,14 +876,21 @@ const sections = [
         command: "pacstrap -K /mnt base linux linux-firmware nano networkmanager",
         purpose: "Downloads and installs the minimum packages needed for a bootable Arch system plus a text editor and networking service.",
         words: [
-          ["pacstrap", "Install packages into a mounted target system."],
-          ["-K", "Initializes a fresh pacman keyring in the new system."],
-          ["/mnt", "The target installation directory."],
-          ["base", "Core userspace tools."],
-          ["linux", "The Linux kernel."],
-          ["linux-firmware", "Firmware files for hardware support."],
-          ["nano", "A terminal text editor."],
-          ["networkmanager", "A service that manages wired and Wi-Fi connections after install."]
+          ["pacstrap", "An Arch Linux bootstrapping script that installs packages into a mounted target filesystem directory."],
+          [" ", "A space character used to separate the tool name from the keyring option flag."],
+          ["-K", "The keyring copy option flag. This tells pacstrap to initialize a fresh pacman keyring on the target system to verify package signatures."],
+          [" ", "A space character used to separate the configuration flags from the target mount path."],
+          ["/mnt", "The target installation directory. This is the mount point of your new root filesystem."],
+          [" ", "A space character used to separate the mount directory from the package list."],
+          ["base", "The core metapackage containing essential userspace tools for a minimal Arch installation."],
+          [" ", "A space character used to separate base from linux."],
+          ["linux", "The package containing the Linux kernel image and kernel modules."],
+          [" ", "A space character used to separate linux from linux-firmware."],
+          ["linux-firmware", "The package containing physical device firmware files required by various hardware components."],
+          [" ", "A space character used to separate linux-firmware from nano."],
+          ["nano", "A simple, user-friendly terminal text editor used to edit system configuration files."],
+          [" ", "A space character used to separate nano from networkmanager."],
+          ["networkmanager", "A comprehensive network configuration and management daemon that automatically handles wired and wireless connections."]
         ],
         expected: "Package download and install progress, ending without errors.",
         fails: "If downloads fail, test ping and DNS. If keys fail, check the system clock and pacman keyring."
@@ -885,11 +901,15 @@ const sections = [
         command: "genfstab -U /mnt >> /mnt/etc/fstab",
         purpose: "Writes mount instructions so the installed system knows which partitions to mount on boot.",
         words: [
-          ["genfstab", "Generates fstab entries from currently mounted filesystems."],
-          ["-U", "Uses UUIDs, stable partition identifiers that survive device name changes."],
-          ["/mnt", "The mounted installed system."],
-          [">>", "Append output to a file instead of printing it only."],
-          ["/mnt/etc/fstab", "The fstab file inside the new system."]
+          ["genfstab", "A helper script that generates /etc/fstab-compatible entries by scanning the active mounts under a target directory."],
+          [" ", "A space character used to separate the utility name from its options flag."],
+          ["-U", "The UUID option flag that forces genfstab to define filesystems by their unique partition UUIDs rather than unstable block device paths (like /dev/sda1)."],
+          [" ", "A space character used to separate the options flag from the target directory path."],
+          ["/mnt", "The directory root containing the mounted filesystems to scan."],
+          [" ", "A space character used to separate the target path from the output redirection operator."],
+          [">>", "The standard shell append redirect operator. This appends the program's output to the specified file without overwriting existing contents."],
+          [" ", "A space character used to separate the redirect operator from the destination file path."],
+          ["/mnt/etc/fstab", "The destination fstab configuration file path inside the new system."]
         ],
         expected: "Usually no output. The file should contain entries for root and boot partitions.",
         fails: "If the file is empty, the partitions may not be mounted. Run lsblk and mount the needed partitions."
@@ -900,7 +920,8 @@ const sections = [
         command: "cat /mnt/etc/fstab",
         purpose: "Displays the generated fstab before entering the new system. This is the moment to verify that the installed system will mount the correct filesystems at boot.",
         words: [
-          ["cat", "Prints file contents to the terminal."],
+          ["cat", "Concatenate. A utility that reads files and prints their contents sequentially to standard output."],
+          [" ", "A space character used to separate the command name from the file path argument."],
           ["/mnt/etc/fstab", "The fstab file inside the new installed system, not the live ISO's fstab."]
         ],
         expected: "A root entry for / exists. UEFI/simple boot paths should have a /boot entry. Swap appears only when swap partition strategy was selected and active before genfstab. UUID= values should appear because genfstab -U was used.",
@@ -912,10 +933,12 @@ const sections = [
         command: "grep -E '[[:space:]]/(boot)?[[:space:]]|[[:space:]]none[[:space:]]+swap[[:space:]]' /mnt/etc/fstab",
         purpose: "Filters fstab to the most important mountpoint lines: root, boot if present, and swap if present.",
         words: [
-          ["grep", "Searches text for matching lines."],
-          ["-E", "Uses extended regular expressions."],
-          ["[[:space:]]/(boot)?[[:space:]]", "Matches an fstab field for / or /boot."],
-          ["[[:space:]]none[[:space:]]+swap[[:space:]]", "Matches a common swap fstab line where the mount point field is none and the filesystem type is swap."],
+          ["grep", "Global Regular Expression Print. A command-line tool used to search files for lines matching a specified pattern."],
+          [" ", "A space character used to separate the command name from the options flag."],
+          ["-E", "The extended regular expressions option flag that enables advanced pattern symbols."],
+          [" ", "A space character used to separate the options flag from the pattern argument."],
+          ["'[[:space:]]/(boot)?[[:space:]]|[[:space:]]none[[:space:]]+swap[[:space:]]'", "The search pattern. This regular expression matches any line containing a mount point of / or /boot, or any line defining a swap mount."],
+          [" ", "A space character used to separate the pattern argument from the target file path."],
           ["/mnt/etc/fstab", "The generated fstab file inside the mounted target system."]
         ],
         expected: "At minimum, a line for / appears. UEFI/simple boot paths should show /boot. Swap appears only for the selected active swap-partition path.",
@@ -927,7 +950,8 @@ const sections = [
         command: "arch-chroot /mnt",
         purpose: "Changes into the installed system so configuration commands apply to it.",
         words: [
-          ["arch-chroot", "Arch helper for entering a mounted Linux system."],
+          ["arch-chroot", "An Arch Linux specific chroot script. It enters a target folder as the new root directory and automatically mounts virtual kernel filesystems (like /proc, /sys, /dev) to ensure commands run correctly inside the chroot."],
+          [" ", "A space character used to separate the command name from the directory argument."],
           ["/mnt", "The new system's root directory."]
         ],
         expected: "The prompt changes. You are now operating inside the installed system.",
@@ -959,14 +983,17 @@ const sections = [
         command: "ln -sf /usr/share/zoneinfo/America/Phoenix /etc/localtime",
         purpose: "Links the system time zone file to the selected region.",
         words: [
-          ["ln", "Creates links between files."],
-          ["-s", "Creates a symbolic link, like a pointer."],
-          ["-f", "Replaces an existing destination if needed."],
-          ["/usr/share/zoneinfo/America/Phoenix", "The chosen time zone file."],
-          ["/etc/localtime", "The standard system time zone path."]
+          ["ln", "Link. A utility used to create links (shortcuts) between files in the filesystem."],
+          [" ", "A space character used to separate the utility name from its options flag."],
+          ["-s", "The symbolic option flag. This tells ln to create a soft symbolic link pointing to another file path rather than a hard link."],
+          ["f", "The force option flag. This forces ln to overwrite any pre-existing file at the destination path without prompting for confirmation."],
+          [" ", "A space character used to separate options from the source timezone file path."],
+          ["/usr/share/zoneinfo/America/Phoenix", "The source timezone file path. This represents your selected geographical region and city."],
+          [" ", "A space character used to separate the source timezone file from the destination path."],
+          ["/etc/localtime", "The destination symbolic link path. The system reads this symlink during boot to determine local timezone offsets."]
         ],
         expected: "Usually no output.",
-        fails: "If the zone path does not exist, list /usr/share/zoneinfo and choose the correct region and city."
+        fails: "If the time is wrong, fix time synchronization before running this."
       },
       {
         label: "Edit locale generation list",
@@ -974,8 +1001,9 @@ const sections = [
         command: "nano /etc/locale.gen",
         purpose: "Opens the locale list so the learner can enable a language/encoding such as en_US.UTF-8 UTF-8.",
         words: [
-          ["nano", "Opens a terminal text editor."],
-          ["/etc/locale.gen", "The file listing locales that can be generated."]
+          ["nano", "A simple, user-friendly terminal-based text editor."],
+          [" ", "A space character used to separate the text editor name from its file path argument."],
+          ["/etc/locale.gen", "The system locale generation configuration file path. This file contains commented-out (disabled) locale names that can be uncommented and generated."]
         ],
         expected: "A text editor opens. Remove # from the needed UTF-8 locale, save, and exit.",
         fails: "In nano, Ctrl+O writes the file, Enter confirms, and Ctrl+X exits."
@@ -986,9 +1014,11 @@ const sections = [
         command: "systemctl enable NetworkManager",
         purpose: "Makes NetworkManager start automatically on the installed system after reboot.",
         words: [
-          ["systemctl", "Controls systemd services."],
-          ["enable", "Registers a service to start during boot."],
-          ["NetworkManager", "The networking service installed by pacstrap."]
+          ["systemctl", "systemd Control. The primary command-line tool used to manage systemd units, services, and system states."],
+          [" ", "A space character used to separate the utility name from the command argument."],
+          ["enable", "The command argument that instructs systemctl to create symlinks in systemd target directories, registering the service to start automatically during system boot."],
+          [" ", "A space character used to separate the command argument from the target service name."],
+          ["NetworkManager", "The target systemd service unit name. This is the network management daemon package installed during bootstrapping."]
         ],
         expected: "A message about creating a symlink.",
         fails: "If the unit does not exist, install networkmanager with pacman -S networkmanager."
@@ -1019,7 +1049,7 @@ const sections = [
         command: "exit",
         purpose: "Returns from the installed system back to the live ISO shell.",
         words: [
-          ["exit", "Closes the current shell session."]
+          ["exit", "Closes the current interactive shell session, returning control to the parent shell process (which returns you from the chroot back to the live ISO environment)."]
         ],
         expected: "The prompt changes back to the ISO environment.",
         fails: "If nested shells were opened, exit may need to be typed more than once."
@@ -1030,7 +1060,7 @@ const sections = [
         command: "reboot",
         purpose: "Restarts the computer so it can boot from the installed system.",
         words: [
-          ["reboot", "Asks systemd to restart the machine."]
+          ["reboot", "A command-line link to systemctl that requests systemd to safely terminate active processes, unmount filesystems, and perform a hardware system restart."]
         ],
         expected: "The machine restarts. Remove the USB when prompted or before it boots the ISO again.",
         fails: "If the ISO starts again, open the boot menu and choose the internal drive."
@@ -1041,11 +1071,11 @@ const sections = [
         command: "sudo pacman -Syu",
         purpose: "Synchronizes package databases and upgrades installed packages.",
         words: [
-          ["sudo", "Runs the command with administrator privileges."],
-          ["pacman", "Arch package manager."],
-          ["-S", "Sync/install packages from repositories."],
-          ["-y", "Refresh package databases."],
-          ["-u", "Upgrade installed packages."]
+          ["sudo", "Superuser Do. A privilege elevation utility that validates your password and runs the specified command with system administrator (root) privileges."],
+          [" ", "A space character used to separate the elevation utility from its target command."],
+          ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+          [" ", "A space character used to separate the package manager from its option flags."],
+          ["-Syu", "The synchronization, database refresh, and system upgrade option flags combined. -S tells pacman to sync/install from remote repositories, -y forces pacman to download fresh package databases from mirrors, and -u upgrades all out-of-date packages installed on the system."]
         ],
         expected: "Package database refresh and any available upgrades.",
         fails: "If DNS fails, check NetworkManager and resolv.conf. If permission is denied, confirm the user is in the wheel group and sudo is configured."
@@ -1470,9 +1500,11 @@ extendSection("Disk Setup", {
       command: "lsblk -o NAME,SIZE,TYPE,MODEL,MOUNTPOINTS",
       purpose: "Prints a more useful disk table for choosing the correct target drive.",
       words: [
-        ["lsblk", "Lists block devices."],
-        ["-o", "Chooses which output columns to show."],
-        ["NAME,SIZE,TYPE,MODEL,MOUNTPOINTS", "Columns that help identify drive names, capacities, device type, model, and where filesystems are mounted."]
+        ["lsblk", "List block devices. A console tool that queries the Linux kernel to list all connected storage devices (like NVMe SSDs, SATA SSDs, HDDs, and USB keys) and their active partition maps."],
+        [" ", "A space character used to separate the command name from its options flag."],
+        ["-o", "The output options flag that tells lsblk to display only the specific columns listed next."],
+        [" ", "A space character used to separate the options flag from the column argument list."],
+        ["NAME,SIZE,TYPE,MODEL,MOUNTPOINTS", "A comma-separated list of output columns. NAME is the partition device name, SIZE is the disk/partition space capacity, TYPE designates drive vs partition, MODEL is the manufacturer hardware model name, and MOUNTPOINTS shows active system mount paths."]
       ],
       expected: "A table where the USB installer and internal disk can usually be distinguished by size and model.",
       fails: "If the output is confusing, stop before partitioning. Removing unrelated external drives can reduce risk."
@@ -1483,8 +1515,9 @@ extendSection("Disk Setup", {
       command: "fdisk -l",
       purpose: "Shows partition tables for detected disks. This helps confirm whether a disk already has partitions and what their sizes are.",
       words: [
-        ["fdisk", "Disk partitioning and inspection tool."],
-        ["-l", "List partition tables instead of editing them."]
+        ["fdisk", "A standard partition table manipulator utility that interacts with partition table structures on block devices."],
+        [" ", "A space character used to separate the command name from its options flag."],
+        ["-l", "The list options flag that tells fdisk to print partition layouts of all connected storage drives and exit, rather than starting an interactive shell."]
       ],
       expected: "Detailed information for each disk and its partitions.",
       fails: "If permission is denied outside the ISO, use sudo. In the ISO, root should already have permission."
@@ -1495,8 +1528,9 @@ extendSection("Disk Setup", {
       command: "cfdisk /dev/nvme0n1",
       purpose: "Opens an interactive partition editor for the selected disk. This is where partitions can be created or deleted.",
       words: [
-        ["cfdisk", "Interactive terminal partition editor."],
-        ["/dev/nvme0n1", "Example whole-disk device. Do not use a partition like p1 here."]
+        ["cfdisk", "An easy-to-use, interactive text-user-interface (TUI) partition editor used to create, resize, and delete partitions on a drive."],
+        [" ", "A space character used to separate the command name from its target disk argument."],
+        ["/dev/nvme0n1", "The whole-disk block device path to edit. Always specify a whole disk (such as /dev/sda or /dev/nvme0n1) here, never an individual partition (like p1 or p2)."]
       ],
       expected: "An interactive partition table screen. For UEFI, a typical simple layout has an EFI System Partition and a Linux filesystem partition.",
       fails: "If the wrong disk opens, quit without writing. Do not choose Write until the layout and target disk are confirmed."
@@ -1507,9 +1541,11 @@ extendSection("Disk Setup", {
       command: "mkfs.fat -F 32 /dev/nvme0n1p1",
       purpose: "Creates a FAT32 filesystem on the EFI System Partition so UEFI firmware can read bootloader files.",
       words: [
-        ["mkfs.fat", "Creates a FAT filesystem."],
-        ["-F 32", "Selects FAT32."],
-        ["/dev/nvme0n1p1", "Example EFI partition path."]
+        ["mkfs.fat", "Make FAT filesystem. The program that formats the target partition with a File Allocation Table filesystem design."],
+        [" ", "A space character used to separate the formatting utility from its option flag."],
+        ["-F 32", "The file allocation table type flag that forces the filesystem layout to be formatted as FAT32, which is required by the UEFI specification for bootloaders."],
+        [" ", "A space character used to separate the configuration flags from the target partition path."],
+        ["/dev/nvme0n1p1", "The target block device path for the partition being formatted. This must represent your designated EFI System Partition."]
       ],
       expected: "A short message from mkfs.fat, usually ending without errors.",
       fails: "If the partition is not the EFI partition, stop. Formatting the wrong partition erases its contents."
@@ -1520,8 +1556,9 @@ extendSection("Disk Setup", {
       command: "mkswap /dev/nvme0n1p3",
       purpose: "Initializes a partition for swap use. This is optional and only applies if the learner created a swap partition.",
       words: [
-        ["mkswap", "Sets up a Linux swap area."],
-        ["/dev/nvme0n1p3", "Example swap partition path."]
+        ["mkswap", "Make Swap. The utility that sets up a Linux swap signature and header details on a target block device, preparing it for virtual memory use."],
+        [" ", "A space character used to separate the utility name from its target partition path."],
+        ["/dev/nvme0n1p3", "The target partition block device path being initialized as swap space."]
       ],
       expected: "Output showing the swapspace version, size, and UUID.",
       fails: "Do not run this on the root or EFI partition. If there is no swap partition, skip this command."
@@ -1532,8 +1569,9 @@ extendSection("Disk Setup", {
       command: "swapon /dev/nvme0n1p3",
       purpose: "Activates the swap partition now so the installer can use it and genfstab can detect it.",
       words: [
-        ["swapon", "Enables a swap device."],
-        ["/dev/nvme0n1p3", "Example swap partition path."]
+        ["swapon", "Swap On. The command that enables a swap device, adding it to the active kernel virtual memory pool for paging."],
+        [" ", "A space character used to separate the command name from its target swap device path."],
+        ["/dev/nvme0n1p3", "The target swap partition block device path being enabled."]
       ],
       expected: "Usually no output. swapon --show should list the swap device.",
       fails: "If swapon says the device is invalid, mkswap may not have been run or the wrong partition was chosen."
@@ -1544,9 +1582,11 @@ extendSection("Disk Setup", {
       command: "mkdir -p /mnt/boot",
       purpose: "Creates the directory where the EFI System Partition will be mounted inside the new system.",
       words: [
-        ["mkdir", "Creates directories."],
-        ["-p", "Create parent directories as needed and do not fail if the directory already exists."],
-        ["/mnt/boot", "Boot directory inside the mounted target system."]
+        ["mkdir", "Make Directory. The standard utility used to create folders inside a filesystem tree."],
+        [" ", "A space character used to separate the utility name from its option flag."],
+        ["-p", "The parents flag. This ensures parent folders (like /mnt) are created if missing, and prevents throwing an error if the directory already exists."],
+        [" ", "A space character used to separate the options flag from the target directory path."],
+        ["/mnt/boot", "The absolute path of the target directory being created inside the mounted root environment."]
       ],
       expected: "Usually no output.",
       fails: "If /mnt does not exist or root is not mounted, mount the root partition first."
@@ -1557,9 +1597,11 @@ extendSection("Disk Setup", {
       command: "mount /dev/nvme0n1p1 /mnt/boot",
       purpose: "Attaches the EFI System Partition at /mnt/boot so bootloader files are installed where UEFI can find them.",
       words: [
-        ["mount", "Attach a filesystem to a directory."],
-        ["/dev/nvme0n1p1", "Example EFI partition path."],
-        ["/mnt/boot", "Mount point for boot files in this simple layout."]
+        ["mount", "A command that attaches the filesystem of a physical disk partition to a specific directory in the active Linux file tree."],
+        [" ", "A space character used to separate the mount command from the source device path."],
+        ["/dev/nvme0n1p1", "The source partition path containing the EFI System Partition to mount."],
+        [" ", "A space character used to separate the source device path from the destination directory path."],
+        ["/mnt/boot", "The target mount point directory inside the mounted root environment where bootloader files will be placed."]
       ],
       expected: "Usually no output. lsblk should show /mnt/boot for the EFI partition.",
       fails: "If the filesystem type is wrong, confirm the partition was formatted FAT32."
@@ -1639,8 +1681,9 @@ extendSection("Configure System", {
       command: "hwclock --systohc",
       purpose: "Writes the current system clock value to the hardware clock configuration.",
       words: [
-        ["hwclock", "Tool for reading and setting the hardware clock."],
-        ["--systohc", "Set the hardware clock from the current system clock."]
+        ["hwclock", "Hardware Clock. A utility used to query and configure the hardware real-time clock (RTC) on the motherboard."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["--systohc", "System to Hardware Clock. The option flag that reads the current system clock time (maintained by the Linux kernel) and writes it into the hardware real-time clock."]
       ],
       expected: "Usually no output.",
       fails: "If the time is wrong, fix time synchronization before running this."
@@ -1651,7 +1694,7 @@ extendSection("Configure System", {
       command: "locale-gen",
       purpose: "Generates locale data for uncommented entries in /etc/locale.gen.",
       words: [
-        ["locale-gen", "Builds locale files selected in /etc/locale.gen."]
+        ["locale-gen", "Locale Generation. A script that compiles raw locale definition files into binary locale files based on the uncommented entries in /etc/locale.gen."]
       ],
       expected: "Lines showing selected locales being generated.",
       fails: "If no locale is generated, reopen /etc/locale.gen and uncomment a UTF-8 locale such as en_US.UTF-8 UTF-8."
@@ -1662,10 +1705,13 @@ extendSection("Configure System", {
       command: "echo \"LANG=en_US.UTF-8\" > /etc/locale.conf",
       purpose: "Creates the locale configuration file for the installed system.",
       words: [
-        ["echo", "Prints text."],
-        ["\"LANG=en_US.UTF-8\"", "The language and character encoding setting."],
-        [">", "Writes output to a file, replacing existing content."],
-        ["/etc/locale.conf", "System locale configuration file."]
+        ["echo", "A built-in shell command that prints the specified text argument to standard output."],
+        [" ", "A space character used to separate the echo command from its text argument."],
+        ["\"LANG=en_US.UTF-8\"", "The locale environment variable definition. LANG sets the default system language, country formatting, and character encoding (UTF-8)."],
+        [" ", "A space character used to separate the text argument from the redirect operator."],
+        [">", "The standard shell overwrite redirection operator. This writes the command output to the target file, completely replacing any existing file contents."],
+        [" ", "A space character used to separate the redirect operator from the file path."],
+        ["/etc/locale.conf", "The destination locale configuration file path. The system reads this file during boot to configure environment language variables."]
       ],
       expected: "Usually no output. cat /etc/locale.conf should show LANG=en_US.UTF-8.",
       fails: "If the locale was not generated first, programs may warn that the locale is unavailable."
@@ -1676,8 +1722,9 @@ extendSection("Configure System", {
       command: "readlink /etc/localtime",
       purpose: "Confirms that /etc/localtime points to the selected time zone file.",
       words: [
-        ["readlink", "Prints the target of a symbolic link."],
-        ["/etc/localtime", "The system time zone symlink."]
+        ["readlink", "A utility that prints the absolute file path target pointed to by a symbolic link."],
+        [" ", "A space character used to separate the utility name from its path argument."],
+        ["/etc/localtime", "The system local timezone symlink path being inspected."]
       ],
       expected: "Output points into /usr/share/zoneinfo, such as /usr/share/zoneinfo/America/Phoenix.",
       fails: "If nothing prints or the target is wrong, rerun the ln -sf command with the correct time zone path."
@@ -1688,10 +1735,13 @@ extendSection("Configure System", {
       command: "grep -v '^#' /etc/locale.gen",
       purpose: "Shows uncommented locale entries so the learner can confirm a UTF-8 locale was selected before locale-gen.",
       words: [
-        ["grep", "Searches text."],
-        ["-v", "Invert the match, so matching lines are hidden."],
-        ["'^#'", "Pattern for lines that start with #, which are comments."],
-        ["/etc/locale.gen", "Locale generation list."]
+        ["grep", "Global Regular Expression Print. A command-line utility used to search files for lines matching a specified pattern."],
+        [" ", "A space character used to separate the command name from the options flag."],
+        ["-v", "The invert match option flag. This tells grep to display only the lines that do NOT match the search pattern."],
+        [" ", "A space character used to separate the options flag from the pattern argument."],
+        ["'^#'", "The regular expression search pattern. ^ matches the start of a line, and # matches the comment character. This filters out all commented lines."],
+        [" ", "A space character used to separate the pattern argument from the target file path."],
+        ["/etc/locale.gen", "The locale list file path being searched."]
       ],
       expected: "At least one uncommented UTF-8 locale appears, such as en_US.UTF-8 UTF-8.",
       fails: "If nothing useful appears, reopen /etc/locale.gen and uncomment the intended UTF-8 locale."
@@ -1702,8 +1752,9 @@ extendSection("Configure System", {
       command: "cat /etc/locale.conf",
       purpose: "Displays the installed system's default language and character encoding setting.",
       words: [
-        ["cat", "Prints file contents."],
-        ["/etc/locale.conf", "System locale configuration file."]
+        ["cat", "Concatenate. A utility that reads one or more files and prints their contents sequentially to standard output."],
+        [" ", "A space character used to separate the command name from the file path argument."],
+        ["/etc/locale.conf", "The locale configuration file path being inspected."]
       ],
       expected: "Output includes LANG=en_US.UTF-8 or the locale intentionally chosen for this system.",
       fails: "If the file is missing or has a locale that was not generated, create it again after locale-gen."
@@ -1714,10 +1765,13 @@ extendSection("Configure System", {
       command: "echo \"archbox\" > /etc/hostname",
       purpose: "Sets the computer's local network name. Replace archbox with the desired machine name.",
       words: [
-        ["echo", "Print text."],
-        ["\"archbox\"", "Example hostname."],
-        [">", "Write to a file."],
-        ["/etc/hostname", "File containing the static hostname."]
+        ["echo", "A built-in shell command that prints the specified text argument to standard output."],
+        [" ", "A space character used to separate the echo command from its text argument."],
+        ["\"archbox\"", "The chosen local network name for the computer. Replace this with your own hostname."],
+        [" ", "A space character used to separate the text argument from the redirect operator."],
+        [">", "The standard shell overwrite redirection operator."],
+        [" ", "A space character used to separate the redirect operator from the file path."],
+        ["/etc/hostname", "The system hostname file path. The kernel reads this file during boot to set the system's hostname."]
       ],
       expected: "Usually no output.",
       fails: "Use a simple hostname with letters, numbers, and hyphens. Avoid spaces."
@@ -1728,7 +1782,7 @@ extendSection("Configure System", {
       command: "passwd",
       purpose: "Sets the password for the root administrator account.",
       words: [
-        ["passwd", "Changes a user's password. With no username, it changes the current user's password."]
+        ["passwd", "Password. The utility used to update a user's password authentication tokens. When run with no username, it changes the password of the currently logged-in user (which inside chroot is root)."]
       ],
       expected: "Prompts for a new password twice. Typed password characters are not shown.",
       fails: "If the two entries do not match, run passwd again."
@@ -1739,11 +1793,15 @@ extendSection("Configure System", {
       command: "useradd -m -G wheel -s /bin/bash ethan",
       purpose: "Creates a normal user account, gives it a home directory, adds it to wheel, and sets bash as its shell. Replace ethan with the real username.",
       words: [
-        ["useradd", "Creates a user account."],
-        ["-m", "Create the user's home directory."],
-        ["-G wheel", "Add the user to the wheel supplementary group."],
-        ["-s /bin/bash", "Use bash as the login shell."],
-        ["ethan", "Example username."]
+        ["useradd", "User Add. The utility used to create new user accounts and configure default group memberships and login shells."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-m", "The create home directory option flag. This automatically creates a home folder for the user (e.g. /home/username) and populates it with default shell templates."],
+        [" ", "A space character used to separate options flags."],
+        ["-G wheel", "The supplementary groups option flag. This adds the new user account to the supplementary group named wheel (commonly used to grant sudo administration privileges)."],
+        [" ", "A space character used to separate options flags."],
+        ["-s /bin/bash", "The login shell option flag. This sets /bin/bash as the default interactive shell when this user logs in."],
+        [" ", "A space character used to separate the options flag from the username."],
+        ["ethan", "The username of the new account being created. Replace this example with your desired login username."]
       ],
       expected: "Usually no output if the user is created.",
       fails: "If the username already exists, choose another or inspect /etc/passwd."
@@ -1754,8 +1812,9 @@ extendSection("Configure System", {
       command: "passwd ethan",
       purpose: "Sets the password for the normal user account. Replace ethan with the real username.",
       words: [
-        ["passwd", "Password-changing command."],
-        ["ethan", "The user account whose password is being changed."]
+        ["passwd", "Password. The utility used to update a user's password authentication tokens."],
+        [" ", "A space character used to separate the utility name from the username."],
+        ["ethan", "The username of the account whose password is being set."]
       ],
       expected: "Prompts for the password twice. No password characters are displayed.",
       fails: "If the user does not exist, run useradd first or check the username spelling."
@@ -1766,8 +1825,9 @@ extendSection("Configure System", {
       command: "EDITOR=nano visudo",
       purpose: "Opens the sudoers file safely so the wheel group can be allowed to use sudo.",
       words: [
-        ["EDITOR=nano", "Temporarily tells visudo to use nano for this command."],
-        ["visudo", "Safely edits sudoers and validates syntax before saving."]
+        ["EDITOR=nano", "An inline shell environment variable assignment. This tells visudo to temporarily use the nano text editor instead of the default editor (vi)."],
+        [" ", "A space character used to separate the editor selection from the visudo utility name."],
+        ["visudo", "A safety wrapper utility that edits the sudoers configuration file. Sudoers controls which users and groups can run commands as administrator. visudo locks the file to prevent concurrent editing and parses its syntax before saving to prevent lockouts."]
       ],
       expected: "nano opens the sudoers file. The learner should uncomment the wheel group sudo line if following that policy.",
       fails: "Do not edit sudoers with a plain editor. A syntax error can break sudo access."
@@ -1791,9 +1851,11 @@ extendSection("First Boot", {
       command: "umount -R /mnt",
       purpose: "Recursively unmounts the target system before rebooting.",
       words: [
-        ["umount", "Detaches mounted filesystems."],
-        ["-R", "Unmount recursively under the target path."],
-        ["/mnt", "The mounted installed system."]
+        ["umount", "Unmount. The utility that detaches a mounted filesystem from the system directory tree."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-R", "Recursive. The option flag that recursively unmounts the target folder and all sub-mountpoints nested inside it (like /mnt/boot)."],
+        [" ", "A space character used to separate option flags from the mount directory path."],
+        ["/mnt", "The target root mount path to detach."]
       ],
       expected: "Usually no output.",
       fails: "If a target is busy, make sure you exited chroot and no process is using files under /mnt."
@@ -1804,7 +1866,7 @@ extendSection("First Boot", {
       command: "whoami",
       purpose: "After first boot, confirms whether the learner logged in as the normal user instead of root.",
       words: [
-        ["whoami", "Prints the current user name."]
+        ["whoami", "Who Am I. A utility that queries the active system user session and prints the associated username to the terminal."]
       ],
       expected: "The normal username, not root, for daily use.",
       fails: "If logged in as root, log out and log in as the normal user after confirming that account exists."
@@ -1815,9 +1877,11 @@ extendSection("First Boot", {
       command: "systemctl status NetworkManager",
       purpose: "Shows whether NetworkManager is loaded, enabled, and currently active.",
       words: [
-        ["systemctl", "Controls and inspects systemd units."],
-        ["status", "Show current service status."],
-        ["NetworkManager", "Network connection manager service."]
+        ["systemctl", "systemd Control. The primary command-line tool used to manage systemd units, services, and system states."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["status", "The command argument that queries and prints detailed diagnostic logs and running states for the specified service unit."],
+        [" ", "A space character used to separate the command argument from the target service name."],
+        ["NetworkManager", "The target systemd service unit name being checked."]
       ],
       expected: "The service should show active (running).",
       fails: "If inactive, run sudo systemctl enable --now NetworkManager. If missing, install networkmanager."
@@ -1828,8 +1892,9 @@ extendSection("First Boot", {
       command: "ip addr",
       purpose: "Displays assigned IP addresses so the learner can tell whether the machine actually joined a network.",
       words: [
-        ["ip", "Network inspection and configuration tool."],
-        ["addr", "Show protocol addresses assigned to interfaces."]
+        ["ip", "A powerful utility used to show and configure network interfaces, routing tables, and policy routing."],
+        [" ", "A space character used to separate the utility name from the object argument."],
+        ["addr", "Address. The object argument that queries and displays IP addresses (IPv4 and IPv6) assigned to all network interfaces on the machine."]
       ],
       expected: "An Ethernet or Wi-Fi interface should have an inet address if connected.",
       fails: "If there is no inet address except 127.0.0.1 on lo, the system is not connected to a network."
@@ -1871,8 +1936,9 @@ insertSectionAfter("First Boot", {
       command: "sudo -v",
       purpose: "Prompts for the user's password and refreshes sudo credentials without running a separate administrator command.",
       words: [
-        ["sudo", "Run with administrator privileges."],
-        ["-v", "Validate or refresh cached credentials."]
+        ["sudo", "Superuser Do. A privilege elevation utility that runs commands with root administrative privileges."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-v", "Validate. The option flag that updates the user's cached credentials, authenticating their sudo session for another period without running an actual command."]
       ],
       expected: "The command returns silently after the correct password.",
       fails: "If the user is not allowed to use sudo, revisit the wheel group and visudo steps before continuing."
@@ -1883,16 +1949,29 @@ insertSectionAfter("First Boot", {
       command: "sudo pacman -S xorg-server xfce4 lightdm lightdm-gtk-greeter firefox pipewire pipewire-pulse wireplumber pavucontrol",
       purpose: "Installs the graphical display server, Xfce desktop group, graphical login manager, browser, PipeWire audio stack, and a volume-control tool.",
       words: [
-        ["sudo", "Run pacman with administrator privileges."],
-        ["pacman", "Arch package manager."],
-        ["-S", "Install packages or package groups from repositories."],
-        ["xorg-server", "Xorg display server package."],
-        ["xfce4", "Official package group for core Xfce components."],
-        ["lightdm", "Display manager service."],
-        ["lightdm-gtk-greeter", "Graphical login screen for LightDM."],
-        ["firefox", "Web browser."],
-        ["pipewire pipewire-pulse wireplumber", "Modern desktop audio stack and PulseAudio compatibility."],
-        ["pavucontrol", "Graphical mixer for speakers, microphones, and app audio streams."]
+        ["sudo", "Superuser Do. Runs pacman with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+        [" ", "A space character used to separate the package manager from its options flag."],
+        ["-S", "Sync. The command flag that downloads and installs packages from synchronized remote repositories."],
+        [" ", "A space character used to separate option flags from the package list."],
+        ["xorg-server", "The package name of the Xorg display server daemon."],
+        [" ", "A space character used to separate packages in the list."],
+        ["xfce4", "The package group name containing core elements of the Xfce4 desktop environment."],
+        [" ", "A space character used to separate packages."],
+        ["lightdm", "The Light Display Manager service daemon package."],
+        [" ", "A space character used to separate packages."],
+        ["lightdm-gtk-greeter", "The GTK+ login screen template package for LightDM."],
+        [" ", "A space character used to separate packages."],
+        ["firefox", "The Firefox web browser package."],
+        [" ", "A space character used to separate packages."],
+        ["pipewire", "The core PipeWire media server package."],
+        [" ", "A space character used to separate packages."],
+        ["pipewire-pulse", "The PulseAudio emulation layer package for PipeWire."],
+        [" ", "A space character used to separate packages."],
+        ["wireplumber", "The WirePlumber session manager daemon package for PipeWire."],
+        [" ", "A space character used to separate packages."],
+        ["pavucontrol", "PulseAudio Volume Control. The graphical mixer interface package."]
       ],
       expected: "pacman shows packages from the Xfce group and asks for confirmation. Accept the default group selection unless there is a specific reason not to.",
       fails: "If downloads fail, fix network/DNS first. If package conflicts appear, read the prompt carefully before accepting replacements."
@@ -1903,10 +1982,13 @@ insertSectionAfter("First Boot", {
       command: "sudo systemctl enable lightdm",
       purpose: "Makes LightDM start automatically during boot so the user sees a graphical login screen.",
       words: [
-        ["sudo", "Run as administrator."],
-        ["systemctl", "Control systemd services."],
-        ["enable", "Configure a service to start automatically at boot."],
-        ["lightdm", "The display manager service unit."]
+        ["sudo", "Superuser Do. Runs systemctl with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["enable", "The command argument that registers the target service unit to start automatically at boot."],
+        [" ", "A space character used to separate the command argument from the target service name."],
+        ["lightdm", "The target display manager service unit being enabled."]
       ],
       expected: "systemctl reports that it created a service symlink.",
       fails: "If the unit is not found, confirm the lightdm package installed successfully."
@@ -1917,8 +1999,13 @@ insertSectionAfter("First Boot", {
       command: "sudo systemctl start lightdm",
       purpose: "Starts the graphical login screen without waiting for another reboot.",
       words: [
-        ["start", "Start the service now."],
-        ["lightdm", "Display manager service."]
+        ["sudo", "Superuser Do. Runs systemctl with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["start", "The command argument that starts the target service immediately in the active system session."],
+        [" ", "A space character used to separate the command argument from the target service name."],
+        ["lightdm", "The target display manager service unit being started."]
       ],
       expected: "The screen switches to a graphical login prompt.",
       fails: "If the screen goes black or returns to console, switch to another TTY with Ctrl+Alt+F2 and inspect sudo systemctl status lightdm."
@@ -1929,9 +2016,11 @@ insertSectionAfter("First Boot", {
       command: "systemctl status lightdm",
       purpose: "Shows whether the display manager is running or failed.",
       words: [
-        ["systemctl", "Inspect or control systemd units."],
-        ["status", "Show service state and recent logs."],
-        ["lightdm", "Graphical login manager service."]
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["status", "The command argument that queries active diagnostic state and log entries for the service unit."],
+        [" ", "A space character used to separate the command argument from the target service name."],
+        ["lightdm", "The target display manager service unit being inspected."]
       ],
       expected: "The service should show active (running) after the graphical login screen starts.",
       fails: "If failed, read the recent log lines in the status output. Missing greeter or Xorg errors usually point to incomplete package installation."
@@ -1942,8 +2031,9 @@ insertSectionAfter("First Boot", {
       command: "echo $XDG_CURRENT_DESKTOP",
       purpose: "Prints the current desktop environment name from inside a terminal opened after graphical login.",
       words: [
-        ["echo", "Print text or variable values."],
-        ["$XDG_CURRENT_DESKTOP", "Environment variable that often names the current desktop session."]
+        ["echo", "A built-in shell command that prints the specified text or variable value to standard output."],
+        [" ", "A space character used to separate the echo command from the environment variable."],
+        ["$XDG_CURRENT_DESKTOP", "The shell environment variable containing the name of the active desktop session environment (like XFCE)."]
       ],
       expected: "Output includes XFCE or a related Xfce desktop name.",
       fails: "If it is empty, the session may still work, but confirm Xfce components such as panel, settings, and terminal are present."
@@ -1954,7 +2044,7 @@ insertSectionAfter("First Boot", {
       command: "xfce4-terminal",
       purpose: "Starts the terminal emulator installed with the Xfce desktop group.",
       words: [
-        ["xfce4-terminal", "Terminal emulator primarily for Xfce."]
+        ["xfce4-terminal", "The executable launcher command for the default Xfce terminal emulator window."]
       ],
       expected: "A terminal window opens on the desktop.",
       fails: "If the command is not found, the Xfce group may not have installed completely."
@@ -1965,7 +2055,7 @@ insertSectionAfter("First Boot", {
       command: "pavucontrol",
       purpose: "Opens the graphical mixer used later to choose speaker and microphone devices.",
       words: [
-        ["pavucontrol", "Graphical audio mixer compatible with PipeWire through pipewire-pulse."]
+        ["pavucontrol", "PulseAudio Volume Control. The executable launcher command that opens the graphical volume and device mixer."]
       ],
       expected: "A volume-control window opens with playback, recording, output, and input tabs.",
       fails: "If it cannot connect to the audio server, continue to the Audio section and check PipeWire/WirePlumber services."
@@ -1976,8 +2066,9 @@ insertSectionAfter("First Boot", {
       command: "sudo reboot",
       purpose: "Restarts the machine to verify LightDM starts automatically after boot.",
       words: [
-        ["sudo", "Run as administrator."],
-        ["reboot", "Restart the machine."]
+        ["sudo", "Superuser Do. Runs the reboot utility with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["reboot", "A command-line link that requests systemd to restart the system."]
       ],
       expected: "After boot, a LightDM graphical login screen appears without manually running startx or systemctl start lightdm.",
       fails: "If the system returns to a text login, log in and run systemctl status lightdm."
@@ -2019,16 +2110,31 @@ insertSectionAfter("Graphical Desktop", {
       command: "sudo pacman -S sudo networkmanager firefox pipewire pipewire-pulse wireplumber pavucontrol nano xfce4-terminal thunar",
       purpose: "Installs the practical non-bootloader baseline without repeating the full desktop group. This is useful if some packages were skipped during install.",
       words: [
-        ["sudo", "Administrator command tool for normal users."],
-        ["networkmanager", "Network connection manager and user applications."],
-        ["firefox", "Web browser."],
-        ["pipewire", "Low-latency audio/video router and processor."],
-        ["pipewire-pulse", "PulseAudio replacement layer so common desktop apps can send audio to PipeWire."],
-        ["wireplumber", "Session/policy manager implementation for PipeWire."],
-        ["pavucontrol", "Graphical volume and input/output selector."],
-        ["nano", "Beginner-friendly terminal text editor."],
-        ["xfce4-terminal", "Graphical terminal emulator for Xfce."],
-        ["thunar", "Xfce file manager."]
+        ["sudo", "Superuser Do. Runs pacman with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+        [" ", "A space character used to separate the package manager from its options flag."],
+        ["-S", "Sync. The command flag that downloads and installs packages from synchronized remote repositories."],
+        [" ", "A space character used to separate option flags from the package list."],
+        ["sudo", "The package name of the sudo privilege elevation utility."],
+        [" ", "A space character used to separate packages in the list."],
+        ["networkmanager", "The package name of the NetworkManager connection service daemon."],
+        [" ", "A space character used to separate packages."],
+        ["firefox", "The package name of the Firefox web browser."],
+        [" ", "A space character used to separate packages."],
+        ["pipewire", "The package name of the PipeWire low-latency media router."],
+        [" ", "A space character used to separate packages."],
+        ["pipewire-pulse", "The package name of the PulseAudio emulation layer for PipeWire."],
+        [" ", "A space character used to separate packages."],
+        ["wireplumber", "The package name of the WirePlumber session manager."],
+        [" ", "A space character used to separate packages."],
+        ["pavucontrol", "PulseAudio Volume Control. The graphical mixer utility package."],
+        [" ", "A space character used to separate packages."],
+        ["nano", "The package name of the nano console text editor."],
+        [" ", "A space character used to separate packages."],
+        ["xfce4-terminal", "The package name of the graphical terminal emulator for Xfce."],
+        [" ", "A space character used to separate packages."],
+        ["thunar", "The package name of the Thunar graphical file manager."]
       ],
       expected: "pacman installs missing packages and skips or reinstalls packages already present depending on the prompt.",
       fails: "If pacman cannot download, fix NetworkManager, IP connectivity, and DNS before adding more packages."
@@ -2039,9 +2145,11 @@ insertSectionAfter("Graphical Desktop", {
       command: "pacman -Q sudo networkmanager firefox pipewire pipewire-pulse wireplumber pavucontrol nano xfce4-terminal thunar",
       purpose: "Queries the local package database to confirm the practical baseline is installed.",
       words: [
-        ["pacman", "Arch package manager."],
-        ["-Q", "Query installed packages."],
-        ["package names", "The installed packages being checked."]
+        ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-Q", "Query. The command flag that queries the local package database to check if specific packages are installed."],
+        [" ", "A space character used to separate the option flag from the package list."],
+        ["sudo networkmanager firefox pipewire pipewire-pulse wireplumber pavucontrol nano xfce4-terminal thunar", "The list of packages being queried: sudo, networkmanager, firefox, pipewire, pipewire-pulse, wireplumber, pavucontrol, nano, xfce4-terminal, and thunar."]
       ],
       expected: "Each package prints with an installed version.",
       fails: "If a package is not found, install it with sudo pacman -S package-name."
@@ -2052,11 +2160,17 @@ insertSectionAfter("Graphical Desktop", {
       command: "sudo systemctl enable --now NetworkManager lightdm",
       purpose: "Enables and starts the system services needed for networking and graphical login.",
       words: [
-        ["systemctl", "Controls systemd services."],
-        ["enable", "Start automatically at boot."],
-        ["--now", "Also start immediately."],
-        ["NetworkManager", "Network service."],
-        ["lightdm", "Graphical login service."]
+        ["sudo", "Superuser Do. Runs systemctl with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["enable", "The command argument that registers the target services to start automatically during boot."],
+        [" ", "A space character used to separate parameters."],
+        ["--now", "The immediate action option flag. This tells systemctl to start the services immediately in the current session, in addition to enabling them at boot."],
+        [" ", "A space character used to separate option flags from the services list."],
+        ["NetworkManager", "The target network manager daemon service unit."],
+        [" ", "A space character used to separate services."],
+        ["lightdm", "The target display manager daemon service unit."]
       ],
       expected: "systemctl creates enablement links and starts the services.",
       fails: "If LightDM immediately switches the screen or disrupts the console, that can be normal. If it fails, check systemctl status lightdm."
@@ -2067,9 +2181,11 @@ insertSectionAfter("Graphical Desktop", {
       command: "systemctl is-active NetworkManager lightdm",
       purpose: "Checks that networking and graphical login services are currently active.",
       words: [
-        ["systemctl", "Inspect systemd services."],
-        ["is-active", "Print whether services are active."],
-        ["NetworkManager lightdm", "The services being checked."]
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["is-active", "The query command argument that returns the runtime activation status (active or inactive) of specified services."],
+        [" ", "A space character used to separate the command argument from the target services list."],
+        ["NetworkManager lightdm", "The service units being checked: NetworkManager and lightdm."]
       ],
       expected: "active is printed for each service.",
       fails: "If NetworkManager is inactive, network setup will be unreliable. If LightDM is inactive, the graphical login will not appear automatically."
@@ -2080,10 +2196,19 @@ insertSectionAfter("Graphical Desktop", {
       command: "systemctl --user enable --now pipewire pipewire-pulse wireplumber",
       purpose: "Starts and enables PipeWire audio services for the logged-in user.",
       words: [
-        ["--user", "Operate on the current user's systemd services."],
-        ["pipewire", "Core media server."],
-        ["pipewire-pulse", "PulseAudio-compatible server for desktop apps."],
-        ["wireplumber", "PipeWire session manager."]
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the user session flag."],
+        ["--user", "The user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."],
+        [" ", "A space character used to separate options flags."],
+        ["enable", "The command argument that registers the services to start automatically during user session login."],
+        [" ", "A space character used to separate parameters."],
+        ["--now", "The immediate action option flag that starts the services immediately in the current user session."],
+        [" ", "A space character used to separate options flags from the services list."],
+        ["pipewire", "The target PipeWire user service unit."],
+        [" ", "A space character used to separate services."],
+        ["pipewire-pulse", "The target PipeWire-Pulse user service unit."],
+        [" ", "A space character used to separate services."],
+        ["wireplumber", "The target WirePlumber user service unit."]
       ],
       expected: "Usually no output on success.",
       fails: "Run this from the normal user session, not from root. If user systemd is unavailable, log out and back into the desktop."
@@ -2094,8 +2219,13 @@ insertSectionAfter("Graphical Desktop", {
       command: "systemctl --user is-active pipewire pipewire-pulse wireplumber",
       purpose: "Confirms the user audio services are running before speaker or microphone troubleshooting.",
       words: [
-        ["is-active", "Print active/inactive state."],
-        ["pipewire pipewire-pulse wireplumber", "The audio user services being checked."]
+        ["systemctl", "systemd Control. The systemd service management utility."],
+        [" ", "A space character used to separate the utility name from the user session flag."],
+        ["--user", "The user session flag that directs operations to the current user's systemd manager instance."],
+        [" ", "A space character used to separate options flags."],
+        ["is-active", "The query command argument that returns the runtime activation status of the user services."],
+        [" ", "A space character used to separate the command argument from the user services list."],
+        ["pipewire pipewire-pulse wireplumber", "The user services being checked: pipewire, pipewire-pulse, and wireplumber."]
       ],
       expected: "active is printed for each service.",
       fails: "If one is inactive, check systemctl --user status service-name and confirm the package is installed."
@@ -2106,9 +2236,11 @@ insertSectionAfter("Graphical Desktop", {
       command: "command -v firefox nano xfce4-terminal pavucontrol",
       purpose: "Confirms key user-facing commands are present in PATH.",
       words: [
-        ["command", "Shell built-in for checking or running commands."],
-        ["-v", "Show how the shell resolves a command name."],
-        ["firefox nano xfce4-terminal pavucontrol", "The commands being checked."]
+        ["command", "A built-in shell utility that checks command properties and executions."],
+        [" ", "A space character used to separate the command utility from its options flag."],
+        ["-v", "Verbose/Verify. The option flag that prints the absolute file path of executable commands found on the system PATH."],
+        [" ", "A space character used to separate the options flag from the commands list."],
+        ["firefox nano xfce4-terminal pavucontrol", "The command executable names being verified: firefox, nano, xfce4-terminal, and pavucontrol."]
       ],
       expected: "A path prints for each command, such as /usr/bin/firefox.",
       fails: "If a command does not print a path, install the package that provides it."
@@ -2119,9 +2251,19 @@ insertSectionAfter("Graphical Desktop", {
       command: "sudo pacman -S intel-ucode amd-ucode bluez bluez-utils",
       purpose: "Shows common hardware-specific packages, but this command should not be blindly copied. Choose only what matches the machine.",
       words: [
-        ["intel-ucode", "Intel CPU microcode package. Use on Intel systems."],
-        ["amd-ucode", "AMD CPU microcode package. Use on AMD systems."],
-        ["bluez bluez-utils", "Bluetooth service and command-line tools. Use when Bluetooth is needed."]
+        ["sudo", "Superuser Do. Runs pacman with administrative privileges."],
+        [" ", "A space character used to separate the elevation utility from its target command."],
+        ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+        [" ", "A space character used to separate the package manager from its options flag."],
+        ["-S", "Sync. The command flag that downloads and installs packages from synchronized remote repositories."],
+        [" ", "A space character used to separate the options flag from the packages list."],
+        ["intel-ucode", "Intel Microcode. The package containing microcode updates for Intel CPUs."],
+        [" ", "A space character used to separate packages in the list."],
+        ["amd-ucode", "AMD Microcode. The package containing microcode updates for AMD CPUs."],
+        [" ", "A space character used to separate packages."],
+        ["bluez", "The package name of the official Linux Bluetooth protocol stack daemon."],
+        [" ", "A space character used to separate packages."],
+        ["bluez-utils", "The package name containing Bluetooth command-line tools and utilities."]
       ],
       expected: "Only selected hardware-matching packages should be installed.",
       fails: "Do not install both CPU microcode packages as a teaching shortcut. Identify the CPU first, then choose the matching microcode package."
@@ -2318,8 +2460,9 @@ extendSection("Configure System", {
       command: "findmnt /boot",
       purpose: "Shows the filesystem mounted at /boot from inside the chroot. For this simple systemd-boot path, /boot should be the EFI System Partition.",
       words: [
-        ["findmnt", "Shows mounted filesystems in a clear tree/table form."],
-        ["/boot", "The mount point being checked."]
+        ["findmnt", "A command-line utility used to query and display the status of mounted filesystems in the active system."],
+        [" ", "A space character used to separate the utility name from its path argument."],
+        ["/boot", "The target directory path being queried to confirm that the EFI System Partition is mounted at /boot inside the chroot."]
       ],
       expected: "A row showing /boot mounted from the EFI partition, usually with a vfat/FAT filesystem.",
       fails: "If /boot is not mounted, exit chroot, mount the EFI partition at /mnt/boot, re-enter chroot, and check again."
@@ -2330,11 +2473,13 @@ extendSection("Configure System", {
       command: "ls -lh /boot/vmlinuz-linux /boot/initramfs-linux.img",
       purpose: "Verifies that the kernel image and initramfs image are present where the boot entry will point.",
       words: [
-        ["ls", "Lists file information."],
-        ["-l", "Long format with permissions, owner, size, and date."],
-        ["-h", "Human-readable sizes."],
-        ["/boot/vmlinuz-linux", "Default Arch Linux kernel image path for the linux package in this simple layout."],
-        ["/boot/initramfs-linux.img", "Default generated initramfs image path."]
+        ["ls", "List. A utility that lists directory contents, file permissions, owners, sizes, and modification dates."],
+        [" ", "A space character used to separate the command name from its options flag."],
+        ["-lh", "The long format and human-readable option flags. -l shows detailed attributes and sizes, while -h displays sizes in convenient units (like K, M, G)."],
+        [" ", "A space character used to separate options flags from the file path."],
+        ["/boot/vmlinuz-linux", "The absolute file path of the compressed Linux kernel image on the boot partition."],
+        [" ", "A space character used to separate files."],
+        ["/boot/initramfs-linux.img", "The absolute file path of the initial RAM filesystem image (initramfs) on the boot partition."]
       ],
       expected: "Two files are listed with nonzero sizes.",
       fails: "If files are missing, confirm the linux package was installed by pacstrap and that /boot was mounted correctly before kernel installation."
@@ -2345,10 +2490,13 @@ extendSection("Configure System", {
       command: "blkid -s UUID -o value /dev/nvme0n1p2",
       purpose: "Prints only the UUID for the Linux root partition. Replace the device path with the real root partition.",
       words: [
-        ["blkid", "Prints block device identifiers and filesystem metadata."],
-        ["-s UUID", "Select only the UUID field."],
-        ["-o value", "Print only the value, without the UUID= label."],
-        ["/dev/nvme0n1p2", "Example Linux root partition path."]
+        ["blkid", "Block Device Attribute Utility. A command-line tool that scans block devices to determine filesystem types, labels, and UUID identifiers."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-s UUID", "The select attribute option flag. This tells blkid to restrict its output to only show the UUID field."],
+        [" ", "A space character used to separate options flags."],
+        ["-o value", "The output format option flag. This tells blkid to print only the raw attribute value, excluding the variable label (e.g. printing 1234-abcd instead of UUID=\"1234-abcd\")."],
+        [" ", "A space character used to separate the option flag from the target block device path."],
+        ["/dev/nvme0n1p2", "The target partition device path whose UUID is being queried. Replace this example with your real root partition device name."]
       ],
       expected: "A UUID string such as 12345678-90ab-cdef-1234-567890abcdef.",
       fails: "If nothing prints, the partition may not have a filesystem or the wrong partition path was used."
@@ -2359,9 +2507,11 @@ extendSection("Configure System", {
       command: "mkdir -p /boot/loader/entries",
       purpose: "Creates the directory where systemd-boot Type 1 boot entry files are stored.",
       words: [
-        ["mkdir", "Creates directories."],
-        ["-p", "Also create parent directories and do not fail if the directory already exists."],
-        ["/boot/loader/entries", "Directory where entry files such as arch.conf live for this layout."]
+        ["mkdir", "Make Directory. A utility used to create folders inside a filesystem tree."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-p", "The parent folder option flag. This automatically creates any missing parent directories along the path, and prevents throwing an error if the destination directory already exists."],
+        [" ", "A space character used to separate the options flag from the target directory path."],
+        ["/boot/loader/entries", "The absolute path of the target directory being created on the boot partition."]
       ],
       expected: "Usually no output.",
       fails: "If /boot is not writable, confirm the EFI partition is mounted at /boot. bootctl install can also create /boot/loader, but creating it here keeps the file-editing order clear."
@@ -2372,8 +2522,9 @@ extendSection("Configure System", {
       command: "nano /boot/loader/loader.conf",
       purpose: "Opens the main systemd-boot configuration file. This controls the default entry and menu timeout.",
       words: [
-        ["nano", "Terminal text editor."],
-        ["/boot/loader/loader.conf", "Main systemd-boot configuration file on the EFI System Partition."]
+        ["nano", "A simple, user-friendly terminal-based text editor."],
+        [" ", "A space character used to separate the text editor name from its file path argument."],
+        ["/boot/loader/loader.conf", "The systemd-boot global configuration file path on the EFI System Partition."]
       ],
       expected: "nano opens a file. Add the loader.conf content shown in the next card, save, and exit.",
       fails: "If nano says the path does not exist, create /boot/loader first or confirm systemd-boot was installed."
@@ -2384,10 +2535,13 @@ extendSection("Configure System", {
       command: "default arch.conf\ntimeout 5\nconsole-mode keep\neditor no",
       purpose: "Sets the default boot entry, shows the boot menu for 5 seconds, keeps firmware console mode, and disables editing boot options from the boot menu.",
       words: [
-        ["default arch.conf", "Boot the entry file named arch.conf by default."],
-        ["timeout 5", "Show the menu for 5 seconds before booting the default entry."],
-        ["console-mode keep", "Keep the display mode selected by firmware."],
-        ["editor no", "Disable editing the kernel command line from the boot menu, useful on shared machines."]
+        ["default arch.conf", "Configures systemd-boot to automatically boot the entry file named arch.conf if no other choice is made."],
+        ["\n", "A newline character used to separate configuration lines."],
+        ["timeout 5", "Specifies that the boot menu should be displayed for 5 seconds before booting the default entry."],
+        ["\n", "A newline character."],
+        ["console-mode keep", "Instructs systemd-boot to retain the resolution display mode chosen by the UEFI firmware instead of resetting it."],
+        ["\n", "A newline character."],
+        ["editor no", "A security option that disables the interactive kernel parameter editor in the bootloader menu, preventing unauthorized command-line modifications."]
       ],
       expected: "After saving, /boot/loader/loader.conf contains these four lines.",
       fails: "If the machine needs emergency boot-line edits during troubleshooting, editor yes can be used later, but editor no is safer for unattended access."
@@ -2398,8 +2552,9 @@ extendSection("Configure System", {
       command: "nano /boot/loader/entries/arch.conf",
       purpose: "Creates the boot entry that systemd-boot will show as Arch Linux.",
       words: [
-        ["nano", "Terminal text editor."],
-        ["/boot/loader/entries/arch.conf", "The entry file referenced by default arch.conf in loader.conf."]
+        ["nano", "A simple, user-friendly terminal-based text editor."],
+        [" ", "A space character used to separate the text editor name from its file path argument."],
+        ["/boot/loader/entries/arch.conf", "The specific boot entry configuration file path for your Arch Linux installation."]
       ],
       expected: "nano opens a new or existing entry file. Add the entry content shown in the next card.",
       fails: "If the directory does not exist, run mkdir -p /boot/loader/entries first."
@@ -2410,12 +2565,17 @@ extendSection("Configure System", {
       command: "title Arch Linux\nlinux /vmlinuz-linux\ninitrd /initramfs-linux.img\noptions root=UUID=PASTE-ROOT-UUID-HERE rw",
       purpose: "Defines a boot entry for the normal Arch kernel. Replace PASTE-ROOT-UUID-HERE with the UUID from the root partition.",
       words: [
-        ["title Arch Linux", "Name shown in the boot menu."],
-        ["linux /vmlinuz-linux", "Kernel image path relative to the EFI System Partition."],
-        ["initrd /initramfs-linux.img", "Initramfs image path relative to the EFI System Partition."],
-        ["options", "Kernel command line starts after this word."],
-        ["root=UUID=PASTE-ROOT-UUID-HERE", "Tells Linux which filesystem to mount as /."],
-        ["rw", "Mount the root filesystem read-write."]
+        ["title Arch Linux", "Sets the human-readable label displayed in the systemd-boot menu."],
+        ["\n", "A newline character."],
+        ["linux /vmlinuz-linux", "Specifies the path to the Linux kernel image relative to the root of the EFI System Partition."],
+        ["\n", "A newline character."],
+        ["initrd /initramfs-linux.img", "Specifies the path to the initial RAM disk image relative to the root of the EFI System Partition."],
+        ["\n", "A newline character."],
+        ["options", "The configuration prefix key used to pass command-line options directly to the Linux kernel during boot."],
+        [" ", "A space character."],
+        ["root=UUID=PASTE-ROOT-UUID-HERE", "Tells the kernel which physical storage device contains your root filesystem, identifying it by its unique UUID."],
+        [" ", "A space character."],
+        ["rw", "Mounts the root filesystem in read-write mode at startup so system log and configuration files can be written immediately."]
       ],
       expected: "The file exists at /boot/loader/entries/arch.conf and contains the real root UUID.",
       fails: "If the UUID belongs to the EFI or swap partition, boot will fail. Recheck with blkid and lsblk -f."
@@ -2426,10 +2586,13 @@ extendSection("Configure System", {
       command: "options root=UUID=PASTE-ROOT-UUID-HERE rw console=ttyS0,115200",
       purpose: "Shows the options line variant used for headless VM testing when boot messages and login need to appear on the first serial port.",
       words: [
-        ["options", "Kernel command line starts after this word."],
-        ["root=UUID=PASTE-ROOT-UUID-HERE", "The real root filesystem UUID."],
-        ["rw", "Mount root read-write."],
-        ["console=ttyS0,115200", "Send kernel console output to the ttyS0 serial port at 115200 baud."]
+        ["options", "The configuration prefix key used to pass command-line options to the Linux kernel."],
+        [" ", "A space character."],
+        ["root=UUID=PASTE-ROOT-UUID-HERE", "Identifies the root filesystem partition by its UUID."],
+        [" ", "A space character."],
+        ["rw", "Mounts the root filesystem in read-write mode at startup."],
+        [" ", "A space character."],
+        ["console=ttyS0,115200", "Instructs the kernel to redirect console output and login prompts to the first serial port (ttyS0) at 115,200 baud, which is commonly used for headless virtual machines."]
       ],
       expected: "Use this variant only for a VM or machine where a serial console is intentionally needed.",
       fails: "For normal graphical or laptop installs, keep the simpler options line unless you know why serial output is required."
@@ -2440,8 +2603,9 @@ extendSection("Configure System", {
       command: "initrd /intel-ucode.img",
       purpose: "Shows the extra initrd line used when the intel-ucode package is installed. It must appear before initrd /initramfs-linux.img.",
       words: [
-        ["initrd", "Adds an early boot image to load before the root filesystem is available."],
-        ["/intel-ucode.img", "Intel CPU microcode image path on /boot."]
+        ["initrd", "Initial RAM Disk. A configuration key that loads an early-boot RAM image."],
+        [" ", "A space character."],
+        ["/intel-ucode.img", "The CPU microcode patch file path for Intel processors. This must be loaded before the primary kernel initramfs image."]
       ],
       expected: "Only use this line on Intel systems after installing intel-ucode.",
       fails: "Do not add this line if the file does not exist in /boot."
@@ -2452,8 +2616,9 @@ extendSection("Configure System", {
       command: "initrd /amd-ucode.img",
       purpose: "Shows the extra initrd line used when the amd-ucode package is installed. It must appear before initrd /initramfs-linux.img.",
       words: [
-        ["initrd", "Adds an early boot image to load."],
-        ["/amd-ucode.img", "AMD CPU microcode image path on /boot."]
+        ["initrd", "Initial RAM Disk. A configuration key that loads an early-boot RAM image."],
+        [" ", "A space character."],
+        ["/amd-ucode.img", "The CPU microcode patch file path for AMD processors. This must be loaded before the primary kernel initramfs image."]
       ],
       expected: "Only use this line on AMD systems after installing amd-ucode.",
       fails: "Do not add this line if the file does not exist in /boot."
@@ -2464,8 +2629,9 @@ extendSection("Configure System", {
       command: "bootctl install",
       purpose: "Installs systemd-boot into the EFI System Partition and adds it to the firmware boot loader list.",
       words: [
-        ["bootctl", "Tool for checking EFI boot status and managing systemd-boot."],
-        ["install", "Install systemd-boot to the EFI System Partition."]
+        ["bootctl", "Boot Control. The command-line utility used to manage the systemd-boot loader and check UEFI status."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["install", "The command argument that copies the systemd-boot EFI binary files to your EFI System Partition and registers systemd-boot with the UEFI boot manager."]
       ],
       expected: "Output indicates systemd-boot files were installed. It may also create normal and fallback EFI loader paths.",
       fails: "If bootctl cannot find an EFI System Partition, confirm UEFI mode and that the ESP is mounted at /boot. If EFI variable modification is skipped from a chroot, continue to bootctl list/status and the real boot test instead of assuming failure."
@@ -2476,8 +2642,9 @@ extendSection("Configure System", {
       command: "bootctl list",
       purpose: "Shows boot loader entries that systemd-boot can see. This validates that arch.conf is readable.",
       words: [
-        ["bootctl", "EFI boot manager control tool."],
-        ["list", "List available boot loader entries."]
+        ["bootctl", "Boot Control. The utility used to manage systemd-boot."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["list", "The command argument that instructs bootctl to read all active loader configuration files and print the available boot options."]
       ],
       expected: "An entry for Arch Linux or arch.conf appears.",
       fails: "If no Arch entry appears, check /boot/loader/entries/arch.conf path and file contents."
@@ -2488,8 +2655,9 @@ extendSection("Configure System", {
       command: "bootctl status",
       purpose: "Displays firmware, ESP, boot loader, and default-entry information before reboot.",
       words: [
-        ["bootctl", "EFI boot manager control tool."],
-        ["status", "Show EFI firmware and boot loader status."]
+        ["bootctl", "Boot Control. The utility used to manage systemd-boot."],
+        [" ", "A space character used to separate the utility name from the command argument."],
+        ["status", "The command argument that queries and prints information about UEFI firmware capability, active bootloader files, and target boot entries."]
       ],
       expected: "Status output identifies the EFI System Partition and systemd-boot installation.",
       fails: "If firmware variables cannot be accessed, confirm the ISO was booted in UEFI mode."
@@ -2524,10 +2692,13 @@ extendSection("Configure System", {
       command: "pacman -S grub efibootmgr",
       purpose: "Installs GRUB and efibootmgr inside the new Arch system. efibootmgr lets GRUB's installer create or update UEFI firmware boot entries.",
       words: [
-        ["pacman", "Arch package manager."],
-        ["-S", "Install packages from synchronized repositories."],
-        ["grub", "The GNU GRUB bootloader package."],
-        ["efibootmgr", "Tool for modifying UEFI boot manager entries from Linux."]
+        ["pacman", "Package Manager. The standard package management utility for Arch Linux that handles package synchronization, installation, removal, and updates."],
+        [" ", "A space character used to separate the utility name from its command flag."],
+        ["-S", "Sync. The command flag that instructs pacman to download and install packages from the synchronized remote software repositories."],
+        [" ", "A space character used to separate the command flag from the package list."],
+        ["grub", "The package name of the GNU GRUB bootloader."],
+        [" ", "A space character used to separate packages in the list."],
+        ["efibootmgr", "The package name of the Linux user-space tool used to modify the Intel Extensible Firmware Interface (EFI) Boot Manager configuration."]
       ],
       expected: "pacman asks for confirmation and installs GRUB plus efibootmgr.",
       fails: "If package downloads fail, return to network and DNS validation. If efibootmgr is omitted, GRUB UEFI installation may not be able to register firmware entries."
@@ -2538,8 +2709,9 @@ extendSection("Configure System", {
       command: "ls /sys/firmware/efi/efivars",
       purpose: "Verifies that the chrooted system can see UEFI firmware variables. GRUB UEFI registration depends on this unless using fallback/removable installation modes.",
       words: [
-        ["ls", "Lists files in a directory."],
-        ["/sys/firmware/efi/efivars", "Kernel interface exposing UEFI firmware variables."]
+        ["ls", "List. A utility that lists directory files, folders, and attributes."],
+        [" ", "A space character used to separate the utility name from the directory path argument."],
+        ["/sys/firmware/efi/efivars", "The absolute kernel directory path exposing UEFI motherboard firmware configurations. If this path is empty or missing, the kernel cannot communicate UEFI parameters to efibootmgr."]
       ],
       expected: "Many UEFI variable files are listed.",
       fails: "If the path is missing, the ISO may have been booted in legacy BIOS mode. Do not use the UEFI GRUB command path until boot mode is understood."
@@ -2550,8 +2722,9 @@ extendSection("Configure System", {
       command: "findmnt /boot",
       purpose: "Checks that /boot is backed by the EFI System Partition for this simple GRUB UEFI layout.",
       words: [
-        ["findmnt", "Shows mounted filesystems."],
-        ["/boot", "Mount point used as --efi-directory in this guide."]
+        ["findmnt", "A command-line utility used to query and display the status of mounted filesystems in the active system."],
+        [" ", "A space character used to separate the utility name from its path argument."],
+        ["/boot", "The target directory path being checked to confirm that the EFI System Partition is mounted at /boot."]
       ],
       expected: "/boot is mounted from the EFI partition, usually with filesystem type vfat.",
       fails: "If /boot is not the EFI partition, either mount the ESP at /boot for this path or adjust --efi-directory to the real ESP mount point."
@@ -2562,10 +2735,13 @@ extendSection("Configure System", {
       command: "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB",
       purpose: "Installs GRUB EFI files to the EFI System Partition and creates a UEFI firmware boot entry named GRUB.",
       words: [
-        ["grub-install", "Installs GRUB bootloader files for a chosen platform."],
-        ["--target=x86_64-efi", "Selects the 64-bit x86 UEFI GRUB platform."],
-        ["--efi-directory=/boot", "Tells GRUB where the EFI System Partition is mounted."],
-        ["--bootloader-id=GRUB", "Names the firmware boot entry and directory under EFI."]
+        ["grub-install", "The GRUB installer utility that copies GRUB module files and compiles the target boot image onto your system."],
+        [" ", "A space character used to separate the utility name from its option flags."],
+        ["--target=x86_64-efi", "The target architecture flag. This specifies that GRUB should be compiled for 64-bit UEFI systems."],
+        [" ", "A space character used to separate option flags."],
+        ["--efi-directory=/boot", "The EFI directory flag. This tells grub-install where the EFI System Partition is currently mounted in your file tree."],
+        [" ", "A space character used to separate option flags."],
+        ["--bootloader-id=GRUB", "The bootloader identifier flag. This sets the directory name on the EFI partition and the name registered in the UEFI boot loader menu."]
       ],
       expected: "Output should end with a successful installation message.",
       fails: "If it cannot find the EFI directory, recheck /boot. If EFI variables fail, confirm UEFI mode and efibootmgr availability."
@@ -2576,9 +2752,11 @@ extendSection("Configure System", {
       command: "grub-mkconfig -o /boot/grub/grub.cfg",
       purpose: "Scans the installed system and writes GRUB's main configuration file.",
       words: [
-        ["grub-mkconfig", "Generates a GRUB configuration file."],
-        ["-o", "Write output to a file instead of printing to the terminal."],
-        ["/boot/grub/grub.cfg", "GRUB's generated configuration file for this install."]
+        ["grub-mkconfig", "The GRUB configuration generator utility. It queries installed kernels, initramfs images, and dual-boot configurations, then compiles them into GRUB menu instructions."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-o", "The output option flag. This writes the generated configuration text output directly into a file path rather than printing it to the terminal."],
+        [" ", "A space character used to separate the option flag from the destination file path."],
+        ["/boot/grub/grub.cfg", "The destination path where GRUB configuration instructions are written."]
       ],
       expected: "Output shows detected Linux images and writes /boot/grub/grub.cfg.",
       fails: "If no Linux image is found, confirm the linux package is installed and /boot contains the kernel/initramfs files."
@@ -2589,10 +2767,13 @@ extendSection("Configure System", {
       command: "grep -n \"menuentry\" /boot/grub/grub.cfg",
       purpose: "Shows the GRUB menu entries generated for the installed system without reading the entire config file.",
       words: [
-        ["grep", "Searches text for matching lines."],
-        ["-n", "Show line numbers."],
-        ["\"menuentry\"", "The GRUB config keyword that starts a boot menu entry."],
-        ["/boot/grub/grub.cfg", "Generated GRUB configuration file."]
+        ["grep", "Global Regular Expression Print. A command-line utility used to search files for matching patterns."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-n", "The show line numbers option flag. This prefixes each matching line in the output with its corresponding line number in the source file."],
+        [" ", "A space character used to separate the option flag from the search term."],
+        ["\"menuentry\"", "The search term pattern. In GRUB configuration files, menuentry starts the block definition for a boot menu option."],
+        [" ", "A space character used to separate the search term from the target file path."],
+        ["/boot/grub/grub.cfg", "The GRUB configuration file path being searched."]
       ],
       expected: "At least one Arch Linux menuentry appears.",
       fails: "If no menuentry appears, regenerate config and verify kernel files exist."
@@ -2603,7 +2784,7 @@ extendSection("Configure System", {
       command: "efibootmgr",
       purpose: "Lists firmware boot entries so the learner can verify a GRUB entry was registered.",
       words: [
-        ["efibootmgr", "Lists and modifies UEFI boot manager entries."]
+        ["efibootmgr", "EFI Boot Manager. The utility used to interact with the UEFI boot configuration variables on the motherboard, listing and ordering boot entries."]
       ],
       expected: "A Boot#### entry named GRUB appears somewhere in the output.",
       fails: "If no GRUB entry appears but grub-install succeeded with --removable or fallback mode, firmware may still boot fallback files. Otherwise recheck UEFI variable access."
@@ -2643,8 +2824,9 @@ extendSection("Configure System", {
       command: "ls /sys/firmware/efi/efivars",
       purpose: "Checks whether UEFI variables are available. For a legacy BIOS branch, this path is expected to be missing.",
       words: [
-        ["ls", "Lists files in a directory."],
-        ["/sys/firmware/efi/efivars", "UEFI variable path that exists when booted through UEFI."]
+        ["ls", "List. A utility that lists directory files, folders, and attributes."],
+        [" ", "A space character used to separate the utility name from the directory path argument."],
+        ["/sys/firmware/efi/efivars", "The absolute kernel directory path exposing UEFI motherboard firmware configurations. If the system is booted in legacy BIOS mode, this path does not exist."]
       ],
       expected: "For legacy BIOS mode, this should report that the path does not exist.",
       fails: "If many files are listed, the machine booted in UEFI mode. Use the systemd-boot UEFI path or GRUB UEFI path instead."
@@ -2655,9 +2837,11 @@ extendSection("Configure System", {
       command: "pacman -S grub",
       purpose: "Installs the GRUB package inside the new Arch system. efibootmgr is not required for the legacy BIOS path.",
       words: [
-        ["pacman", "Arch package manager."],
-        ["-S", "Install package from repositories."],
-        ["grub", "GNU GRUB bootloader package."]
+        ["pacman", "Package Manager. The standard package management utility for Arch Linux."],
+        [" ", "A space character used to separate the utility name from its command flag."],
+        ["-S", "Sync. The command flag that instructs pacman to download and install packages from the remote repositories."],
+        [" ", "A space character used to separate the command flag from the package name."],
+        ["grub", "The package name of the GNU GRUB bootloader."]
       ],
       expected: "pacman installs GRUB successfully.",
       fails: "If downloads fail, return to network and DNS validation before continuing."
@@ -2668,9 +2852,11 @@ extendSection("Configure System", {
       command: "lsblk -o NAME,SIZE,TYPE,MODEL,MOUNTPOINTS",
       purpose: "Shows the disk and partition layout so the learner can identify the whole target disk, not a partition.",
       words: [
-        ["lsblk", "Lists block devices."],
-        ["-o", "Chooses output columns."],
-        ["TYPE", "disk means whole disk; part means partition."]
+        ["lsblk", "List block devices. A console utility that queries the Linux kernel to list all active storage drives and partition maps."],
+        [" ", "A space character used to separate the command name from its options flag."],
+        ["-o", "The output columns option flag that tells lsblk to print only the specific columns listed next."],
+        [" ", "A space character used to separate the options flag from the column argument list."],
+        ["NAME,SIZE,TYPE,MODEL,MOUNTPOINTS", "A comma-separated list of output columns. NAME is the partition device name, SIZE is the storage capacity, TYPE designates drive vs partition, MODEL is the manufacturer hardware model name, and MOUNTPOINTS is where the filesystem is attached."]
       ],
       expected: "The target install drive appears as TYPE disk, with partitions underneath it as TYPE part.",
       fails: "If you cannot identify the whole disk confidently, stop. Installing GRUB to the wrong disk can make the wrong drive boot or fail to boot."
@@ -2681,10 +2867,11 @@ extendSection("Configure System", {
       command: "fdisk -l /dev/sda",
       purpose: "Displays partition table information for the example disk. Replace /dev/sda with the real whole disk.",
       words: [
-        ["fdisk", "Partition table inspection and editing tool."],
-        ["-l", "List partition information instead of editing it."],
-        ["/dev/sda", "Example whole disk path."],
-        ["Disklabel type", "The output field that commonly shows gpt or dos/MBR-style partitioning."]
+        ["fdisk", "A standard partition table manipulator utility that interacts with partition structures on block devices."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-l", "The list options flag that tells fdisk to print partition layouts and exit."],
+        [" ", "A space character used to separate options flags from the target block device path."],
+        ["/dev/sda", "The target whole-disk block device path being queried. Replace this example with your real target disk path."]
       ],
       expected: "Output includes a Disklabel type line such as gpt or dos.",
       fails: "If the command says the disk is invalid or missing, use the correct whole disk path from lsblk."
@@ -2695,9 +2882,11 @@ extendSection("Configure System", {
       command: "grub-install --target=i386-pc /dev/sda",
       purpose: "Installs GRUB for legacy BIOS booting to the whole disk. Replace /dev/sda with the real target disk.",
       words: [
-        ["grub-install", "Installs GRUB bootloader files for a chosen platform."],
-        ["--target=i386-pc", "Selects the traditional PC BIOS GRUB platform. The name is i386-pc even on many 64-bit x86 machines because it describes the BIOS boot platform."],
-        ["/dev/sda", "Example whole disk target. This must not include a partition number."]
+        ["grub-install", "The GRUB installer utility that copies GRUB module files and compiles the target boot image onto your system."],
+        [" ", "A space character used to separate the utility name from its option flags."],
+        ["--target=i386-pc", "The target architecture flag. This specifies that GRUB should be compiled for traditional PC legacy BIOS boot mode (i386-pc)."],
+        [" ", "A space character used to separate option flags."],
+        ["/dev/sda", "The target whole-disk block device path where GRUB's stage 1 boot code will be written. This must be a whole disk (such as /dev/sda or /dev/nvme0n1), never a partition (like /dev/sda1)."]
       ],
       expected: "Output should end with a successful installation message.",
       fails: "If GRUB complains about embedding on a GPT disk, confirm that a BIOS boot partition exists. If you accidentally used /dev/sda1, rerun with the whole disk after confirming the target."
@@ -2708,9 +2897,11 @@ extendSection("Configure System", {
       command: "grub-mkconfig -o /boot/grub/grub.cfg",
       purpose: "Generates the GRUB menu configuration used at boot. This command is shared by GRUB UEFI and GRUB BIOS paths.",
       words: [
-        ["grub-mkconfig", "Generates GRUB configuration."],
-        ["-o", "Write output to a specific file."],
-        ["/boot/grub/grub.cfg", "Generated GRUB config file."]
+        ["grub-mkconfig", "The GRUB configuration generator utility. It queries installed kernels and compiles them into GRUB boot options."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-o", "The output option flag that writes configuration text output directly into a file path."],
+        [" ", "A space character used to separate the option flag from the destination file path."],
+        ["/boot/grub/grub.cfg", "The destination path where GRUB configuration instructions are written."]
       ],
       expected: "Output mentions found Linux image and initramfs image, then writes grub.cfg.",
       fails: "If no Linux image is found, confirm the linux package is installed and /boot is the correct boot directory."
@@ -2721,10 +2912,13 @@ extendSection("Configure System", {
       command: "grep -n \"menuentry\" /boot/grub/grub.cfg",
       purpose: "Confirms that the generated GRUB configuration contains boot menu entries.",
       words: [
-        ["grep", "Search text."],
-        ["-n", "Show line numbers."],
-        ["\"menuentry\"", "GRUB keyword for a boot menu entry."],
-        ["/boot/grub/grub.cfg", "Generated GRUB configuration file."]
+        ["grep", "Global Regular Expression Print. A command-line utility used to search files for matching patterns."],
+        [" ", "A space character used to separate the utility name from its options flag."],
+        ["-n", "The show line numbers option flag. This prefixes each matching line in the output with its corresponding line number in the source file."],
+        [" ", "A space character used to separate the option flag from the search term."],
+        ["\"menuentry\"", "The search term pattern. In GRUB configuration files, menuentry starts the block definition for a boot menu option."],
+        [" ", "A space character used to separate the search term from the target file path."],
+        ["/boot/grub/grub.cfg", "The GRUB configuration file path being searched."]
       ],
       expected: "At least one Arch Linux menuentry appears.",
       fails: "If no entries appear, regenerate the config and check kernel/initramfs files."
@@ -2823,6 +3017,19 @@ extendSection("Audio", {
     }
   ],
   commands: [
+    {
+      label: "Confirm audio packages are installed",
+      sources: sourceRefs("pipewire", "wireplumber", "pipewirePackage", "wireplumberPackage", "pacman"),
+      command: "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol",
+      purpose: "Verifies that the required PipeWire audio server, PulseAudio compatibility layer, WirePlumber session manager, and pavucontrol volume control are installed.",
+      words: [
+        ["pacman", "Arch package manager."],
+        ["-Q", "Query installed packages."],
+        ["pipewire pipewire-pulse wireplumber pavucontrol", "The packages expected for this simple PipeWire desktop audio path."]
+      ],
+      expected: "Prints the package name and version number for each installed package.",
+      fails: "If a package is missing, install it with sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol."
+    },
     {
       label: "Check PipeWire service status",
       sources: sourceRefs("pipewire", "systemctlMan"),
@@ -8183,5 +8390,188 @@ wizardUnderstand.addEventListener("click", () => {
 
 search.addEventListener("input", render);
 closeDialog.addEventListener("click", () => dialog.close());
+
+const profileHelpDetails = {
+  guideDevice: {
+    title: "What are you using to read this guide?",
+    body: `
+      <p><strong>What this means:</strong> The device you are using to display this walkthrough right now.</p>
+      <p><strong>Why it matters:</strong> Installing Arch Linux begins in a bare console terminal (the Arch ISO) with no graphical user interface. Since you cannot easily view web pages on the computer you are installing onto, it is highly recommended to read this guide from a second screen.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Phone / Tablet:</strong> Highly recommended. Extremely convenient because you can set the device directly next to your keyboard and follow the guide step-by-step.</li>
+        <li><strong>Second computer:</strong> Excellent. Provides a full desktop browser to view command explanations side-by-side with your installation machine.</li>
+        <li><strong>Same computer:</strong> Only select this if you are running a practice installation inside a Virtual Machine (VM) on your current host desktop.</li>
+        <li><strong>Printed copy:</strong> Works 100% offline, but you lose search and interactive copy-paste templates.</li>
+      </ul>
+    `
+  },
+  machineType: {
+    title: "What kind of computer is being installed?",
+    body: `
+      <p><strong>What this means:</strong> The physical (or virtual) hardware class of the computer receiving Arch Linux.</p>
+      <p><strong>Why it matters:</strong> Different hardware classes require different packages and configuration paths later. For example, laptops require Wi-Fi packages and touchpad configurations, while Virtual Machines need host-specific guest utility services.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Generic PC:</strong> A standard desktop tower or computer with standard components and wired Ethernet.</li>
+        <li><strong>Laptop:</strong> Activates touchpad drivers, battery saving settings, and wireless networking guides.</li>
+        <li><strong>Mac:</strong> Apple hardware has unique keyboard shortcuts, boot manager options, and sometimes proprietary Wi-Fi firmware requirements.</li>
+        <li><strong>Virtual Machine:</strong> Hides physical Wi-Fi/Bluetooth configurations and prepares system setup for virtualized disk storage.</li>
+      </ul>
+    `
+  },
+  currentEnvironment: {
+    title: "What environment is the target computer in right now?",
+    body: `
+      <p><strong>What this means:</strong> The operating system or terminal state that is currently running on the computer being installed.</p>
+      <p><strong>Why it matters:</strong> You cannot run Arch install commands from inside Windows or macOS. You must boot the computer into the Arch live installer environment (the Arch ISO) to perform the setup. Identifying your current OS helps the guide teach you how to observe your disks safely before booting into the installer.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Booted into the Arch ISO:</strong> The target machine is running the live command-line installer. You can proceed with partitioning and base installations.</li>
+        <li><strong>Windows:</strong> The computer is running Windows. Use this state to run Disk Management, identify drive capacities, and check whether your system is using UEFI or BIOS before rebooting.</li>
+        <li><strong>macOS:</strong> The Mac is booted. Use this state to run Disk Utility to observe internal/external disks.</li>
+        <li><strong>Linux:</strong> The computer is running an installed Linux system. Useful for observing system configurations and disks before wiping or dual-booting.</li>
+      </ul>
+    `
+  },
+  installTarget: {
+    title: "Where will Arch be installed?",
+    body: `
+      <p><strong>What this means:</strong> The storage disk that will hold the new Arch Linux operating system.</p>
+      <p><strong>Why it matters:</strong> This is a crucial safety filter. The guide needs to know if the target drive is internal or external, and whether it shares space with another operating system, to prevent you from accidentally wiping your main drive.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Only internal SSD/disk:</strong> The computer has one main internal drive that will be dedicated entirely to Arch Linux.</li>
+        <li><strong>Separate second internal SSD/disk:</strong> The computer has two separate internal drives. Arch will go on the second one, leaving the first one (with your main OS) completely untouched.</li>
+        <li><strong>External SSD/USB drive:</strong> Installing Arch to a USB-connected external drive. This makes the system portable, but requires extra care because device names can change between boots.</li>
+        <li><strong>Same disk as an existing OS:</strong> Dual-booting Arch on the same physical drive that already holds Windows, macOS, or another Linux system. Requires partition shrinking and advanced partitioning.</li>
+        <li><strong>Virtual disk:</strong> A safe virtual container inside VM software (like VirtualBox or QEMU).</li>
+      </ul>
+    `
+  },
+  eraseIntent: {
+    title: "Can the target disk be fully erased?",
+    body: `
+      <p><strong>What this means:</strong> Whether you want to wipe all files, partition tables, and operating systems on the target drive.</p>
+      <p><strong>Why it matters:</strong> If you select <strong>Yes</strong>, the guide will show full-disk partitioning commands (<code>cfdisk</code>). If you select <strong>No (preserve data)</strong>, the guide blocks destructive commands to prevent data loss, helping you reuse existing space instead.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Yes, erase the target disk:</strong> Destroys all existing partitions and files on the drive. Simplest path for a clean install.</li>
+        <li><strong>No, preserve existing data/OS:</strong> Keeps your existing partition tables. You will manually choose which partition to format, leaving other data partitions untouched.</li>
+        <li><strong>Unsure:</strong> Blocks all writing commands. Helps you inspect the drive layout using <code>lsblk</code> before making a final decision.</li>
+      </ul>
+    `
+  },
+  internalDriveCount: {
+    title: "How many internal SSDs/disks are in the computer?",
+    body: `
+      <p><strong>What this means:</strong> The physical count of internal drives plugged into your motherboard.</p>
+      <p><strong>Why it matters:</strong> If your computer has multiple internal drives, Linux might name them <code>/dev/sda</code> and <code>/dev/sdb</code>, or <code>/dev/nvme0n1</code> and <code>/dev/nvme1n1</code>. If you do not verify the drive count, it is very easy to write to the wrong drive by copying a generic example. Knowing the count helps you identify which drive is which by comparing their sizes and models.</p>
+    `
+  },
+  externalDrive: {
+    title: "Is an external SSD/USB drive connected?",
+    body: `
+      <p><strong>What this means:</strong> Whether you have an external USB hard drive, SSD, or thumb drive plugged in (other than your Arch installation USB).</p>
+      <p><strong>Why it matters:</strong> External drives appear in the block device list. If you see <code>/dev/sda</code> and <code>/dev/sdb</code>, one might be your internal drive and the other might be the external drive. The guide reminds you to compare transport types (<code>usb</code> vs <code>sata</code>/<code>nvme</code>) to separate them safely.</p>
+    `
+  },
+  bootMode: {
+    title: "Boot mode detected or expected",
+    body: `
+      <p><strong>What this means:</strong> The method the computer's firmware uses to start the operating system: modern <strong>UEFI</strong> or legacy <strong>BIOS</strong>.</p>
+      <p><strong>Why it matters:</strong> This is one of the most technical decisions. UEFI and BIOS require completely different partitioning schemes and bootloader configurations. A mismatch means the system will not boot after installation.</p>
+      <p><strong>How to find it:</strong></p>
+      <ul>
+        <li><strong>In the Arch ISO:</strong> Run the command <code>ls /sys/firmware/efi/efivars</code>. If the folder exists and is filled with files, your system is booted in <strong>UEFI</strong> mode. If it says "No such file or directory", you are in <strong>BIOS</strong> mode.</li>
+        <li><strong>In Windows:</strong> Press <code>Win + R</code>, type <code>msinfo32</code>, press Enter, and look for "BIOS Mode" in the list. It will say UEFI or Legacy.</li>
+      </ul>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>UEFI:</strong> Modern standard. Requires a GPT partition table and a dedicated <strong>EFI System Partition (ESP)</strong> formatted in FAT32.</li>
+        <li><strong>Legacy BIOS:</strong> Older standard. Can boot MBR disks or GPT disks (which require a tiny 1MB BIOS boot partition for GRUB).</li>
+      </ul>
+    `
+  },
+  bootloaderPath: {
+    title: "Bootloader path",
+    body: `
+      <p><strong>What this means:</strong> The program that starts when the computer boots, which loads the Linux kernel and hands control to Arch.</p>
+      <p><strong>Why it matters:</strong> You must install and configure a bootloader before rebooting out of the installer, otherwise your computer won't know how to start your new Arch system.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>UEFI systemd-boot:</strong> Highly recommended for UEFI systems. It is built directly into systemd, has no complex shell scripts, and uses simple text files for configuration. Extremely fast and lightweight.</li>
+        <li><strong>UEFI GRUB:</strong> Traditional, powerful bootloader. Good if you want dual-boot menus or customization options, but requires more commands to install and configure.</li>
+        <li><strong>Legacy BIOS GRUB:</strong> The only viable option if your machine is running in legacy BIOS mode. Installs boot code directly to the master boot record (MBR) or BIOS boot partition.</li>
+      </ul>
+    `
+  },
+  networkPath: {
+    title: "Network path",
+    body: `
+      <p><strong>What this means:</strong> How the target computer connects to the internet to download Arch packages.</p>
+      <p><strong>Why it matters:</strong> The Arch installer must download all core packages from the network. If you do not have a working internet connection, the install cannot continue.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Ethernet:</strong> Wired connection. Usually automatically connects via DHCP immediately upon booting the Arch ISO. Zero configuration needed.</li>
+        <li><strong>Wi-Fi:</strong> Wireless connection. Requires running the <code>iwctl</code> command to scan for networks, select your SSID, and type your password.</li>
+      </ul>
+      <p><strong>Troubleshooting Walkthrough:</strong></p>
+      <p>If your wireless device is not appearing when you run <code>iwctl</code>:</p>
+      <ol>
+        <li>Exit the iwctl prompt by typing <code>exit</code>.</li>
+        <li>Run <code>rfkill list</code> to check if your Wi-Fi radio is blocked.</li>
+        <li>If it says <strong>Soft blocked: yes</strong>, run <code>rfkill unblock wifi</code> to enable it.</li>
+        <li>If it is not blocked but still missing, run <code>ip link</code> to check if the network interface is turned off (indicated by <code>DOWN</code>). Turn it on using <code>ip link set [interface] up</code>.</li>
+      </ol>
+    `
+  },
+  swapStrategy: {
+    title: "Swap strategy",
+    body: `
+      <p><strong>What this means:</strong> Storage space allocated as virtual RAM when your physical memory is full.</p>
+      <p><strong>Why it matters:</strong> Swap prevents out-of-memory crashes and is required if you want to use hibernation (suspend-to-disk).</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>No swap for now:</strong> Skip swap. Fine for practice installs or systems with high physical RAM (e.g. 16GB+).</li>
+        <li><strong>Swap partition:</strong> A dedicated raw partition created during the partitioning phase. Harder to resize later.</li>
+        <li><strong>Swap file after install:</strong> Highly recommended. A normal file (like <code>/swapfile</code>) created inside your main root partition after Arch is installed. Extremely easy to resize, move, or delete without modifying your disk partitions.</li>
+      </ul>
+    `
+  },
+  audioTarget: {
+    title: "Audio target",
+    body: `
+      <p><strong>What this means:</strong> The primary hardware route for sound playback and recording.</p>
+      <p><strong>Why it matters:</strong> Modern Arch desktops use PipeWire and WirePlumber to route sound. Configuring your target helps you choose the correct diagnostic commands during the audio check phase.</p>
+      <p><strong>Option Breakdown:</strong></p>
+      <ul>
+        <li><strong>Internal speakers / microphone:</strong> Standard desktop/laptop card routing via ALSA drivers.</li>
+        <li><strong>HDMI / DisplayPort audio:</strong> Sound is routed over your display cable to monitor speakers.</li>
+        <li><strong>USB headset or USB audio:</strong> Uses a separate USB soundcard device class.</li>
+        <li><strong>Bluetooth audio:</strong> Wireless routing. Requires enabling the <code>bluetooth</code> system service and installing Bluetooth audio profile helpers.</li>
+      </ul>
+    `
+  }
+};
+
+const helpDialog = document.querySelector("#help-dialog");
+const helpTitle = document.querySelector("#help-title");
+const helpBody = document.querySelector("#help-body");
+const closeHelpDialog = document.querySelector("#close-help-dialog");
+
+closeHelpDialog.addEventListener("click", () => helpDialog.close());
+
+profileForm.addEventListener("click", (event) => {
+  const btn = event.target.closest(".info-btn");
+  if (!btn) return;
+  const key = btn.dataset.help;
+  const details = profileHelpDetails[key];
+  if (details) {
+    helpTitle.textContent = details.title;
+    helpBody.innerHTML = details.body;
+    helpDialog.showModal();
+  }
+});
 
 render();

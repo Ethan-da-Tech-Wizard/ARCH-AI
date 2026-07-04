@@ -73,7 +73,7 @@
 
           <form id="profile-form" class="profile-form">
             <label>
-              <span>What are you using to read this guide?</span>
+              <span>What are you using to read this guide? <button type="button" class="info-btn" data-help="guideDevice" title="Learn more">ⓘ</button></span>
               <select name="guideDevice">
                 <option value="">Choose one</option>
                 <option value="phone">Phone</option>
@@ -85,7 +85,7 @@
             </label>
 
             <label>
-              <span>What kind of computer is being installed?</span>
+              <span>What kind of computer is being installed? <button type="button" class="info-btn" data-help="machineType" title="Learn more">ⓘ</button></span>
               <select name="machineType">
                 <option value="">Choose one</option>
                 <option value="generic-pc">Generic PC</option>
@@ -97,7 +97,7 @@
             </label>
 
             <label>
-              <span>What environment is the target computer in right now?</span>
+              <span>What environment is the target computer in right now? <button type="button" class="info-btn" data-help="currentEnvironment" title="Learn more">ⓘ</button></span>
               <select name="currentEnvironment">
                 <option value="">Choose one</option>
                 <option value="arch-iso">Booted into the Arch ISO</option>
@@ -109,7 +109,7 @@
             </label>
 
             <label>
-              <span>Where will Arch be installed?</span>
+              <span>Where will Arch be installed? <button type="button" class="info-btn" data-help="installTarget" title="Learn more">ⓘ</button></span>
               <select name="installTarget">
                 <option value="">Choose one</option>
                 <option value="only-internal">Only internal SSD/disk</option>
@@ -122,7 +122,7 @@
             </label>
 
             <label>
-              <span>Can the target disk be fully erased?</span>
+              <span>Can the target disk be fully erased? <button type="button" class="info-btn" data-help="eraseIntent" title="Learn more">ⓘ</button></span>
               <select name="eraseIntent">
                 <option value="">Choose one</option>
                 <option value="yes">Yes, erase the target disk</option>
@@ -132,7 +132,7 @@
             </label>
 
             <label>
-              <span>How many internal SSDs/disks are in the computer?</span>
+              <span>How many internal SSDs/disks are in the computer? <button type="button" class="info-btn" data-help="internalDriveCount" title="Learn more">ⓘ</button></span>
               <select name="internalDriveCount">
                 <option value="">Choose one</option>
                 <option value="one">One</option>
@@ -143,7 +143,7 @@
             </label>
 
             <label>
-              <span>Is an external SSD/USB drive connected?</span>
+              <span>Is an external SSD/USB drive connected? <button type="button" class="info-btn" data-help="externalDrive" title="Learn more">ⓘ</button></span>
               <select name="externalDrive">
                 <option value="">Choose one</option>
                 <option value="yes">Yes</option>
@@ -153,7 +153,7 @@
             </label>
 
             <label>
-              <span>Boot mode detected or expected</span>
+              <span>Boot mode detected or expected <button type="button" class="info-btn" data-help="bootMode" title="Learn more">ⓘ</button></span>
               <select name="bootMode">
                 <option value="">Choose one</option>
                 <option value="uefi">UEFI</option>
@@ -163,7 +163,7 @@
             </label>
 
             <label>
-              <span>Bootloader path</span>
+              <span>Bootloader path <button type="button" class="info-btn" data-help="bootloaderPath" title="Learn more">ⓘ</button></span>
               <select name="bootloaderPath">
                 <option value="">Recommended for boot mode</option>
                 <option value="systemd-boot">UEFI systemd-boot</option>
@@ -173,7 +173,7 @@
             </label>
 
             <label>
-              <span>Network path</span>
+              <span>Network path <button type="button" class="info-btn" data-help="networkPath" title="Learn more">ⓘ</button></span>
               <select name="networkPath">
                 <option value="">Choose one</option>
                 <option value="ethernet">Ethernet</option>
@@ -183,7 +183,7 @@
             </label>
 
             <label>
-              <span>Swap strategy</span>
+              <span>Swap strategy <button type="button" class="info-btn" data-help="swapStrategy" title="Learn more">ⓘ</button></span>
               <select name="swapStrategy">
                 <option value="">No swap for now</option>
                 <option value="swap-partition">Swap partition</option>
@@ -192,7 +192,7 @@
             </label>
 
             <label>
-              <span>Audio target</span>
+              <span>Audio target <button type="button" class="info-btn" data-help="audioTarget" title="Learn more">ⓘ</button></span>
               <select name="audioTarget">
                 <option value="">Internal speakers / microphone</option>
                 <option value="hdmi-displayport">HDMI / DisplayPort audio</option>
@@ -262,6 +262,13 @@
       <p class="eyebrow" id="term-kind">Term</p>
       <h3 id="term-title"></h3>
       <p id="term-body"></p>
+    </dialog>
+
+    <dialog id="help-dialog" class="help-dialog">
+      <button id="close-help-dialog" class="icon-button" aria-label="Close">x</button>
+      <p class="eyebrow">Safety Profile Explanation</p>
+      <h3 id="help-title"></h3>
+      <div id="help-body" class="dialog-body"></div>
     </dialog>
 
     <script src="app.js"></script>

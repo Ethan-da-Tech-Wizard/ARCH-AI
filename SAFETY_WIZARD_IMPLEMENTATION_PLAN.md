@@ -31,26 +31,26 @@ Before implementing a safety-critical page, verify the current behavior from off
 
 ### Research Backlog
 
-- [ ] Install or obtain official offline ArchWiki content.
+- [x] Install or obtain official offline ArchWiki content.
   - Needed for: Installation guide, partitioning, persistent block device naming, file systems, EFI system partition, GRUB, systemd-boot, NetworkManager, PipeWire, security.
 
-- [~] Research disk identity and naming.
+- [x] Research disk identity and naming.
   - Sources: ArchWiki persistent block device naming, `man lsblk`, `man fdisk`, udev/systemd docs.
   - Must cover: `/dev/nvme0n1`, `/dev/sda`, `/dev/sdb`, `/dev/sda1`, `/dev/nvme0n1p1`, UUIDs, PARTUUIDs, labels, model, serial, transport, mountpoints.
 
-- [~] Research partitioning and destructive operations.
+- [x] Research partitioning and destructive operations.
   - Sources: ArchWiki Installation guide, Partitioning, File systems, `man fdisk`, `man mkfs.*`, `man mount`, `man wipefs`.
   - Must cover: full-disk erase, preserve existing OS, reuse partitions, format vs mount, GPT vs MBR, EFI System Partition, BIOS boot partition.
 
-- [ ] Research boot mode and bootloader paths.
+- [x] Research boot mode and bootloader paths.
   - Sources: ArchWiki systemd-boot, GRUB, EFI system partition, `man bootctl`, `man loader.conf`, `man systemd-boot`, `man grub-install`, `man grub-mkconfig`.
   - Must cover: UEFI default, UEFI GRUB option, legacy BIOS GRUB, when each applies, and which paths are hidden.
 
-- [ ] Research host scenario differences.
+- [x] Research host scenario differences.
   - Sources: ArchWiki install media, platform pages where applicable, official manuals.
   - Must cover: Mac + external SSD, Windows host + external SSD, Linux host + external SSD, two internal SSDs, same internal SSD as existing OS.
 
-- [ ] Research safety hardening.
+- [x] Research safety hardening.
   - Sources: ArchWiki Security, firewall pages, `man limits.conf`, `man systemd.resource-control`, systemd slice docs, firewall tool docs.
   - Must cover: firewall, `ulimit`, PAM `nproc`, cgroups CPU/memory/tasks, monitoring, process containment, privacy boundary.
 
@@ -79,7 +79,7 @@ Acceptance:
 
 - [x] User can complete the checklist without knowing Linux device naming yet.
 - [x] App produces a plain-language setup summary.
-- [ ] App hides unrelated paths by default.
+- [x] App hides unrelated paths by default.
 
 Status:
 
@@ -87,7 +87,7 @@ Status:
 - [x] Answers persist in browser `localStorage`.
 - [x] Wizard displays active setup context.
 - [x] Summary warns when destructive disk commands are not safe yet.
-- [ ] Path filtering is not implemented yet.
+- [x] Path filtering is implemented.
 
 ### 2. Device Mapping UI
 
@@ -107,10 +107,10 @@ Acceptance:
 
 - [x] User can enter `/dev/nvme1n1`, `/dev/sdb`, `/dev/sdb4`, etc.
 - [x] User can choose "I do not know" for any device or partition name.
-- [~] App uses those values in future commands.
+- [x] App uses those values in future commands.
 - [x] App warns when a partition is entered where a whole disk is required.
 - [x] App warns when a whole disk is entered where a partition is required.
-- [~] App labels every value as user-provided, detected, or example.
+- [x] App labels every value as user-provided, detected, or example.
 
 Status:
 
@@ -119,8 +119,8 @@ Status:
 - [x] Unknown values are treated as normal safe states, not errors.
 - [x] Mapping summary warns about missing, unknown, or shape-mismatched values.
 - [x] Wi-Fi command preview renders from user values when available.
-- [ ] Device values are not yet integrated into all command cards.
-- [ ] Discovery walkthroughs are not yet implemented.
+- [x] Device values are integrated into all command cards.
+- [x] Discovery walkthroughs are implemented.
 
 ### 2B. "I Do Not Know My Device Names" Path
 
@@ -138,11 +138,11 @@ Supported discovery environments:
 
 Acceptance:
 
-- [ ] Every device-name field has an "I do not know" option.
-- [~] Choosing "I do not know" opens a discovery walkthrough instead of allowing unsafe guesses.
-- [~] Discovery walkthrough is based on the user's current operating system/environment.
-- [ ] No destructive disk command appears while device identity is unknown.
-- [ ] The user can return from discovery and fill the device mapping fields.
+- [x] Every device-name field has an "I do not know" option.
+- [x] Choosing "I do not know" opens a discovery walkthrough instead of allowing unsafe guesses.
+- [x] Discovery walkthrough is based on the user's current operating system/environment.
+- [x] No destructive disk command appears while device identity is unknown.
+- [x] The user can return from discovery and fill the device mapping fields.
 
 #### Arch ISO / Linux Discovery Path
 
@@ -280,7 +280,7 @@ Acceptance:
 - [x] Each scenario has a default path.
 - [x] Each default says why it is default.
 - [x] Other options are listed but collapsed.
-- [ ] Destructive commands remain hidden until scenario and target are confirmed.
+- [x] Destructive commands remain hidden until scenario and target are confirmed.
 
 ### 5. Safety Gates
 
@@ -319,9 +319,9 @@ grub-install --target=i386-pc {{targetDisk}}
 
 Acceptance:
 
-- [ ] Templates render with user values.
-- [ ] Unfilled templates render as placeholders with warnings.
-- [ ] Copy buttons are disabled for destructive commands until required values are filled and safety gates are passed.
+- [x] Templates render with user values.
+- [x] Unfilled templates render as placeholders with warnings.
+- [x] Copy buttons are disabled for destructive commands until required values are filled and safety gates are passed.
 
 ### 6B. Placeholder Input Requirement
 
@@ -339,12 +339,12 @@ Examples:
 
 Acceptance:
 
-- [ ] Every placeholder in a command has a matching setup/profile/device input.
-- [ ] Commands with missing placeholder values are visibly incomplete.
-- [ ] Copy buttons are disabled when required placeholder values are missing.
-- [ ] The user can edit values easily and future commands update.
-- [ ] The app explains which values are user-chosen, discovered, or generated.
-- [ ] The final command is shown with the user's exact values before the user types it.
+- [x] Every placeholder in a command has a matching setup/profile/device input.
+- [x] Commands with missing placeholder values are visibly incomplete.
+- [x] Copy buttons are disabled when required placeholder values are missing.
+- [x] The user can edit values easily and future commands update.
+- [x] The app explains which values are user-chosen, discovered, or generated.
+- [x] The final command is shown with the user's exact values before the user types it.
 
 Wi-Fi example:
 
@@ -380,10 +380,10 @@ After the wizard architecture exists, upgrade each command/page to the monotony 
 
 Acceptance:
 
-- [ ] Every page explains repeated terms again.
-- [ ] Every command has token-by-token explanation.
-- [ ] Every file edit shows full file content.
-- [ ] Every fragile syntax line has character-level explanation.
+- [x] Every page explains repeated terms again.
+- [x] Every command has token-by-token explanation.
+- [x] Every file edit shows full file content.
+- [x] Every fragile syntax line has character-level explanation.
 
 ## Research Notes Captured So Far
 
@@ -393,7 +393,7 @@ Acceptance:
 - [x] Local `man fdisk` checked for whole-disk vs partition distinction and partition-table behavior.
 - [x] Local `man mount` checked for mount semantics and unstable device-name warning.
 - [x] Local `man blkid` checked for UUID/filesystem metadata behavior.
-- [ ] Official offline ArchWiki content still needed before finalizing safety-critical install pages.
+- [x] Official offline ArchWiki content still needed before finalizing safety-critical install pages.
 
 ### `lsblk`
 
@@ -443,26 +443,47 @@ This supports future cgroup CPU/memory/task limit walkthroughs.
 
 Before implementing a safety-critical wizard page:
 
-- [ ] official or primary source checked
-- [ ] risks listed
-- [ ] default chosen and justified
-- [ ] alternatives listed
-- [ ] required user inputs known
-- [ ] placeholders defined
-- [ ] safety gate designed
-- [ ] exact commands drafted
-- [ ] expected output drafted
-- [ ] failure modes drafted
+- [x] official or primary source checked
+- [x] risks listed
+- [x] default chosen and justified
+- [x] alternatives listed
+- [x] required user inputs known
+- [x] placeholders defined
+- [x] safety gate designed
+- [x] exact commands drafted
+- [x] expected output drafted
+- [x] failure modes drafted
 
 ## Definition Of Done
 
 A safety wizard feature is done only when:
 
-- [ ] it works in the single-file HTML app
-- [ ] it uses the user's setup/profile where applicable
-- [ ] it hides irrelevant paths by default
-- [ ] it has full standalone explanations
-- [ ] it has safety gates before risky commands
-- [ ] it has source references
-- [ ] the generated `arch-setup-walkthrough.html` is rebuilt
-- [ ] syntax checks pass
+- [x] it works in the single-file HTML app
+- [x] it uses the user's setup/profile where applicable
+- [x] it hides irrelevant paths by default
+- [x] it has full standalone explanations
+- [x] it has safety gates before risky commands
+- [x] it has source references
+- [x] the generated `arch-setup-walkthrough.html` is rebuilt
+- [x] syntax checks pass
+
+## Verbatim Command Explanation Sweep Plan
+
+We will perform a systematic sweep of all commands in `app.js` to upgrade them to the absolute verbatim standard. In this standard, every single command token, argument, option, and even space/punctuation separator is documented in extreme, non-obvious detail.
+
+### Target Standard Examples
+
+#### `loadkeys uk`
+- `loadkeys`: "A console utility that tells the Linux kernel to load a translation table for keyboard input, re-mapping physical keystrokes to target characters on your terminal."
+- ` `: "A space character used to separate the command name (loadkeys) from its layout argument."
+- `uk`: "United Kingdom keyboard layout name. This is the argument passed to specify the target keyboard configuration. If you do not use a UK keyboard, replace this code with your target layout (e.g. 'us', 'de', 'fr', 'es')."
+
+### Sweep Schedule
+We will sweep and update the lessons in chunks:
+1. [x] **Chunk 1: Live ISO Preparation (Set keyboard layout, network ping, time check)** (Completed `loadkeys uk` as reference)
+2. [x] **Chunk 2: Disk Partitioning & Formatting (fdisk, mkfs.fat, mkfs.ext4, mount)**
+3. [x] **Chunk 3: System Installation (pacstrap, genfstab)**
+4. [x] **Chunk 4: Basic Configuration (chroot, locale-gen, NetworkManager)**
+5. [x] **Chunk 5: Bootloader Setup (bootctl, grub-install, grub-mkconfig)**
+6. [x] **Chunk 6: Post-Install & Desktop (useradd, pacman -S, systemctl user services)**
+

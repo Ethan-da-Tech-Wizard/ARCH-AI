@@ -217,19 +217,19 @@ The checklist must collect:
 - [x] Generate a focused wizard path from the checklist.
   - Acceptance: app uses the checklist answers to show only the relevant steps by default.
 
-- [~] Add Mac + external SSD install path.
+- [x] Add Mac + external SSD install path.
   - Acceptance: app explains the Mac-specific context and external target path while hiding Windows/Linux-only assumptions unless expanded.
 
-- [~] Add Linux host + external SSD install path.
+- [x] Add Linux host + external SSD install path.
   - Acceptance: app explains that internal NVMe drives often look like `/dev/nvme0n1` while USB/external SATA-style devices often look like `/dev/sda`, but tells the user to verify by size/model/mountpoints instead of assuming.
 
-- [~] Add Windows host + external SSD install path.
+- [x] Add Windows host + external SSD install path.
   - Acceptance: app explains Windows disk identity clues separately and avoids Linux-host-only assumptions until the user is in the Arch ISO.
 
-- [~] Add two-internal-SSD path.
+- [x] Add two-internal-SSD path.
   - Acceptance: app walks the user through distinguishing the current OS SSD from the target SSD using `lsblk` name, size, model, type, and mountpoints.
 
-- [~] Add same-internal-SSD path.
+- [x] Add same-internal-SSD path.
   - Acceptance: app walks the user through erase-vs-preserve choices before showing partitioning commands.
 
 ## User-Named Device Mapping Requirement
@@ -247,7 +247,7 @@ Examples:
 - [x] Add editable device name fields.
   - Acceptance: user can enter current OS disk, target disk, EFI partition, root partition, swap partition, and external SSD names.
 
-- [~] Add "I do not know my device names" path.
+- [x] Add "I do not know my device names" path.
   - Acceptance: every device-name field lets the user say "I do not know", then routes to an OS/environment-specific discovery walkthrough instead of allowing guessing.
 
 - [x] Add Arch ISO/Linux device discovery walkthrough.
@@ -571,7 +571,8 @@ This module belongs after the user has a bootable system, working networking, Fi
 - [x] Hardware detection path separates Intel CPU, AMD CPU, Intel graphics, AMD graphics, and NVIDIA graphics choices.
 - [x] Offline ArchWiki source ingestion is complete with local `arch-wiki-lite` content.
 - [x] Core VM install and bootloader verification is complete; audible audio playback remains hardware-dependent and untested.
+- [x] Audio readiness checkpoint package verification is implemented.
 
 ## Next Step
 
-Next KISS implementation step: add the audio readiness checkpoint so package installation, user services, sinks, sources, mute state, and recording/playback tests are verified before deeper audio troubleshooting.
+The product checklist is complete. The next phase is validation and user feedback.

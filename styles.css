@@ -1413,3 +1413,72 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 }
+
+.info-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.94rem;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.65;
+  transition: opacity 0.2s, transform 0.2s;
+  vertical-align: middle;
+}
+
+.info-btn:hover,
+.info-btn:focus {
+  opacity: 1;
+  transform: scale(1.15);
+  outline: none;
+}
+
+.help-dialog {
+  border: 1px solid var(--accent) !important;
+}
+
+.help-dialog p {
+  margin: 12px 0;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.help-dialog p strong {
+  color: var(--ink);
+}
+
+.help-dialog ul {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+}
+
+.help-dialog li {
+  margin: 6px 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.help-dialog li strong {
+  color: var(--ink);
+}
+
+/* Fix low-contrast text inside wizard command note boxes */
+.danger-command-warning p,
+.personalized-command-note p,
+.placeholder-command-warning p,
+.placeholder-command-warning li,
+.literal-placeholder-note p,
+.command-combination-note p,
+.command-options-note p,
+.command-options-note li,
+.command-paths-note p,
+.command-paths-note li,
+.expected-output-note p,
+.expected-output-grid p,
+.failure-recovery-note p,
+.failure-recovery-grid p {
+  color: inherit !important;
+}
