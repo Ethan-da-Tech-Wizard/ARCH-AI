@@ -4243,8 +4243,8 @@
               "note": "Arch package manager usage and package database concepts."
             }
           ],
-          "command": "sudo pacman -S xorg-server xfce4 lightdm lightdm-gtk-greeter firefox pipewire pipewire-pulse wireplumber pavucontrol",
-          "purpose": "Installs the graphical display server, Xfce desktop group, graphical login manager, browser, PipeWire audio stack, and a volume-control tool.",
+          "command": "sudo pacman -S xorg-server xfce4 lightdm lightdm-gtk-greeter firefox pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
+          "purpose": "Installs the graphical display server, Xfce desktop group, graphical login manager, browser, PipeWire audio stack, volume-control tool, and Bluetooth audio support.",
           "words": [
             [
               "sudo",
@@ -4272,15 +4272,15 @@
             ],
             [
               "xorg-server",
-              "The package name of the Xorg display server daemon."
+              "The core package for the X.Org graphical display server."
             ],
             [
               " ",
-              "A space character used to separate packages in the list."
+              "A space character used to separate packages."
             ],
             [
               "xfce4",
-              "The package group name containing core elements of the Xfce4 desktop environment."
+              "The package group containing the Xfce desktop environment environment components."
             ],
             [
               " ",
@@ -4288,7 +4288,7 @@
             ],
             [
               "lightdm",
-              "The Light Display Manager service daemon package."
+              "The Light Display Manager. A lightweight graphical login screen daemon."
             ],
             [
               " ",
@@ -4296,7 +4296,7 @@
             ],
             [
               "lightdm-gtk-greeter",
-              "The GTK+ login screen template package for LightDM."
+              "The default GTK frontend greeter screen package for LightDM."
             ],
             [
               " ",
@@ -4304,7 +4304,7 @@
             ],
             [
               "firefox",
-              "The Firefox web browser package."
+              "The package name of the Firefox web browser."
             ],
             [
               " ",
@@ -4337,6 +4337,14 @@
             [
               "pavucontrol",
               "PulseAudio Volume Control. The graphical mixer interface package."
+            ],
+            [
+              " ",
+              "A space character used to separate packages."
+            ],
+            [
+              "pipewire-bluetooth",
+              "The package name enabling bluetooth audio codecs and integration in PipeWire."
             ]
           ],
           "expected": "pacman shows packages from the Xfce group and asks for confirmation. Accept the default group selection unless there is a specific reason not to.",
@@ -6025,8 +6033,8 @@
               "note": "Arch package manager usage and package database concepts."
             }
           ],
-          "command": "sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol",
-          "purpose": "Installs the PipeWire audio server, PulseAudio compatibility, the WirePlumber session manager, and a volume control app.",
+          "command": "sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
+          "purpose": "Installs the PipeWire audio server, PulseAudio compatibility, the WirePlumber session manager, a volume control app, and Bluetooth audio support.",
           "words": [
             [
               "sudo",
@@ -6079,6 +6087,14 @@
             [
               "pavucontrol",
               "PulseAudio Volume Control. The graphical mixer utility package."
+            ],
+            [
+              " ",
+              "A space character used to separate packages."
+            ],
+            [
+              "pipewire-bluetooth",
+              "The package name enabling bluetooth audio codecs and integration in PipeWire."
             ]
           ],
           "expected": "Packages install successfully.",
@@ -6113,8 +6129,8 @@
               "note": "Arch package manager usage and package database concepts."
             }
           ],
-          "command": "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol",
-          "purpose": "Verifies that the required PipeWire, PulseAudio compatibility, WirePlumber, and mixer packages are installed before troubleshooting audio behavior.",
+          "command": "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
+          "purpose": "Verifies that the required PipeWire, PulseAudio compatibility, WirePlumber, mixer, and bluetooth audio packages are installed before troubleshooting audio behavior.",
           "words": [
             [
               "pacman",
@@ -6133,8 +6149,8 @@
               "A space character used to separate the option flag from the package list."
             ],
             [
-              "pipewire pipewire-pulse wireplumber pavucontrol",
-              "The list of packages being queried: pipewire, pipewire-pulse, wireplumber, and pavucontrol."
+              "pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
+              "The list of packages being queried: pipewire, pipewire-pulse, wireplumber, pavucontrol, and pipewire-bluetooth."
             ]
           ],
           "expected": "One installed-package line appears for each package.",
@@ -6326,8 +6342,8 @@
               "note": "Arch package manager usage and package database concepts."
             }
           ],
-          "command": "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol",
-          "purpose": "Verifies that the required PipeWire audio server, PulseAudio compatibility layer, WirePlumber session manager, and pavucontrol volume control are installed.",
+          "command": "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
+          "purpose": "Verifies that the required PipeWire audio server, PulseAudio compatibility layer, WirePlumber session manager, pavucontrol volume control, and bluetooth audio packages are installed.",
           "words": [
             [
               "pacman",
@@ -6338,12 +6354,12 @@
               "Query installed packages."
             ],
             [
-              "pipewire pipewire-pulse wireplumber pavucontrol",
+              "pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth",
               "The packages expected for this simple PipeWire desktop audio path."
             ]
           ],
           "expected": "Prints the package name and version number for each installed package.",
-          "fails": "If a package is missing, install it with sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol."
+          "fails": "If a package is missing, install it with sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol pipewire-bluetooth."
         },
         {
           "label": "Check PipeWire service status",
