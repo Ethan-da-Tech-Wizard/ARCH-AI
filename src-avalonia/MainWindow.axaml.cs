@@ -450,7 +450,8 @@ namespace src_avalonia
         {
             return section.Commands.Where(c => BranchMatchesProfile(c.Branch) &&
                                                DiskStrategyCommandVisible(section.Title, c) &&
-                                               SwapStrategyCommandVisible(c)).ToList();
+                                               SwapStrategyCommandVisible(c) &&
+                                               NetworkPathCommandVisible(c)).ToList();
         }
 
         private bool BranchMatchesProfile(string? branch)
@@ -499,6 +500,17 @@ namespace src_avalonia
             bool isSwapFile = text.Contains("/swapfile");
             if (isSwapFile) return _profile.SwapStrategy == "file";
 
+            return true;
+        }
+
+        private bool NetworkPathCommandVisible(Command command)
+        {
+            string text = command.CommandText.Trim();
+            bool isWifiCmd = text.StartsWith("iwctl") || text.StartsWith("station ") || text.StartsWith("device ");
+            if (command.Label == "Leave the Wi-Fi control shell") isWifiCmd = true;
+            if (command.Label == "Test DNS and internet after Wi-Fi") isWifiCmd = true;
+
+            if (isWifiCmd) return _profile.NetworkPath == "wifi";
             return true;
         }
 
