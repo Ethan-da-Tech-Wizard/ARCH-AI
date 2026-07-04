@@ -494,8 +494,12 @@ namespace src_avalonia
         {
             string text = command.CommandText.Trim();
             bool isSwapPartition = text == "mkswap /dev/nvme0n1p3" || text == "swapon /dev/nvme0n1p3";
-            if (!isSwapPartition) return true;
-            return _profile.SwapStrategy == "partition";
+            if (isSwapPartition) return _profile.SwapStrategy == "partition";
+
+            bool isSwapFile = text.Contains("/swapfile");
+            if (isSwapFile) return _profile.SwapStrategy == "file";
+
+            return true;
         }
 
         // ================= SAFETY RULES & GATES =================

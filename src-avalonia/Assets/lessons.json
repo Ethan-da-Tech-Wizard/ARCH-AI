@@ -1148,6 +1148,122 @@
           ],
           "expected": "Usually no output. lsblk should show /mnt/boot for the EFI partition.",
           "fails": "If the filesystem type is wrong, confirm the partition was formatted FAT32."
+        },
+        {
+          "label": "Create a swapfile on the root filesystem",
+          "sources": [
+            {
+              "label": "ArchWiki: Swap",
+              "url": "https://wiki.archlinux.org/title/Swap",
+              "note": "Swap space creation, size choices, and swapfile configuration rules."
+            }
+          ],
+          "command": "dd if=/dev/zero of=/mnt/swapfile bs=1M count=2048 status=progress",
+          "purpose": "Creates a 2GB swapfile filled with zeroes on the mounted root drive.",
+          "words": [
+            [
+              "dd",
+              "Data Duplicator. A low-level utility used to copy raw data block-by-block."
+            ],
+            [
+              "if=/dev/zero",
+              "Input File. Specifies the source of zeroes to write into the swapfile."
+            ],
+            [
+              "of=/mnt/swapfile",
+              "Output File. Specifies the file path on the root filesystem where the swapfile will be created."
+            ],
+            [
+              "bs=1M",
+              "Block Size. Sets the write block size to 1 Megabyte."
+            ],
+            [
+              "count=2048",
+              "Count. Writes exactly 2048 blocks (making a 2 Gigabyte file)."
+            ],
+            [
+              "status=progress",
+              "Status. Shows a real-time transfer progress bar during the write process."
+            ]
+          ],
+          "expected": "Progress output ending with records in and records out statistics.",
+          "fails": "If there is insufficient space on the target filesystem, this will fail. Ensure /mnt is mounted to the correct partition."
+        },
+        {
+          "label": "Secure the swapfile permissions",
+          "sources": [
+            {
+              "label": "ArchWiki: Swap",
+              "url": "https://wiki.archlinux.org/title/Swap",
+              "note": "Swap space creation, size choices, and swapfile configuration rules."
+            }
+          ],
+          "command": "chmod 600 /mnt/swapfile",
+          "purpose": "Restricts swapfile permissions so that only the root user can read or write to it, protecting system memory data.",
+          "words": [
+            [
+              "chmod",
+              "Change Mode. Alters file access permissions."
+            ],
+            [
+              "600",
+              "Permissions mode specifying read/write for owner (root) only, and no permissions for anyone else."
+            ],
+            [
+              "/mnt/swapfile",
+              "The file path being modified."
+            ]
+          ],
+          "expected": "Usually no output. Running ls -lh /mnt/swapfile should show permissions as -rw-------.",
+          "fails": "If the file does not exist, check the create step first."
+        },
+        {
+          "label": "Initialize the swapfile space",
+          "sources": [
+            {
+              "label": "ArchWiki: Swap",
+              "url": "https://wiki.archlinux.org/title/Swap",
+              "note": "Swap space creation, size choices, and swapfile configuration rules."
+            }
+          ],
+          "command": "mkswap /mnt/swapfile",
+          "purpose": "Sets up a Linux swap area on the newly created file.",
+          "words": [
+            [
+              "mkswap",
+              "Make Swap. Formats the target file with the Linux swap header structure."
+            ],
+            [
+              "/mnt/swapfile",
+              "The swapfile path."
+            ]
+          ],
+          "expected": "Output showing swapspace details, size, and UUID.",
+          "fails": "If permissions are wrong or the file is open, mkswap may fail. Ensure chmod 600 was run first."
+        },
+        {
+          "label": "Activate the swapfile",
+          "sources": [
+            {
+              "label": "ArchWiki: Swap",
+              "url": "https://wiki.archlinux.org/title/Swap",
+              "note": "Swap space creation, size choices, and swapfile configuration rules."
+            }
+          ],
+          "command": "swapon /mnt/swapfile",
+          "purpose": "Enables the swapfile for the live environment so that genfstab can detect it.",
+          "words": [
+            [
+              "swapon",
+              "Swap On. Activates the target swap device or file."
+            ],
+            [
+              "/mnt/swapfile",
+              "The swapfile path."
+            ]
+          ],
+          "expected": "Usually no output. Running swapon --show should list /mnt/swapfile.",
+          "fails": "If it fails, confirm mkswap was run successfully."
         }
       ],
       "terms": [
