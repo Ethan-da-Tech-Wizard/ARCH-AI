@@ -2372,8 +2372,9 @@ const sections = [
         command: "localectl list-keymaps",
         purpose: "Shows available keyboard layouts in the live ISO.",
         words: [
-          ["localectl", "A systemd tool for locale and keyboard settings."],
-          ["list-keymaps", "Asks localectl to print keyboard layout names."]
+          ["localectl", "A systemd command-line tool used to query and change system locale and keyboard layout settings."],
+          [" ", "A space character used to separate the utility name from its command argument."],
+          ["list-keymaps", "The command argument that instructs localectl to print all available keyboard layout keymap names."]
         ],
         expected: "A long list such as us, uk, de, fr, es, and many more.",
         fails: "If the output is long, press q if it opens in a pager. Most US keyboards can continue with the default layout."
@@ -2417,8 +2418,9 @@ const sections = [
         command: "ls /sys/firmware/efi/efivars",
         purpose: "Checks whether the ISO booted in UEFI mode by listing UEFI variable files.",
         words: [
-          ["ls", "Lists files in a directory."],
-          ["/sys/firmware/efi/efivars", "A system path that exists when Linux was booted through UEFI."]
+          ["ls", "List. A utility that lists directory files, folders, and attributes."],
+          [" ", "A space character used to separate the utility name from the directory path argument."],
+          ["/sys/firmware/efi/efivars", "The absolute kernel directory path exposing UEFI motherboard firmware configurations. If this path is empty or missing, the kernel was booted in legacy BIOS mode."]
         ],
         expected: "Many filenames are printed. That means UEFI mode is active.",
         fails: "If it says the path does not exist, the machine may be in legacy BIOS mode. Reboot and choose the UEFI version of the USB entry if available."
@@ -2429,9 +2431,11 @@ const sections = [
         command: "ping -c 3 archlinux.org",
         purpose: "Tests whether the computer can resolve a domain name and send packets to the internet.",
         words: [
-          ["ping", "Sends small test packets to another machine."],
-          ["-c 3", "Stops after 3 replies instead of running forever."],
-          ["archlinux.org", "The domain name being tested."]
+          ["ping", "A utility that sends ICMP Echo Request packets to network hosts to test reachability and round-trip delay."],
+          [" ", "A space character used to separate the command name from its options flag."],
+          ["-c 3", "The packet count option flag that tells ping to send exactly three packets and then stop, preventing the command from running infinitely."],
+          [" ", "A space character used to separate the options flag from the domain name argument."],
+          ["archlinux.org", "The target domain name being pinged. The system resolver must translate this name into an IP address using DNS before packets can be sent."]
         ],
         expected: "Replies with times in ms and a summary showing 0% packet loss.",
         fails: "If it says temporary failure in name resolution, DNS is failing. If it says network unreachable, the connection itself is not ready."
@@ -2866,10 +2870,13 @@ const sections = [
         command: "sudo pacman -S firefox",
         purpose: "Installs the Firefox browser package from Arch repositories.",
         words: [
-          ["sudo", "Requests administrator privileges."],
-          ["pacman", "Package manager."],
-          ["-S", "Install/sync package."],
-          ["firefox", "The package name."]
+          ["sudo", "Superuser Do. A privilege elevation utility that runs commands with root administrative privileges."],
+          [" ", "A space character used to separate the elevation utility from its target command."],
+          ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+          [" ", "A space character used to separate the package manager from its options flag."],
+          ["-S", "Sync. The command flag that downloads and installs packages from synchronized remote repositories."],
+          [" ", "A space character used to separate the options flag from the package name argument."],
+          ["firefox", "The package name of the Firefox web browser."]
         ],
         expected: "pacman asks for confirmation, downloads Firefox, and installs it.",
         fails: "If package downloads fail, test ping -c 3 1.1.1.1 and ping -c 3 archlinux.org to separate network problems from DNS problems."
@@ -2880,9 +2887,11 @@ const sections = [
         command: "resolvectl query archlinux.org",
         purpose: "Asks the system resolver to look up the IP address for archlinux.org.",
         words: [
-          ["resolvectl", "systemd tool for DNS resolver status and queries."],
-          ["query", "Perform a DNS lookup."],
-          ["archlinux.org", "The name to resolve."]
+          ["resolvectl", "systemd command-line tool used to resolve domain names, IP addresses, and DNS resource records."],
+          [" ", "A space character used to separate the utility name from the command argument."],
+          ["query", "The command argument that instructs resolvectl to perform a name resolution lookup."],
+          [" ", "A space character used to separate the command argument from the target domain name query."],
+          ["archlinux.org", "The domain name query being looked up in the DNS namespace."]
         ],
         expected: "One or more IP addresses are returned.",
         fails: "If no DNS servers are configured, NetworkManager or systemd-resolved may need configuration."
@@ -2913,10 +2922,19 @@ const sections = [
         command: "sudo pacman -S pipewire pipewire-pulse wireplumber pavucontrol",
         purpose: "Installs the PipeWire audio server, PulseAudio compatibility, the WirePlumber session manager, and a volume control app.",
         words: [
-          ["pipewire", "Core media server."],
-          ["pipewire-pulse", "Lets apps expecting PulseAudio talk to PipeWire."],
-          ["wireplumber", "PipeWire session manager."],
-          ["pavucontrol", "Graphical mixer for inputs, outputs, and app volumes."]
+          ["sudo", "Superuser Do. Runs pacman with administrative privileges."],
+          [" ", "A space character used to separate the elevation utility from its target command."],
+          ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+          [" ", "A space character used to separate the package manager from its options flag."],
+          ["-S", "Sync. The command flag that downloads and installs packages from synchronized remote repositories."],
+          [" ", "A space character used to separate the options flag from the package list."],
+          ["pipewire", "The package name of the PipeWire low-latency media router."],
+          [" ", "A space character used to separate packages."],
+          ["pipewire-pulse", "The package name of the PulseAudio emulation layer for PipeWire."],
+          [" ", "A space character used to separate packages."],
+          ["wireplumber", "The package name of the WirePlumber session manager."],
+          [" ", "A space character used to separate packages."],
+          ["pavucontrol", "PulseAudio Volume Control. The graphical mixer utility package."]
         ],
         expected: "Packages install successfully.",
         fails: "If there is a package conflict with pulseaudio, pacman may ask to replace it. On a PipeWire setup, replacing PulseAudio is usually expected."
@@ -2927,9 +2945,11 @@ const sections = [
         command: "pacman -Q pipewire pipewire-pulse wireplumber pavucontrol",
         purpose: "Verifies that the required PipeWire, PulseAudio compatibility, WirePlumber, and mixer packages are installed before troubleshooting audio behavior.",
         words: [
-          ["pacman", "Arch package manager."],
-          ["-Q", "Query installed packages."],
-          ["pipewire pipewire-pulse wireplumber pavucontrol", "The packages expected for this simple PipeWire desktop audio path."]
+          ["pacman", "Package Manager. The official package manager utility for Arch Linux."],
+          [" ", "A space character used to separate the utility name from its options flag."],
+          ["-Q", "Query. The command flag that queries the local package database to check if specific packages are installed."],
+          [" ", "A space character used to separate the option flag from the package list."],
+          ["pipewire pipewire-pulse wireplumber pavucontrol", "The list of packages being queried: pipewire, pipewire-pulse, wireplumber, and pavucontrol."]
         ],
         expected: "One installed-package line appears for each package.",
         fails: "If a package is missing, install it before debugging services, devices, or volume controls."
@@ -2940,11 +2960,19 @@ const sections = [
         command: "systemctl --user enable --now pipewire pipewire-pulse wireplumber",
         purpose: "Starts audio services for the current user and enables them for future logins.",
         words: [
-          ["systemctl", "Controls systemd services."],
-          ["--user", "Targets the logged-in user's services, not system-wide services."],
-          ["enable", "Start automatically in future sessions."],
-          ["--now", "Also start immediately."],
-          ["pipewire pipewire-pulse wireplumber", "The user services needed for common audio."]
+          ["systemctl", "systemd Control. The systemd service management utility."],
+          [" ", "A space character used to separate the utility name from the user session flag."],
+          ["--user", "The user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."],
+          [" ", "A space character used to separate options flags."],
+          ["enable", "The command argument that registers the services to start automatically during user session login."],
+          [" ", "A space character used to separate parameters."],
+          ["--now", "The immediate action option flag that starts the services immediately in the current user session."],
+          [" ", "A space character used to separate options flags from the services list."],
+          ["pipewire", "The target PipeWire user service unit."],
+          [" ", "A space character used to separate services."],
+          ["pipewire-pulse", "The target PipeWire-Pulse user service unit."],
+          [" ", "A space character used to separate services."],
+          ["wireplumber", "The target WirePlumber user service unit."]
         ],
         expected: "Usually no output if everything starts correctly.",
         fails: "If the user service manager is unavailable, log out and back in, then retry."
@@ -2955,10 +2983,13 @@ const sections = [
         command: "systemctl --user is-active pipewire pipewire-pulse wireplumber",
         purpose: "Checks the three user audio services that must be running for common desktop audio.",
         words: [
-          ["systemctl", "Controls and inspects systemd services."],
-          ["--user", "Targets the logged-in user's services."],
-          ["is-active", "Prints the active state without opening the full status view."],
-          ["pipewire pipewire-pulse wireplumber", "The core audio server, PulseAudio compatibility service, and session manager."]
+          ["systemctl", "systemd Control. The systemd service management utility."],
+          [" ", "A space character used to separate the utility name from the user session flag."],
+          ["--user", "The user session flag that directs operations to the current user's systemd manager instance."],
+          [" ", "A space character used to separate options flags."],
+          ["is-active", "The query command argument that returns the runtime activation status of the user services."],
+          [" ", "A space character used to separate the command argument from the user services list."],
+          ["pipewire pipewire-pulse wireplumber", "The user services being checked: pipewire, pipewire-pulse, and wireplumber."]
         ],
         expected: "Each service prints active.",
         fails: "If any service is inactive, inspect it with systemctl --user status SERVICE and check package installation first."
@@ -2969,7 +3000,7 @@ const sections = [
         command: "pavucontrol",
         purpose: "Opens a graphical app to choose output devices, input devices, and per-app volume.",
         words: [
-          ["pavucontrol", "PulseAudio Volume Control. With pipewire-pulse, it controls PipeWire audio streams too."]
+          ["pavucontrol", "PulseAudio Volume Control. The executable launcher command that opens the graphical volume and device mixer."]
         ],
         expected: "A window opens with Output Devices, Input Devices, Playback, and Recording tabs.",
         fails: "If no window opens, confirm a graphical desktop is running. If devices are missing, check pactl info and systemctl --user status pipewire."
@@ -3045,18 +3076,11 @@ insertSectionAfter("Boot Into The ISO", {
       command: "lsblk -o NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS",
       purpose: "Shows the evidence needed to identify disks and partitions without changing them.",
       words: [
-        ["lsblk", "Means list block devices. A block device is storage Linux reads in blocks, such as an SSD, hard drive, USB drive, virtual disk, or partition."],
-        ["space after lsblk", "Separates the command name from the option that follows."],
-        ["-o", "An option. The dash starts an option. The letter o means output. Together, -o means choose which output columns to print."],
-        ["space after -o", "Separates the -o option from the column list."],
-        ["NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS", "One comma-separated column list. The commas separate names. Do not add spaces inside this list."],
-        ["NAME", "Linux's current name for the disk or partition, such as sda, sda1, nvme0n1, or nvme0n1p1."],
-        ["SIZE", "Capacity. Use it to compare against the advertised size of the internal SSD, second SSD, external SSD, or USB drive."],
-        ["TYPE", "disk means whole disk. part means partition inside a disk."],
-        ["MODEL", "Hardware model name when Linux can read it."],
-        ["TRAN", "Transport path, such as usb, sata, nvme, or virtio, when Linux can read it."],
-        ["SERIAL", "Serial number when Linux can read it. This helps separate similar drives."],
-        ["MOUNTPOINTS", "Directories where filesystems are attached right now, such as /, /boot, /home, or /mnt."]
+        ["lsblk", "List block devices. A console utility that queries the Linux kernel to list all active storage drives and partition maps."],
+        [" ", "A space character used to separate the utility name from the options flag."],
+        ["-o", "The output columns option flag that tells lsblk to print only the specific columns listed next."],
+        [" ", "A space character used to separate option flags from parameters."],
+        ["NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS", "A comma-separated list of output columns. NAME is the partition device name, SIZE is the storage capacity, TYPE designates drive vs partition, MODEL is the manufacturer hardware model name, TRAN is the transport protocol type, SERIAL is the hardware serial number, and MOUNTPOINTS is where the filesystem is attached."]
       ],
       expected: "A tree of disks and partitions. Whole disks should have TYPE disk. Partitions under them should have TYPE part. Existing OS partitions may show mountpoints or known filesystems in related commands.",
       fails: "If the output does not clearly identify the target by size, model, transport, serial, and mountpoints, stop. Do not choose by /dev/sda or /dev/nvme0n1 alone."
@@ -3085,7 +3109,7 @@ extendSection("Before You Start", {
       command: "whoami",
       purpose: "Confirms which user account is running commands in the live ISO. The Arch ISO normally starts as root.",
       words: [
-        ["whoami", "Prints the current effective user name."]
+        ["whoami", "Who Am I. A utility that queries the active system user session and prints the associated username to the terminal."]
       ],
       expected: "Usually root in the Arch live ISO.",
       fails: "If the command is not found, the environment is not the normal Arch ISO shell."
@@ -3096,8 +3120,9 @@ extendSection("Before You Start", {
       command: "man pacstrap",
       purpose: "Opens the official local manual page for pacstrap so the learner can compare this walkthrough with the real command reference.",
       words: [
-        ["man", "Opens a manual page."],
-        ["pacstrap", "The command whose manual is being opened."]
+        ["man", "Manual. The standard system manual viewer program used to format and display reference documentation for commands and config files."],
+        [" ", "A space character used to separate the utility name from the command/package argument."],
+        ["pacstrap", "The target command name whose manual page is being requested."]
       ],
       expected: "A manual page with NAME, SYNOPSIS, DESCRIPTION, OPTIONS, and SEE ALSO sections.",
       fails: "Press q to exit the manual. If man is unavailable, continue using the linked Arch manual page."
