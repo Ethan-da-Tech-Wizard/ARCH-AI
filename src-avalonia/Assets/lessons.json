@@ -5070,7 +5070,7 @@
             ],
             [
               "--user",
-              "The user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."
+              "the user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."
             ],
             [
               " ",
@@ -5148,7 +5148,7 @@
             ],
             [
               "--user",
-              "The user session flag that directs operations to the current user's systemd manager instance."
+              "the user session flag that directs operations to the current user's systemd manager instance."
             ],
             [
               " ",
@@ -5164,7 +5164,7 @@
             ],
             [
               "pipewire pipewire-pulse wireplumber",
-              "The user services being checked: pipewire, pipewire-pulse, and wireplumber."
+              "the user services being checked: pipewire, pipewire-pulse, and wireplumber."
             ]
           ],
           "expected": "active is printed for each service.",
@@ -6172,7 +6172,7 @@
             ],
             [
               "--user",
-              "The user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."
+              "the user session flag. This tells systemctl to operate on systemd user services for the currently logged-in user rather than system-wide system services."
             ],
             [
               " ",
@@ -6250,7 +6250,7 @@
             ],
             [
               "--user",
-              "The user session flag that directs operations to the current user's systemd manager instance."
+              "the user session flag that directs operations to the current user's systemd manager instance."
             ],
             [
               " ",
@@ -6266,7 +6266,7 @@
             ],
             [
               "pipewire pipewire-pulse wireplumber",
-              "The user services being checked: pipewire, pipewire-pulse, and wireplumber."
+              "the user services being checked: pipewire, pipewire-pulse, and wireplumber."
             ]
           ],
           "expected": "Each service prints active.",
@@ -6697,7 +6697,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Add a beginner firewall baseline for the user's own Arch machine. This page is defensive hardening. It is not for interfering with other people's systems, accounts, files, traffic, or privacy."
+          "text": "Add a beginner firewall baseline for your own Arch machine. This page is defensive hardening. It is not for interfering with other people's systems, accounts, files, traffic, or privacy."
         },
         {
           "type": "explain",
@@ -7091,7 +7091,7 @@
             }
           ],
           "command": "ulimit -u",
-          "purpose": "Prints the process-count limit again so the user can confirm the shell now reports 1000.",
+          "purpose": "Prints the process-count limit again so you can confirm the shell now reports 1000.",
           "words": [
             [
               "ulimit",
@@ -7143,7 +7143,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Teach the persistent PAM limits file carefully before editing it. This page is for defensive hardening on systems/accounts the user owns or administers with permission."
+          "text": "Teach the persistent PAM limits file carefully before editing it. This page is for defensive hardening on systems/accounts you own or administers with permission."
         },
         {
           "type": "explain",
@@ -7400,7 +7400,7 @@
             }
           ],
           "command": "grep -n \"nproc\" /etc/security/limits.conf",
-          "purpose": "Prints lines in limits.conf that contain nproc so the user can verify the policy text.",
+          "purpose": "Prints lines in limits.conf that contain nproc so you can verify the policy text.",
           "words": [
             [
               "grep",
@@ -7574,7 +7574,7 @@
               "Example drop-in file name. 50 controls ordering relative to other drop-ins; limits describes the purpose; conf means configuration."
             ]
           ],
-          "expected": "The user understands this is a path example for planning. It should not be created until the exact target user/slice is verified.",
+          "expected": "you understand this is a path example for planning. It should not be created until the exact target user/slice is verified.",
           "fails": "If the UID or slice name is wrong, the drop-in may apply to the wrong target or not apply at all."
         },
         {
@@ -7651,7 +7651,7 @@
               "Value meaning five hundred tasks/processes."
             ]
           ],
-          "expected": "The user can read every line and explain what it would do before any file is created.",
+          "expected": "you can read every line and explain what it would do before any file is created.",
           "fails": "If these values are too low, graphical sessions, browsers, terminals, or services may fail. Plan values conservatively and keep recovery access."
         },
         {
@@ -7859,7 +7859,7 @@
               "The Bash shell."
             ]
           ],
-          "expected": "The user understands /bin/rbash is only an example and must exist in /etc/shells before being used as a login shell.",
+          "expected": "you understand /bin/rbash is only an example and must exist in /etc/shells before being used as a login shell.",
           "fails": "If /bin/rbash does not exist or is not listed in /etc/shells, do not set it as a user's shell."
         },
         {
@@ -8142,7 +8142,7 @@
               "In this context, u points to user, not the ulimit -u process-count option."
             ]
           ],
-          "expected": "htop lets the user choose an account and then shows processes for that account.",
+          "expected": "htop lets you choose an account and then shows processes for that account.",
           "fails": "If the key binding differs, use htop help. Do not inspect another user's processes unless you own/administer the system with permission."
         },
         {
@@ -8182,7 +8182,7 @@
               "Percent sign. It means the number is a percentage, not a raw count."
             ]
           ],
-          "expected": "The user can identify owner, process identity, CPU use, memory use, and command name before any termination choice.",
+          "expected": "you can identify owner, process identity, CPU use, memory use, and command name before any termination choice.",
           "fails": "If columns are hidden or confusing, do not act yet. Adjust htop columns or use another inspection command later."
         },
         {
@@ -8238,7 +8238,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Teach detection before response. The user should first identify symptoms, count processes, identify the account involved, and inspect the process tree."
+          "text": "Teach detection before response. you should first identify symptoms, count processes, identify the account involved, and inspect the process tree."
         },
         {
           "type": "explain",
@@ -8490,7 +8490,7 @@
         {
           "type": "warn",
           "title": "Test alerts before trusting them",
-          "text": "An untested alert is just a guess. Test that it fires when expected, stays quiet during normal work, and explains what the user should check next."
+          "text": "An untested alert is just a guess. Test that it fires when expected, stays quiet during normal work, and explains what you should check next."
         }
       ],
       "commands": [
@@ -8535,7 +8535,7 @@
               "Combined meaning: alert only if the user's process count stays above 500 for five minutes."
             ]
           ],
-          "expected": "The user understands this is an alert design idea, not a shell command.",
+          "expected": "you understand this is an alert design idea, not a shell command.",
           "fails": "If treated as a terminal command, it will fail. It belongs in future monitoring design, not the shell."
         },
         {
@@ -8579,7 +8579,7 @@
               "Combined meaning: alert if process creation remains very fast for two minutes."
             ]
           ],
-          "expected": "The user understands fork-rate alerts detect rapid process creation and need real baseline testing.",
+          "expected": "you understand fork-rate alerts detect rapid process creation and need real baseline testing.",
           "fails": "If the threshold is too low, normal app launches may trigger false positives. If too high, the alert may fire too late."
         },
         {
@@ -8619,7 +8619,7 @@
               "The alert should tell the user what to inspect next, such as htop tree mode or process-count commands."
             ]
           ],
-          "expected": "The user treats alert testing as part of the setup, not an optional afterthought.",
+          "expected": "you should treat alert testing as part of the setup, not an optional afterthought.",
           "fails": "If an alert cannot be tested safely, it should not be trusted as a serious protection."
         }
       ],
@@ -8647,7 +8647,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Teach process termination as a last-resort containment step. The user should inspect first, save work if possible, and understand what will be affected before sending a signal."
+          "text": "Teach process termination as a last-resort containment step. you should inspect first, save work if possible, and understand what will be affected before sending a signal."
         },
         {
           "type": "explain",
@@ -8871,7 +8871,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Move from containment to cause analysis. The user should identify what started the process explosion before changing limits, killing more processes, or editing service configs."
+          "text": "Move from containment to cause analysis. you should identify what started the process explosion before changing limits, killing more processes, or editing service configs."
         },
         {
           "type": "explain",
@@ -9148,7 +9148,7 @@
         {
           "type": "goal",
           "title": "Goal",
-          "text": "Turn a scary incident into a concrete repair checklist. The user should not stop at killing processes. They should find what allowed the incident and decide what must change."
+          "text": "Turn a scary incident into a concrete repair checklist. you should not stop at killing processes. They should find what allowed the incident and decide what must change."
         },
         {
           "type": "explain",
@@ -9400,7 +9400,7 @@
               "Combined meaning: choose a clear repair action instead of pretending the incident is solved just because processes stopped."
             ]
           ],
-          "expected": "The user chooses one explicit next action based on evidence.",
+          "expected": "you choose one explicit next action based on evidence.",
           "fails": "If the cause is unknown, do not call the system fixed. Keep prevention limits and continue investigation."
         }
       ],
