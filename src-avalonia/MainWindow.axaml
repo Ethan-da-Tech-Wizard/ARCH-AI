@@ -1,0 +1,385 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="src_avalonia.MainWindow"
+        Title="ARCH-AI Setup Wizard"
+        Width="1100" Height="750"
+        MinWidth="800" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#1c2022"
+        Foreground="#cbd5d9">
+
+  <Window.Styles>
+    <!-- Custom ScrollBar Styling -->
+    <Style Selector="ScrollViewer">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    
+    <!-- Safety Badges -->
+    <Style Selector="Border.SafetyBadge">
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="6,2"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="Border.Safety-safe-inspection">
+      <Setter Property="Background" Value="rgba(94, 116, 69, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#5e7445"/>
+    </Style>
+    <Style Selector="Border.Safety-configuration">
+      <Setter Property="Background" Value="rgba(37, 99, 111, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#25636f"/>
+    </Style>
+    <Style Selector="Border.Safety-package-install">
+      <Setter Property="Background" Value="rgba(37, 99, 111, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#25636f"/>
+    </Style>
+    <Style Selector="Border.Safety-service-control">
+      <Setter Property="Background" Value="rgba(184, 134, 11, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#b8860b"/>
+    </Style>
+    <Style Selector="Border.Safety-danger">
+      <Setter Property="Background" Value="rgba(157, 73, 50, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#9d4932"/>
+    </Style>
+    <Style Selector="Border.Safety-security">
+      <Setter Property="Background" Value="rgba(184, 134, 11, 0.15)"/>
+      <Setter Property="BorderBrush" Value="#b8860b"/>
+    </Style>
+
+    <!-- Custom Button Styles -->
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="#25636f"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Padding" Value="16,10"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Background" Value="#1d4d57"/>
+    </Style>
+    <Style Selector="Button.primary:disabled">
+      <Setter Property="Background" Value="#333f44"/>
+      <Setter Property="Foreground" Value="#667780"/>
+      <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#cbd5d9"/>
+      <Setter Property="BorderBrush" Value="#333f44"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="16,10"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.secondary:pointerover">
+      <Setter Property="Background" Value="rgba(255,255,255,0.05)"/>
+    </Style>
+    <Style Selector="Button.secondary:disabled">
+      <Setter Property="Opacity" Value="0.3"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    
+    <!-- ================= TOP BAR ================= -->
+    <Border Grid.Row="0" Height="64" Background="#161a1c" Padding="20,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- Title -->
+        <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+          <TextBlock Text="ARCH-AI" FontSize="18" FontWeight="ExtraBold" Foreground="#25636f" VerticalAlignment="Center"/>
+          <Border Background="#333f44" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+            <TextBlock Text="NATIVE WIZARD" FontSize="10" FontWeight="Bold" Foreground="#cbd5d9"/>
+          </Border>
+        </StackPanel>
+
+        <!-- Progress Indicators (Walkthrough View only) -->
+        <StackPanel x:Name="HeaderProgressPanel" Grid.Column="1" Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
+          <TextBlock x:Name="HeaderProgressLabel" Text="Step 1 of 32" FontSize="13" Foreground="#cbd5d9" VerticalAlignment="Center" FontWeight="SemiBold"/>
+          <ProgressBar x:Name="HeaderProgressBar" Width="200" Height="8" Minimum="0" Maximum="100" Value="10" Foreground="#25636f" Background="#262f33" CornerRadius="4" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <Button x:Name="BtnToggleDrawer" Content="Theory &amp; Reference" Classes="secondary" Padding="12,6" FontSize="12" IsVisible="False" Click="OnToggleDrawerClick"/>
+          <Button Content="Exit" Classes="secondary" Padding="12,6" FontSize="12" Click="OnExitClick"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ================= MAIN BODY CONTENT ================= -->
+    <Grid Grid.Row="1">
+      
+      <!-- VIEW 1: SAFETY PROFILE FORM -->
+      <ScrollViewer x:Name="ViewProfile" IsVisible="True" Margin="24">
+        <StackPanel Spacing="24" MaxWidth="900" HorizontalAlignment="Center">
+          <!-- Welcome and Description -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Arch Linux Installation Safety Profile" FontSize="24" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="Answer the 12 profile questions below. This creates your machine safety profile and customizes commands. All questions must be answered to begin." 
+                       TextWrapping="Wrap" FontSize="14" Foreground="#8a99a0"/>
+          </StackPanel>
+
+          <!-- The Form -->
+          <Border Background="#262f33" CornerRadius="8" BorderBrush="#333f44" BorderThickness="1" Padding="20">
+            <StackPanel Spacing="16">
+              
+              <!-- Counter -->
+              <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                <TextBlock Text="Setup Questionnaire" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                <Border x:Name="ProfileCounterBorder" Grid.Column="1" CornerRadius="12" Padding="10,4" Background="rgba(157, 73, 50, 0.1)">
+                  <TextBlock x:Name="ProfileCounterText" Text="0 of 12 answered" FontSize="12" FontWeight="Bold" Foreground="#9d4932" VerticalAlignment="Center"/>
+                </Border>
+              </Grid>
+
+              <!-- Form Grid -->
+              <UniformGrid Columns="2" Rows="6">
+                
+                <!-- Q1: Guide Device -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="1. Reading device source" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="guideDevice"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboGuideDevice" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Phone / Tablet" Tag="phone"/>
+                    <ComboBoxItem Content="Second computer" Tag="second-computer"/>
+                    <ComboBoxItem Content="Same computer (VM)" Tag="same-computer"/>
+                    <ComboBoxItem Content="Printed copy" Tag="printed"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q2: Machine Type -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="2. Target machine type" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="machineType"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboMachineType" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Generic PC" Tag="generic"/>
+                    <ComboBoxItem Content="Laptop" Tag="laptop"/>
+                    <ComboBoxItem Content="Mac" Tag="mac"/>
+                    <ComboBoxItem Content="Virtual Machine" Tag="vm"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q3: Environment -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="3. Active OS / Environment" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="currentEnvironment"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboEnvironment" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Booted into the Arch ISO" Tag="archiso"/>
+                    <ComboBoxItem Content="Windows" Tag="windows"/>
+                    <ComboBoxItem Content="macOS" Tag="macos"/>
+                    <ComboBoxItem Content="Linux" Tag="linux"/>
+                    <ComboBoxItem Content="Unsure" Tag="unknown"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q4: Install Target -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="4. Installation target drive" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="installTarget"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboInstallTarget" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Only internal SSD/disk" Tag="internal-ssd"/>
+                    <ComboBoxItem Content="Separate second internal SSD" Tag="second-ssd"/>
+                    <ComboBoxItem Content="External SSD/USB drive" Tag="external-ssd"/>
+                    <ComboBoxItem Content="Same disk as an existing OS" Tag="same-disk"/>
+                    <ComboBoxItem Content="Virtual disk (VM)" Tag="virtual-disk"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q5: Erase Intent -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="5. Can target disk be fully erased?" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="eraseIntent"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboEraseIntent" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Yes, erase target disk" Tag="yes"/>
+                    <ComboBoxItem Content="No, preserve existing data/OS" Tag="no-preserve"/>
+                    <ComboBoxItem Content="Unsure" Tag="unsure"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q6: Internal Drive Count -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="6. Number of internal drives" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="internalDriveCount"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboDriveCount" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="1 disk" Tag="1"/>
+                    <ComboBoxItem Content="2 disks" Tag="2"/>
+                    <ComboBoxItem Content="3 or more disks" Tag="3-plus"/>
+                    <ComboBoxItem Content="0 disks (VM / Network only)" Tag="0"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q7: External Connected -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="7. Is an external drive connected?" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="externalDrive"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboExternalConnected" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="No external drive connected" Tag="no"/>
+                    <ComboBoxItem Content="Yes, connected" Tag="yes"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q8: Boot Mode -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="8. Boot mode detected or expected" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="bootMode"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboBootMode" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Modern UEFI" Tag="uefi"/>
+                    <ComboBoxItem Content="Legacy BIOS" Tag="bios"/>
+                    <ComboBoxItem Content="Unsure" Tag="unknown"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q9: Bootloader Path -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="9. Bootloader choice" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="bootloaderPath"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboBootloader" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="systemd-boot (UEFI recommended)" Tag="systemd-boot"/>
+                    <ComboBoxItem Content="GRUB (UEFI)" Tag="grub-uefi"/>
+                    <ComboBoxItem Content="GRUB (Legacy BIOS)" Tag="grub-bios"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q10: Network Connection -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="10. Network path" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="networkPath"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboNetwork" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Ethernet (Wired)" Tag="ethernet"/>
+                    <ComboBoxItem Content="Wi-Fi (Wireless)" Tag="wifi"/>
+                    <ComboBoxItem Content="Unsure" Tag="unknown"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q11: Swap Strategy -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="11. Swap strategy" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="swapStrategy"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboSwap" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="No swap for now" Tag="none"/>
+                    <ComboBoxItem Content="Dedicated swap partition" Tag="partition"/>
+                    <ComboBoxItem Content="Swap file after install" Tag="file"/>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- Q12: Audio Target -->
+                <StackPanel Spacing="6" Margin="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="12. Audio playback route" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                    <Button Classes="secondary" Content="ⓘ" Width="20" Height="20" Padding="0" BorderThickness="0" Background="Transparent" Click="OnShowInfoClick" Tag="audioTarget"/>
+                  </StackPanel>
+                  <ComboBox x:Name="ComboAudio" HorizontalAlignment="Stretch" SelectionChanged="OnProfileSelectionChanged">
+                    <ComboBoxItem Content="Internal speakers / microphone" Tag="internal"/>
+                    <ComboBoxItem Content="HDMI / DisplayPort audio" Tag="hdmi-displayport"/>
+                    <ComboBoxItem Content="USB headset / USB card" Tag="usb-headset"/>
+                    <ComboBoxItem Content="Bluetooth audio" Tag="bluetooth"/>
+                    <ComboBoxItem Content="Unsure" Tag="unknown"/>
+                  </ComboBox>
+                </StackPanel>
+              </UniformGrid>
+
+              <!-- Begin Action -->
+              <StackPanel Margin="0,15,0,0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="12">
+                <Button x:Name="BtnResetProfile" Content="Reset Selections" Classes="secondary" Click="OnResetProfileClick"/>
+                <Button x:Name="BtnBeginWizard" Content="Begin Walkthrough" Classes="primary" Click="OnBeginWizardClick" IsEnabled="False"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- VIEW 2: WALKTHROUGH WIZARD STEPS -->
+      <Grid x:Name="ViewWizard" ColumnDefinitions="*,Auto" IsVisible="False">
+        <!-- Main action area -->
+        <ScrollViewer Grid.Column="0" Padding="24">
+          <StackPanel x:Name="WizardStageContainer" Spacing="24" MaxWidth="800" HorizontalAlignment="Center" Width="750">
+            <!-- Populated dynamically via code-behind -->
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- Right drawer / reference documentation panel -->
+        <Border x:Name="DrawerPanel" Grid.Column="1" Width="380" Background="#161a1c" BorderBrush="#333f44" BorderThickness="1,0,0,0">
+          <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Height="50" Background="#1e2528" BorderBrush="#333f44" BorderThickness="0,0,0,1" Padding="15,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Theory &amp; Reference" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="✕" Classes="secondary" Padding="8,4" FontSize="11" Click="OnCloseDrawerClick"/>
+              </Grid>
+            </Border>
+            <ScrollViewer Grid.Row="1" Padding="16">
+              <StackPanel x:Name="DrawerContentContainer" Spacing="20">
+                <!-- Populated dynamically via code-behind -->
+              </StackPanel>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <!-- VIEW 3: WALKTHROUGH COMPLETE VIEW -->
+      <Grid x:Name="ViewComplete" IsVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border Background="#262f33" BorderBrush="#333f44" BorderThickness="1" CornerRadius="12" Padding="40" MaxWidth="600" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <StackPanel Spacing="24" HorizontalAlignment="Center">
+            <TextBlock Text="🎉" FontSize="64" HorizontalAlignment="Center"/>
+            <TextBlock Text="Installation Walkthrough Completed!" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock Text="You have completed all instructions. Ensure you have unmounted partitions and rebooted your target computer successfully. You can close this window now." 
+                       TextWrapping="Wrap" TextAlignment="Center" Foreground="#cbd5d9" FontSize="14"/>
+            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+              <Button Content="Restart Setup" Classes="secondary" Click="OnRestartSetupClick"/>
+              <Button Content="Close App" Classes="primary" Click="OnExitClick"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+    </Grid>
+
+    <!-- ================= FOOTER PANEL ================= -->
+    <Border Grid.Row="2" Height="72" Background="#161a1c" BorderBrush="#333f44" BorderThickness="0,1,0,0" Padding="20,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- Back Button -->
+        <Button x:Name="BtnBack" Grid.Column="0" Content="&lt; Back" Classes="secondary" Width="100" VerticalAlignment="Center" Click="OnBackClick" IsEnabled="False"/>
+        
+        <!-- Step Indicator label -->
+        <TextBlock x:Name="FooterStepIndicator" Grid.Column="1" Text="Safety Profile" FontSize="13" Foreground="#8a99a0" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <!-- Next Button -->
+        <Button x:Name="BtnNext" Grid.Column="2" Content="Next &gt;" Classes="primary" Width="100" VerticalAlignment="Center" Click="OnNextClick" IsEnabled="False"/>
+      </Grid>
+    </Border>
+
+    <!-- ================= DIALOG / POPUP MODAL OVERLAY ================= -->
+    <Grid x:Name="ModalOverlay" Grid.RowSpan="3" Background="#cc000000" IsVisible="False">
+      <Border Background="#262f33" BorderBrush="#333f44" BorderThickness="1" CornerRadius="8" Padding="24" Width="550" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="16">
+          <TextBlock x:Name="ModalTitle" Text="Question Explanation" FontSize="18" FontWeight="Bold" Foreground="White"/>
+          <ScrollViewer MaxHeight="400">
+            <TextBlock x:Name="ModalBody" Text="Explanation content" TextWrapping="Wrap" FontSize="14" Foreground="#cbd5d9"/>
+          </ScrollViewer>
+          <Button Content="Close" Classes="primary" HorizontalAlignment="Right" Click="OnCloseModalClick"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+    
+  </Grid>
+</Window>

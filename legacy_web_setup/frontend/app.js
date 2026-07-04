@@ -7183,12 +7183,12 @@ function diskIdentityGateTemplate() {
         <li><strong>Swap partition:</strong> ${escapeHtml(swapPartition)}</li>
         <li><strong>Erase intent:</strong> ${profileValue("eraseIntent")}</li>
       </ul>
-      ${issues.length ? `<p><strong>Still blocked:</strong></p><ul>${issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
+      \${issues.length ? `<p><strong>Still blocked:</strong></p><ul>\${issues.map((issue) => `<li>\${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
       <label class="gate-confirm">
-        <input type="checkbox" data-gate="diskIdentity" ${passed ? "checked" : ""} ${ready ? "" : "disabled"}>
+        <input type="checkbox" data-gate="diskIdentity" \${passed ? "checked" : ""} \${ready ? "" : "disabled"}>
         <span>I have verified these exact disk and partition names by size, model, transport, serial, and mountpoints. I understand disk-writing commands can erase data on these targets.</span>
       </label>
-      <p>${passed ? "Gate passed for the current mapped values. If any mapped value changes, this confirmation must be repeated." : "Gate not passed. Disk-writing commands remain hidden and cannot be copied."}</p>
+      <p>\${passed ? "Gate passed for the current mapped values. If any mapped value changes, this confirmation must be repeated." : "Gate not passed. Disk-writing commands remain hidden and cannot be copied."}</p>
     </section>
   `;
 }
@@ -7202,16 +7202,16 @@ function bootloaderModeGateTemplate() {
       <h4>Bootloader mode gate</h4>
       <p>This gate must pass before the app reveals copy-ready bootloader install commands. UEFI and legacy BIOS use different commands, and mixing them can leave an installed system unable to boot.</p>
       <ul>
-        <li><strong>Boot mode:</strong> ${profileValue("bootMode")}</li>
-        <li><strong>EFI partition:</strong> ${escapeHtml(getDeviceValue("efiPartition") || "not entered")}</li>
-        <li><strong>Target whole disk:</strong> ${escapeHtml(getDeviceValue("targetDisk") || "not entered")}</li>
+        <li><strong>Boot mode:</strong> \${profileValue("bootMode")}</li>
+        <li><strong>EFI partition:</strong> \${escapeHtml(getDeviceValue("efiPartition") || "not entered")}</li>
+        <li><strong>Target whole disk:</strong> \${escapeHtml(getDeviceValue("targetDisk") || "not entered")}</li>
       </ul>
-      ${issues.length ? `<p><strong>Still blocked:</strong></p><ul>${issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
+      \${issues.length ? `<p><strong>Still blocked:</strong></p><ul>\${issues.map((issue) => `<li>\${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
       <label class="gate-confirm">
-        <input type="checkbox" data-gate="bootloaderMode" ${passed ? "checked" : ""} ${ready ? "" : "disabled"}>
+        <input type="checkbox" data-gate="bootloaderMode" \${passed ? "checked" : ""} \${ready ? "" : "disabled"}>
         <span>I have confirmed the machine's boot mode and understand that UEFI bootloader commands are not the same as legacy BIOS GRUB commands.</span>
       </label>
-      <p>${passed ? "Gate passed for the current boot mode and mapped values. If boot mode or mapped values change, this confirmation must be repeated." : "Gate not passed. Bootloader install commands remain hidden and cannot be copied."}</p>
+      <p>\${passed ? "Gate passed for the current boot mode and mapped values. If boot mode or mapped values change, this confirmation must be repeated." : "Gate not passed. Bootloader install commands remain hidden and cannot be copied."}</p>
     </section>
   `;
 }
@@ -7225,16 +7225,16 @@ function lockoutSafetyGateTemplate() {
       <h4>Sudo/admin lockout gate</h4>
       <p>This gate must pass before the app reveals copy-ready commands that change passwords, users, sudo access, shells, PAM/login limits, or graphical login behavior. These actions can lock the user out if the wrong account, group, file, or service is changed.</p>
       <ul>
-        <li><strong>Normal username:</strong> ${escapeHtml(getDeviceValue("username") || "not entered")}</li>
-        <li><strong>Current environment:</strong> ${profileValue("currentEnvironment")}</li>
+        <li><strong>Normal username:</strong> \${escapeHtml(getDeviceValue("username") || "not entered")}</li>
+        <li><strong>Current environment:</strong> \${profileValue("currentEnvironment")}</li>
         <li><strong>Recovery rule:</strong> keep a root shell, Arch ISO path, or known working admin path available until login and sudo are tested.</li>
       </ul>
-      ${issues.length ? `<p><strong>Still blocked:</strong></p><ul>${issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
+      \${issues.length ? `<p><strong>Still blocked:</strong></p><ul>\${issues.map((issue) => `<li>\${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
       <label class="gate-confirm">
-        <input type="checkbox" data-gate="lockoutSafety" ${passed ? "checked" : ""} ${ready ? "" : "disabled"}>
+        <input type="checkbox" data-gate="lockoutSafety" \${passed ? "checked" : ""} \${ready ? "" : "disabled"}>
         <span>I understand that account, sudo, shell, PAM, and login-service changes can lock me out. I will keep a recovery path available and test login plus sudo before relying on the install.</span>
       </label>
-      <p>${passed ? "Gate passed for the current username and environment. If those values change, this confirmation must be repeated." : "Gate not passed. Access/login-changing commands remain hidden and cannot be copied."}</p>
+      <p>\${passed ? "Gate passed for the current username and environment. If those values change, this confirmation must be repeated." : "Gate not passed. Access/login-changing commands remain hidden and cannot be copied."}</p>
     </section>
   `;
 }
@@ -7248,183 +7248,443 @@ function securityPrivacyGateTemplate() {
       <h4>Security/privacy gate</h4>
       <p>This gate must pass before the app reveals copy-ready commands for firewall rules, process limits, PAM limits, cgroups, monitoring, process killing, or restricted shells. These actions are for protecting systems and accounts you own or administer with permission.</p>
       <ul>
-        <li><strong>Current environment:</strong> ${profileValue("currentEnvironment")}</li>
+        <li><strong>Current environment:</strong> \${profileValue("currentEnvironment")}</li>
         <li><strong>Privacy boundary:</strong> respect other people's privacy. Do not inspect personal files, monitor users, or restrict accounts without permission.</li>
         <li><strong>Layer 1 prevention:</strong> prefer limits, firewall defaults, and least-privilege setup before a problem starts.</li>
         <li><strong>Layer 2 detection/response:</strong> monitoring, alerts, and process killing are emergency tools, not the primary cure.</li>
         <li><strong>Layer 3 cause analysis:</strong> identify the parent process, service, shell, script, or config that caused the runaway behavior.</li>
       </ul>
-      ${issues.length ? `<p><strong>Still blocked:</strong></p><ul>${issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
+      \${issues.length ? `<p><strong>Still blocked:</strong></p><ul>\${issues.map((issue) => `<li>\${escapeHtml(issue)}</li>`).join("")}</ul>` : ""}
       <label class="gate-confirm">
-        <input type="checkbox" data-gate="securityPrivacy" ${passed ? "checked" : ""} ${ready ? "" : "disabled"}>
+        <input type="checkbox" data-gate="securityPrivacy" \${passed ? "checked" : ""} \${ready ? "" : "disabled"}>
         <span>I will use security, monitoring, process-limit, and process-control steps only on systems/accounts I own or administer with permission. I understand prevention is the main protection and privacy must be respected.</span>
       </label>
-      <p>${passed ? "Gate passed for the current environment. If the environment changes, this confirmation must be repeated." : "Gate not passed. Security/privacy-sensitive commands remain hidden and cannot be copied."}</p>
+      <p>\${passed ? "Gate passed for the current environment. If the environment changes, this confirmation must be repeated." : "Gate not passed. Security/privacy-sensitive commands remain hidden and cannot be copied."}</p>
     </section>
   `;
 }
+function syncProfileForm() {
+  for (const element of profileForm.elements) {
+    if (element.name && setupProfile[element.name] !== undefined) {
+      element.value = setupProfile[element.name];
+    }
+  }
+}
 
-function renderProfileSummary() {
-  syncProfileForm();
+function checkProfileCompletion() {
+  let answeredCount = 0;
+  const selectElements = profileForm.querySelectorAll("select");
+  selectElements.forEach((select) => {
+    if (select.value !== "") {
+      answeredCount++;
+    }
+  });
+
+  profileAnswersCounter.textContent = `${answeredCount} of 12 answered`;
+  
+  if (answeredCount === selectElements.length) {
+    profileAnswersCounter.classList.add("complete");
+    beginWalkthroughBtn.disabled = false;
+  } else {
+    profileAnswersCounter.classList.remove("complete");
+    beginWalkthroughBtn.disabled = true;
+  }
+}
+
+function renderProfileSummaryDrawer() {
   const warnings = profileWarnings();
-  profileSummary.innerHTML = `
-    <section class="profile-summary-card ${warnings.length ? "profile-danger" : "profile-safe"}">
-      <h4>Current safety summary</h4>
-      <p>
-        Reading from: ${profileValue("guideDevice")}. Target machine: ${profileValue("machineType")}.
-        Current environment: ${profileValue("currentEnvironment")}. Install target: ${profileValue("installTarget")}.
-        Erase intent: ${profileValue("eraseIntent")}. Internal drives: ${profileValue("internalDriveCount")}.
-        External drive: ${profileValue("externalDrive")}. Boot mode: ${profileValue("bootMode")}.
-        Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
-        Swap: ${profileValue("swapStrategy")}. Audio: ${profileValue("audioTarget")}.
-      </p>
-    </section>
-    <section class="profile-summary-card">
-      <h4>Recommended safe path right now</h4>
+  let html = `
+    <div class="drawer-section-explain">
+      <h4>Active Recommended Path</h4>
       <p>${recommendedPath()}</p>
-    </section>
-    ${profileDecisionGuideTemplate()}
-    ${scenarioPathTemplate()}
-    ${internalScenarioTemplate()}
-    ${diskStrategyTemplate()}
-    ${sameDiskDecisionTemplate()}
-    ${sameDiskErasePathTemplate()}
-    ${sameDiskPreservePlanTemplate()}
-    ${partitionDecisionTemplate()}
-    ${separateSsdPartitionPlanTemplate()}
-    ${separateSsdFormatMountTemplate()}
-    ${swapStrategyTemplate()}
-    ${audioPathTemplate()}
-    ${bootloaderPathTemplate()}
-    ${networkPathTemplate()}
-    ${diskIdentityGateTemplate()}
-    ${bootloaderModeGateTemplate()}
-    ${lockoutSafetyGateTemplate()}
-    ${securityPrivacyGateTemplate()}
-    <section class="profile-summary-card ${warnings.length ? "profile-danger" : "profile-safe"}">
-      <h4>Safety gates still active</h4>
-      ${warnings.length ? `<ul>${warnings.map((warning) => `<li>${warning}</li>`).join("")}</ul>` : "<p>Profile is complete enough to choose a focused path. Disk commands still require device-name mapping and a final disk identity gate.</p>"}
-    </section>
+    </div>
   `;
+
+  const strategy = activeDiskStrategy();
+  html += `
+    <div class="drawer-section-explain">
+      <h4>Active Disk Strategy: ${strategy.label}</h4>
+      <p>${escapeHtml(strategy.summary)}</p>
+      <p><strong>Visible path:</strong> ${escapeHtml(strategy.visiblePath)}</p>
+    </div>
+  `;
+
+  if (sameDiskPathSelected()) {
+    html += `
+      <div class="drawer-section-warning">
+        <h4>Same-Disk Alert</h4>
+        <p>You have selected a single-disk configuration. Ensure backups are verified outside this drive.</p>
+      </div>
+    `;
+  }
+
+  // Active Safety Gates Checklist
+  html += `
+    <div class="drawer-glossary">
+      <h4>Safety Gates Status</h4>
+      <ul>
+        <li>
+          <strong>Disk Identity:</strong> ${diskIdentityGatePassed() ? "✅ Passed" : "❌ Blocked (Requires target disk verification)"}
+        </li>
+        <li>
+          <strong>Bootloader Mode:</strong> ${bootloaderModeGatePassed() ? "✅ Passed" : "❌ Blocked (Requires boot mode match)"}
+        </li>
+        <li>
+          <strong>Sudo / Admin Lockout:</strong> ${lockoutSafetyGatePassed() ? "✅ Passed" : "❌ Blocked (Requires root/sudo password set)"}
+        </li>
+        <li>
+          <strong>Security / Privacy:</strong> ${securityPrivacyGatePassed() ? "✅ Passed" : "❌ Blocked (Requires privacy confirmation)"}
+        </li>
+      </ul>
+    </div>
+  `;
+
+  if (warnings.length) {
+    html += `
+      <div class="drawer-section-warning">
+        <h4>Configuration Warnings</h4>
+        <ul>
+          ${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+  }
+
+  drawerContent.innerHTML = html;
+}
+
+function computeApplicableSteps() {
+  applicableSteps = [];
+
+  // Step 1: Device Mapping Setup (Wizard Step 0)
+  applicableSteps.push({
+    type: "device-mapping",
+    title: "Device Mapping Setup",
+    summary: "Register the target storage devices and partition names before typing commands.",
+    sectionTitle: "Device Mapping",
+    sectionExplainText: "Arch Linux requires you to target specific partitions (EFI, root, swap) on your hard drive. Using correct names is crucial to avoid destroying data on other drives.",
+    sectionTerms: ["block device", "/dev", "device name", "partition"],
+    sectionSources: []
+  });
+
+  // Step 2: Loop over sections to compile milestones and commands
+  sections.forEach((section) => {
+    const visibleBlocks = visibleBlocksForSection(section);
+    const visibleCommands = visibleCommandsForSection(section);
+
+    // If there is no visible content, skip the section
+    if (visibleBlocks.length === 0 && visibleCommands.length === 0) {
+      return;
+    }
+
+    // Add a Section Milestone step (Introduction)
+    applicableSteps.push({
+      type: "milestone",
+      title: section.title,
+      summary: section.summary,
+      sectionTitle: section.title,
+      blocks: visibleBlocks.filter(b => b.type !== "warn" && b.type !== "checkpoint"),
+      warnings: visibleBlocks.filter(b => b.type === "warn"),
+      checkpoints: visibleBlocks.filter(b => b.type === "checkpoint"),
+      sectionExplainText: (section.blocks || []).filter(b => b.type !== "warn" && b.type !== "checkpoint").map(b => b.text).join("\n\n"),
+      sectionTerms: section.terms || [],
+      sectionSources: section.sources || []
+    });
+
+    // Add each visible command as a separate step
+    visibleCommands.forEach((command) => {
+      applicableSteps.push({
+        type: "command",
+        title: command.label,
+        summary: command.purpose,
+        sectionTitle: section.title,
+        command: command,
+        sectionExplainText: (section.blocks || []).filter(b => b.type !== "warn" && b.type !== "checkpoint").map(b => b.text).join("\n\n"),
+        sectionTerms: section.terms || [],
+        sectionSources: section.sources || [],
+        warnings: visibleBlocks.filter(b => b.type === "warn")
+      });
+    });
+  });
+}
+
+function examplePlaceholderFor(key) {
+  switch (key) {
+    case "targetDisk": return "nvme0n1 or sda";
+    case "efiPartition": return "nvme0n1p1 or sda1";
+    case "rootPartition": return "nvme0n1p2 or sda2";
+    case "swapPartition": return "nvme0n1p3";
+    case "currentOsDisk": return "nvme0n1";
+    case "wifiDevice": return "wlan0";
+    case "wifiName": return "SSID";
+    case "username": return "ethan";
+    case "hostname": return "archbox";
+    default: return "";
+  }
+}
+
+function renderDeviceMappingForm() {
+  const keys = [
+    { key: "targetDisk", title: "Target install disk", help: "The main SSD or USB drive where Arch Linux will be installed (e.g. nvme0n1 or sda)." },
+    { key: "efiPartition", title: "EFI System Partition", help: "The partition where the bootloader files are stored. (e.g. nvme0n1p1 or sda1)." },
+    { key: "rootPartition", title: "Root partition", help: "The partition that will hold the main Linux operating system files (e.g. nvme0n1p2 or sda2)." },
+    { key: "swapPartition", title: "Swap partition (Optional)", help: "Only required if you chose the Swap Partition strategy. Otherwise, leave blank (e.g. nvme0n1p3)." },
+    { key: "currentOsDisk", title: "Current OS disk (Optional)", help: "Only required for same-disk erase path to verify you are not erasing the wrong disk." },
+    { key: "wifiDevice", title: "Wi-Fi device name (Optional)", help: "Only required for Wi-Fi setups (e.g. wlan0)." },
+    { key: "wifiName", title: "Wi-Fi SSID / Network Name (Optional)", help: "Your wireless network name." },
+    { key: "username", title: "New user account username", help: "The primary non-root username to create (e.g. your name)." },
+    { key: "hostname", title: "System Hostname", help: "The name of this computer on the network (e.g. archbox)." }
+  ];
+
+  let html = `
+    <div class="wizard-step-header">
+      <p class="eyebrow">Device Mapping</p>
+      <h2>Target Storage Configuration</h2>
+      <p>Before running commands, enter the exact disk, partition, and user settings for your target machine. These will replace generic placeholders in command blocks.</p>
+    </div>
+    <form id="wizard-device-form" class="device-form">
+  `;
+
+  keys.forEach(({ key, title, help }) => {
+    const map = deviceMap[key] || { value: "", unknown: false };
+    html += `
+      <div class="device-field">
+        <label>
+          <span class="device-field-title">${title}</span>
+          <span class="device-field-help">${help}</span>
+          <input type="text" name="${key}" value="${escapeHtml(map.value)}" placeholder="e.g. ${examplePlaceholderFor(key)}" ${map.unknown ? "disabled" : ""}>
+        </label>
+        <label class="unknown-row">
+          <input type="checkbox" name="${key}__unknown" ${map.unknown ? "checked" : ""}>
+          I do not know my device name
+        </label>
+      </div>
+    `;
+  });
+
+  html += `</form>`;
+  return html;
+}
+
+function renderMilestoneStep(step) {
+  let html = `
+    <div class="wizard-step-header">
+      <p class="eyebrow">${step.sectionTitle} Milestone</p>
+      <h2>${step.title}</h2>
+      <p>${step.summary}</p>
+    </div>
+    <div class="wizard-milestone">
+      <h3>Walkthrough Stage Overview</h3>
+      <div class="wizard-focus-grid" style="grid-template-columns: 1fr; max-width: 600px; text-align: left;">
+        ${step.blocks.map((block) => `
+          <div class="wizard-focus">
+            <strong>${block.title}</strong>
+            <p>${block.text}</p>
+          </div>
+        `).join("")}
+        ${step.checkpoints.map((cp) => `
+          <div class="wizard-focus" style="border-color: var(--ok-line); background: var(--ok-bg);">
+            <strong style="color: var(--accent-3);">✓ ${cp.title}</strong>
+            <p style="color: inherit !important;">${cp.text}</p>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+function renderCommandStep(step) {
+  const command = step.command;
+  let html = `
+    <div class="wizard-step-header">
+      <p class="eyebrow">${step.sectionTitle}</p>
+      <h2>${command.label}</h2>
+      <p>${command.purpose}</p>
+    </div>
+    ${commandTemplate(command)}
+  `;
+  return html;
+}
+
+function populateDrawerContent(step) {
+  if (step.type === "device-mapping") {
+    const showWindowsDiscovery = setupProfile.currentEnvironment === "windows" || setupProfile.currentEnvironment === "unknown" || !setupProfile.currentEnvironment;
+    const showMacDiscovery = setupProfile.currentEnvironment === "macos" || setupProfile.machineType === "mac" || setupProfile.currentEnvironment === "unknown" || !setupProfile.currentEnvironment;
+    const showUnknownEnvironmentDiscovery = setupProfile.currentEnvironment === "unknown" || !setupProfile.currentEnvironment;
+
+    let html = `
+      <div class="drawer-section-explain">
+        <h4>Device Discovery Guide</h4>
+        <p>Follow these guides to locate your exact storage drive names. Do not copy example names blindly.</p>
+      </div>
+    `;
+
+    if (showUnknownEnvironmentDiscovery) {
+      html += `
+        <div class="drawer-section-explain">
+          <h4>Identify Install Environment</h4>
+          <p>Observe your target computer's screen to see what state you are currently in:</p>
+          <ul>
+            <li><strong>Web Browser:</strong> You are reading this guide. Wiping only affects the target machine.</li>
+            <li><strong>Terminal prompt (root@archiso ~ #):</strong> You are already inside the Arch live ISO installer.</li>
+            <li><strong>Windows desktop:</strong> You are in Windows. You must boot the Arch ISO first.</li>
+            <li><strong>macOS desktop:</strong> You are in macOS. You must boot the Arch ISO first.</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    if (showWindowsDiscovery) {
+      html += `
+        <div class="drawer-section-warning">
+          <h4>Windows Storage Discovery</h4>
+          <p>From Windows, open <strong>Disk Management</strong> (press Win+X, then select Disk Management) or run <strong>System Information</strong> (msinfo32) to observe system drives:</p>
+          <ul>
+            <li>Match your disk by its capacity (e.g. 512GB vs 1TB).</li>
+            <li>Note the partition structure (e.g. EFI system partition, C: partition).</li>
+            <li>Observe if BIOS Mode is <strong>UEFI</strong> or <strong>Legacy</strong>.</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    if (showMacDiscovery) {
+      html += `
+        <div class="drawer-section-warning">
+          <h4>Mac Storage Discovery</h4>
+          <p>From macOS, open <strong>Disk Utility</strong> to observe internal/external drives. Run <code>diskutil list</code> in the terminal to inspect device identifiers (e.g. <code>disk0</code>, <code>disk1</code>).</p>
+        </div>
+      `;
+    }
+
+    html += `
+      <div class="drawer-section-explain">
+        <h4>Arch ISO / Linux Discovery</h4>
+        <p>If you are booted into the Arch live ISO, run the following listing command to observe device evidence without writing anything:</p>
+        <pre style="background: var(--code-bg); color: var(--code-ink); padding: 8px; border-radius: 4px; font-size: 0.85rem; overflow-x: auto; font-family: monospace;"><code>lsblk -o NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS</code></pre>
+        <p>Match the target disk by name (e.g. <code>nvme0n1</code> or <code>sda</code>), capacity, model, serial, and current mountpoints.</p>
+      </div>
+    `;
+
+    drawerContent.innerHTML = html;
+    return;
+  }
+
+  let html = "";
+
+  if (step.sectionExplainText) {
+    html += `
+      <div class="drawer-section-explain">
+        <h4>General Context</h4>
+        <p>${step.sectionExplainText.split("\n\n").join("</p><p>")}</p>
+      </div>
+    `;
+  }
+
+  if (step.warnings && step.warnings.length) {
+    step.warnings.forEach((warning) => {
+      html += `
+        <div class="drawer-section-warning">
+          <h4>⚠️ ${warning.title}</h4>
+          <p>${warning.text}</p>
+        </div>
+      `;
+    });
+  }
+
+  if (step.sectionTerms && step.sectionTerms.length) {
+    const sectionTerms = step.sectionTerms.filter(t => glossary[t]);
+    if (sectionTerms.length) {
+      html += `
+        <div class="drawer-glossary">
+          <h4>📚 Glossary (Click to read)</h4>
+          <ul>
+            ${sectionTerms.map((term) => `
+              <li>
+                <button type="button" class="link-btn" data-term="${escapeHtml(term)}" style="background:none; border:none; color:var(--accent); font-weight:800; padding:0; cursor:pointer; text-align:left; text-decoration:underline;">
+                  ${escapeHtml(term)}
+                </button>
+                : ${escapeHtml(glossary[term])}
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+      `;
+    }
+  }
+
+  if (step.sectionSources && step.sectionSources.length) {
+    html += `
+      <div class="drawer-sources">
+        ${sourceListTemplate(step.sectionSources, "🔗 Official Manuals & Links", true)}
+      </div>
+    `;
+  }
+
+  drawerContent.innerHTML = html;
+}
+
+function renderActiveStep() {
+  if (currentStepIndex < 0 || currentStepIndex >= applicableSteps.length) return;
+  const step = applicableSteps[currentStepIndex];
+
+  if (step.type === "device-mapping") {
+    wizardStage.innerHTML = renderDeviceMappingForm();
+  } else if (step.type === "milestone") {
+    wizardStage.innerHTML = renderMilestoneStep(step);
+  } else if (step.type === "command") {
+    wizardStage.innerHTML = renderCommandStep(step);
+  }
+
+  populateDrawerContent(step);
+  updateWizardProgress();
+}
+
+function transitionToView(viewName) {
+  currentView = viewName;
+  localStorage.setItem("currentView", currentView);
+  
+  // Hide all view containers
+  viewProfile.classList.add("hidden");
+  viewWizard.classList.add("hidden");
+  viewComplete.classList.add("hidden");
+  
+  progressWrap.style.display = "none";
+  toggleDrawerBtn.style.display = "none";
+  wizardFooter.classList.add("hidden");
+
+  if (viewName === "profile") {
+    viewProfile.classList.remove("hidden");
+    renderProfileSummaryDrawer();
+  } else if (viewName === "wizard") {
+    viewWizard.classList.remove("hidden");
+    progressWrap.style.display = "block";
+    toggleDrawerBtn.style.display = "block";
+    wizardFooter.classList.remove("hidden");
+    renderActiveStep();
+  } else if (viewName === "complete") {
+    viewComplete.classList.remove("hidden");
+    drawerContent.innerHTML = `
+      <div class="drawer-section-explain">
+        <h4>Walkthrough Complete</h4>
+        <p>You have finished all installation steps. Close this window and reboot your machine to test the new Arch installation!</p>
+      </div>
+    `;
+  }
 }
 
 function render() {
-  wizardIndex = Math.min(Math.max(wizardIndex, 0), sections.length - 1);
-  renderProfileSummary();
-  renderDeviceSummary();
-  renderWizard();
-  renderGlossaryPanel();
-
-  const query = search.value.trim().toLowerCase();
-  const visibleSections = sections.filter((section) => {
-    const haystack = JSON.stringify(section).toLowerCase();
-    return !query || haystack.includes(query);
-  });
-
-  sectionNav.innerHTML = sections.map((section, index) => `
-    <a href="#lesson-${index + 1}" data-wizard-jump="${index}">${index + 1}. ${section.title}</a>
-  `).join("");
-
-  lessonList.innerHTML = visibleSections.map((section) => {
-    const realIndex = sections.indexOf(section);
-    const index = realIndex + 1;
-    const visibleBlocks = visibleBlocksForSection(section);
-    const visibleCommands = visibleCommandsForSection(section);
-    return `
-      <article class="lesson open" id="lesson-${index}" data-index="${realIndex}">
-        <button class="lesson-header" type="button" aria-expanded="true">
-          <span class="lesson-number">${index}</span>
-          <span>
-            <h3>${section.title}</h3>
-            <p class="lesson-summary">${section.summary}</p>
-          </span>
-          <span class="lesson-toggle">-</span>
-        </button>
-        <div class="lesson-body">
-          <div class="blocks">
-            ${sourceListTemplate(section.sources, "Official sources for this lesson")}
-            ${sectionBranchNotice(section)}
-            ${visibleBlocks.map((block) => `
-              <section class="${blockClass(block.type)}">
-                <h4>${block.title}</h4>
-                <p>${block.text}</p>
-              </section>
-            `).join("")}
-            ${visibleCommands.map((command) => commandTemplate(command)).join("")}
-            <section class="block">
-              <h4>Words to understand before moving on</h4>
-              <div class="term-grid">
-                ${section.terms.map((term) => `<button type="button" data-term="${term}">${term}</button>`).join("")}
-              </div>
-            </section>
-          </div>
-          <label class="complete-row">
-            <input type="checkbox" data-complete="${realIndex}" ${completed.has(realIndex) ? "checked" : ""}>
-            I understand this section well enough to continue
-          </label>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  updateProgress();
-}
-
-function allSectionTerms() {
-  return [...new Set(sections.flatMap((section) => section.terms || []))].filter(Boolean);
-}
-
-function priorityGlossaryTerms() {
-  const repeatedTerms = allSectionTerms()
-    .filter((term) => glossary[term])
-    .sort((a, b) => a.localeCompare(b));
-  const mustKnow = [
-    "sudo",
-    "ls",
-    "lsblk",
-    "nano",
-    "mount",
-    "/mnt",
-    "root",
-    "UUID",
-    "DNS",
-    "pacman",
-    "pacstrap",
-    "systemd",
-    "PAM",
-    "/etc/security/limits.conf",
-    "soft limit",
-    "hard limit",
-    "nproc",
-    "process",
-    "privacy"
-  ];
-  return [...new Set([...mustKnow, ...repeatedTerms])].filter((term) => glossary[term]);
-}
-
-function renderGlossaryPanel() {
-  if (!glossaryPanel) return;
-  const terms = priorityGlossaryTerms();
-  glossaryPanel.innerHTML = `
-    <section class="glossary-feature">
-      <strong>Beginner mode rule</strong>
-      <p>Do not rely on memory. If a word appears again, open it again. The same command word must be understandable every time it appears.</p>
-    </section>
-    <div class="term-grid glossary-term-grid">
-      ${terms.map((term) => `<button type="button" data-term="${escapeHtml(term)}">${escapeHtml(term)}</button>`).join("")}
-    </div>
-  `;
-}
-
-function termDetail(term) {
-  const meaning = glossary[term] || "This term still needs a detailed explanation.";
-  const detail = glossaryDetails[term] || {};
-  return {
-    meaning,
-    appears: detail.appears || "This term appears in one or more install, safety, networking, audio, boot, or troubleshooting pages.",
-    example: detail.example || "Open this term whenever it appears. The app should explain the current command's exact words on the same page too.",
-    safety: detail.safety || "Read the surrounding command, expected result, and failure note before typing anything."
-  };
+  if (currentView === "profile") {
+    syncProfileForm();
+    checkProfileCompletion();
+    renderProfileSummaryDrawer();
+  } else if (currentView === "wizard") {
+    computeApplicableSteps();
+    renderActiveStep();
+  } else if (currentView === "complete") {
+    transitionToView("complete");
+  }
 }
 
 function openTermDialog(term) {
@@ -7440,334 +7700,6 @@ function openTermDialog(term) {
     <span class="term-detail-label">Safety note</span>
     <span>${escapeHtml(detail.safety)}</span>
   `;
-  dialog.showModal();
-}
-
-function renderWizard() {
-  const section = sections[wizardIndex];
-  const firstCommand = section.commands[0];
-  const secondCommand = section.commands[1];
-  const warning = section.blocks.find((block) => block.type === "warn");
-  const checkpoint = section.blocks.find((block) => block.type === "checkpoint");
-  const explanation = section.blocks.find((block) => block.type !== "warn" && block.type !== "checkpoint") || section.blocks[0];
-
-  wizardCounter.textContent = `Step ${wizardIndex + 1} of ${sections.length}`;
-  wizardPrev.disabled = wizardIndex === 0;
-  wizardNext.disabled = wizardIndex === sections.length - 1;
-  wizardUnderstand.textContent = completed.has(wizardIndex) ? "Marked understood" : "Mark understood";
-
-  wizardStage.innerHTML = `
-    <div class="wizard-stage-head">
-      <h4>${section.title}</h4>
-      <p>${section.summary}</p>
-    </div>
-    <section class="wizard-profile-context">
-      <strong>Your active setup profile</strong>
-      <p>
-        Install target: ${profileValue("installTarget")}. Erase intent: ${profileValue("eraseIntent")}.
-        Boot mode: ${profileValue("bootMode")}. Bootloader path: ${profileValue("bootloaderPath")}. Network: ${profileValue("networkPath")}.
-      </p>
-      <p>
-        Target disk: ${escapeHtml(getDeviceUnknown("targetDisk") ? "I do not know" : (getDeviceValue("targetDisk") || "not entered"))}.
-        EFI partition: ${escapeHtml(getDeviceUnknown("efiPartition") ? "I do not know" : (getDeviceValue("efiPartition") || "not entered"))}.
-        Root partition: ${escapeHtml(getDeviceUnknown("rootPartition") ? "I do not know" : (getDeviceValue("rootPartition") || "not entered"))}.
-      </p>
-      <p>${setupProfileCompleteEnough() ? "This profile is complete enough to choose a focused path, but disk commands still require exact device names and a safety gate." : "This profile is incomplete. Treat disk commands below as educational examples, not final copy/paste instructions."}</p>
-    </section>
-    <div class="wizard-focus-grid">
-      <div class="wizard-focus">
-        <strong>What you are doing</strong>
-        <p>${explanation ? explanation.text : section.summary}</p>
-      </div>
-      <div class="wizard-focus">
-        <strong>Do not continue until</strong>
-        <p>${checkpoint ? checkpoint.text : "You understand the goal of this stage and can explain what the next command changes."}</p>
-      </div>
-      <div class="wizard-focus">
-        <strong>High-risk note</strong>
-        <p>${warning ? warning.text : "This stage still matters. Read the expected result and failure notes before copying commands."}</p>
-      </div>
-    </div>
-    ${wizardCommandPreview(firstCommand, "First command to understand")}
-    ${secondCommand ? wizardCommandPreview(secondCommand, "Next command to understand") : ""}
-  `;
-}
-
-function wizardCommandPreview(command, title) {
-  if (!command) return "";
-  const safety = commandSafetyMeta(command);
-  const safetyType = commandSafetyType(command);
-  const dangerClass = commandDangerClass(safetyType);
-  const rendered = renderCommandValue(command);
-  if (commandBlockedBySafetyGate(command)) {
-    return `
-      <section class="wizard-command-preview gate-blocked${dangerClass}">
-        <div class="command-title-row">
-          <h4>${title}: ${command.label}</h4>
-          ${commandSafetyBadge(command)}
-        </div>
-        <p><strong>Hidden until safety gate passes.</strong> ${blockedCommandReason(command)}</p>
-      </section>
-    `;
-  }
-  return `
-    <section class="wizard-command-preview${dangerClass}">
-      <div class="command-title-row">
-        <h4>${title}: ${command.label}</h4>
-        ${commandSafetyBadge(command)}
-      </div>
-      <p class="command-safety-note">${safety.explanation}</p>
-      ${destructiveCommandWarning(safetyType)}
-      ${rendered.note}
-      ${renderLiteralPlaceholderNote(rendered)}
-      ${renderCommandCombinationNote(command, rendered)}
-      ${renderCommandOptionsNote(rendered)}
-      ${renderCommandPathsNote(rendered)}
-      ${renderExpectedOutputNote(command)}
-      ${renderFailureRecoveryNote(command)}
-      <pre><code>${escapeHtml(rendered.command)}</code></pre>
-      <p><strong>Meaning:</strong> ${command.purpose}</p>
-      <p><strong>Expected:</strong> ${command.expected}</p>
-      <p><strong>If it fails:</strong> ${command.fails}</p>
-    </section>
-  `;
-}
-
-function commandSafetyType(command) {
-  const text = command.command.trim();
-  if (/^(cfdisk|fdisk\s+\/dev|parted|gdisk|sgdisk|wipefs|mkfs\.|mkswap)\b/.test(text)) {
-    return "disk-write";
-  }
-  if (/^(bootctl install|grub-install\b)/.test(text)) {
-    return "bootloader-install";
-  }
-  if (/^(passwd|useradd|usermod|gpasswd|chsh|chage|visudo|EDITOR=.*\svisudo)\b/.test(text)) {
-    return "access-change";
-  }
-  if (/^(sudo\s+)?systemctl\s+(enable|start|enable\s+--now)\b.*\blightdm\b/.test(text)) {
-    return "access-change";
-  }
-  if (/^(sudo\s+)?(ufw|firewall-cmd|nft|iptables|ip6tables|ulimit|htop|top|ps|pstree|pkill|killall|kill)\b/.test(text)) {
-    return "security-privacy";
-  }
-  if (/^(sudo\s+)?nano\s+\/etc\/security\/limits\.conf\b/.test(text)) {
-    return "security-privacy";
-  }
-  if (/^(sudo\s+)?systemctl\b.*(set-property|CPU|Memory|TasksMax|user-|\.slice|\.service)/.test(text)) {
-    return "security-privacy";
-  }
-  if (/^(sudo\s+)?systemctl\s+(enable|start|enable\s+--now)\b.*\bufw\b/.test(text)) {
-    return "security-privacy";
-  }
-  if (/^(sudo\s+)?(chsh|usermod)\b.*(-s|--shell)/.test(text)) {
-    return "security-privacy";
-  }
-  if (/^(sudo\s+)?pacman\s+-S/.test(text) || /^pacstrap\b/.test(text)) {
-    return "package-install";
-  }
-  if (/^(sudo\s+)?systemctl\b/.test(text) || /^bootctl\s+(list|status)\b/.test(text)) {
-    return "service-control";
-  }
-  if (/^(nano|sudo\s+nano|EDITOR=.*\bvisudo\b|ln\s+-sf|locale-gen|echo\s+["']?[A-Z_=$ ]+["']?$|cat\s+>|genfstab|arch-chroot|mount|swapon)\b/.test(text)) {
-    if (/^echo\s+["']?\$/.test(text)) return "safe-inspection";
-    return "configuration";
-  }
-  if (/^(ls|lsblk|lscpu|lspci|lsusb|rfkill\s+list|fdisk\s+-l|blkid|findmnt|grep|ping|resolvectl|whoami|man|localectl|ip\s|ps\b|pstree\b|journalctl\b|pacman\s+-Q|cat\b|readlink\b|systemctl\s+show|pactl\s+(info|list|get-default|get-sink-mute|get-source-mute)\b|echo\s)/.test(text)) {
-    return "safe-inspection";
-  }
-  if (/^(Ctrl|F\d+$|u$|q$|PID |\/|@|\[|process_count|new_processes|normal baseline|keep,)/.test(text)) {
-    return "reference-example";
-  }
-  return "normal";
-}
-
-const commandSafetyLabels = {
-  "safe-inspection": {
-    label: "Safe inspection",
-    className: "safe-inspection",
-    explanation: "This command is meant to read or display information. It should not change disks, accounts, services, or firewall policy by itself."
-  },
-  configuration: {
-    label: "Configuration",
-    className: "configuration",
-    explanation: "This command edits or creates configuration, mounts filesystems, or changes setup state. Read the file/path and expected result carefully."
-  },
-  "package-install": {
-    label: "Package install",
-    className: "package-install",
-    explanation: "This command installs packages. It changes installed software but should not erase disks or alter login policy by itself."
-  },
-  "service-control": {
-    label: "Service control",
-    className: "service-control",
-    explanation: "This command inspects or changes systemd service state. Starting/enabling the wrong service can affect boot, networking, login, or security behavior."
-  },
-  "disk-write": {
-    label: "Disk-write",
-    className: "danger",
-    explanation: "This command can partition, format, or prepare storage. It can destroy data and requires the Disk identity gate."
-  },
-  "bootloader-install": {
-    label: "Bootloader install",
-    className: "danger",
-    explanation: "This command installs bootloader files or firmware entries. It requires the Bootloader mode gate."
-  },
-  "access-change": {
-    label: "Access/login change",
-    className: "danger",
-    explanation: "This command can change passwords, users, sudo, shells, PAM, or login behavior. It requires the Sudo/admin lockout gate."
-  },
-  "security-privacy": {
-    label: "Security-sensitive",
-    className: "security",
-    explanation: "This command can affect firewall policy, limits, monitoring, process termination, resource control, or restrictions. It requires privacy/permission awareness."
-  },
-  "reference-example": {
-    label: "Reference/example",
-    className: "reference",
-    explanation: "This is shown as text, a key press, a file line, a placeholder, or a planning example. It is not always a shell command."
-  },
-  normal: {
-    label: "Command",
-    className: "normal",
-    explanation: "This command does not match a higher-risk category yet. Read the word map, expected result, and failure notes before using it."
-  }
-};
-
-function commandSafetyMeta(command) {
-  const type = commandSafetyType(command);
-  return commandSafetyLabels[type] || commandSafetyLabels.normal;
-}
-
-function commandSafetyBadge(command) {
-  const meta = commandSafetyMeta(command);
-  return `<span class="safety-badge safety-${meta.className}">${meta.label}</span>`;
-}
-
-function commandDangerClass(safetyType) {
-  if (["disk-write", "bootloader-install", "access-change"].includes(safetyType)) {
-    return ` command-danger command-danger-${safetyType}`;
-  }
-  return "";
-}
-
-function destructiveCommandWarning(safetyType) {
-  if (safetyType === "disk-write") {
-    return `
-      <section class="danger-command-warning">
-        <strong>Destructive storage command.</strong>
-        <p>This command can erase, repartition, format, or prepare storage. The user must confirm the exact target disk or partition from real <code>lsblk</code> output before using it.</p>
-      </section>
-    `;
-  }
-  if (safetyType === "bootloader-install") {
-    return `
-      <section class="danger-command-warning">
-        <strong>Boot-critical command.</strong>
-        <p>This command changes bootloader files or firmware boot entries. The user must confirm UEFI vs BIOS mode and the correct boot partition or disk before using it.</p>
-      </section>
-    `;
-  }
-  if (safetyType === "access-change") {
-    return `
-      <section class="danger-command-warning">
-        <strong>Login-critical command.</strong>
-        <p>This command can change passwords, users, sudo access, shells, or display-login behavior. The user must keep a tested admin path before using it.</p>
-      </section>
-    `;
-  }
-  return "";
-}
-
-function bootloaderCommandIssues(command) {
-  const text = command.command.trim();
-  const issues = [...bootloaderModeGateIssues()];
-  if (text.startsWith("bootctl install") && setupProfile.bootMode !== "uefi") {
-    issues.push("bootctl install is a UEFI systemd-boot command. It must not be used for a legacy BIOS path.");
-  }
-  if (text.includes("--target=x86_64-efi") && setupProfile.bootMode !== "uefi") {
-    issues.push("GRUB target x86_64-efi is for UEFI mode. It must not be used for a legacy BIOS path.");
-  }
-  if (text.includes("--target=i386-pc") && setupProfile.bootMode !== "bios") {
-    issues.push("GRUB target i386-pc is for legacy BIOS mode. It must not be used for a UEFI path.");
-  }
-  return [...new Set(issues)];
-}
-
-function commandBlockedBySafetyGate(command) {
-  const safetyType = commandSafetyType(command);
-  if (safetyType === "disk-write") return !diskIdentityGatePassed();
-  if (safetyType === "bootloader-install") return !bootloaderModeGatePassed() || bootloaderCommandIssues(command).length > 0;
-  if (safetyType === "access-change") return !lockoutSafetyGatePassed();
-  if (safetyType === "security-privacy") return !securityPrivacyGatePassed() || (command.command.includes("/etc/security/limits.conf") && !lockoutSafetyGatePassed());
-  return false;
-}
-
-function blockedCommandReason(command) {
-  const safetyType = commandSafetyType(command);
-  if (safetyType === "disk-write") {
-    return "This command can write to disk, change partitioning, or format storage. Complete the Disk identity gate before treating it as a usable command.";
-  }
-  if (safetyType === "bootloader-install") {
-    const issues = bootloaderCommandIssues(command);
-    return `This command installs bootloader files or firmware boot entries. Complete the Bootloader mode gate first.${issues.length ? ` Still blocked: ${issues.join(" ")}` : ""}`;
-  }
-  if (safetyType === "access-change") {
-    const issues = lockoutSafetyGateIssues();
-    return `This command can change passwords, users, sudo access, shells, or graphical login behavior. Complete the Sudo/admin lockout gate first.${issues.length ? ` Still blocked: ${issues.join(" ")}` : ""}`;
-  }
-  if (safetyType === "security-privacy") {
-    const issues = securityPrivacyGateIssues();
-    const lockoutNote = command.command.includes("/etc/security/limits.conf") && !lockoutSafetyGatePassed() ? " This PAM limits edit can also affect login/session behavior, so complete the Sudo/admin lockout gate too." : "";
-    return `This command can affect firewall policy, process limits, monitoring, process termination, resource control, or account restrictions. Complete the Security/privacy gate first.${lockoutNote}${issues.length ? ` Still blocked: ${issues.join(" ")}` : ""}`;
-  }
-  return "This command is blocked by a safety gate.";
-}
-
-function targetDiskReplacement() {
-  const targetDisk = getDeviceValue("targetDisk");
-  if (!targetDisk || getDeviceUnknown("targetDisk") || !looksLikeWholeDisk(targetDisk)) return null;
-  return targetDisk;
-}
-
-function replaceWholeDiskExamples(value, targetDisk) {
-  return value
-    .replace(/\/dev\/sda(?!\d)/g, targetDisk)
-    .replace(/\/dev\/sdb(?!\d)/g, targetDisk)
-    .replace(/\/dev\/nvme0n1(?!p\d)/g, targetDisk);
-}
-
-function partitionReplacements() {
-  const replacements = [];
-  const efiPartition = validMappedPartition("efiPartition");
-  const rootPartition = validMappedPartition("rootPartition");
-  const swapPartition = validMappedPartition("swapPartition");
-  if (efiPartition) replacements.push([/\/dev\/(nvme0n1p1|sda1|sdb1)\b/g, efiPartition]);
-  if (rootPartition) replacements.push([/\/dev\/(nvme0n1p2|sda2|sdb2)\b/g, rootPartition]);
-  if (swapPartition) replacements.push([/\/dev\/(nvme0n1p3|sda3|sdb3|sdb4)\b/g, swapPartition]);
-  return replacements;
-}
-
-function replacePartitionExamples(value) {
-  return partitionReplacements().reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), value);
-}
-
-function validMappedText(key) {
-  const value = getDeviceValue(key);
-  if (!value || getDeviceUnknown(key)) return null;
-  return value;
-}
-
-function quoteForDoubleQuotedCommand(value) {
-  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
-}
-
-function textReplacements() {
-  const replacements = [];
-  const wifiDevice = validMappedText("wifiDevice");
-  const wifiName = validMappedText("wifiName");
-  const username = validMappedText("username");
-  const hostname = validMappedText("hostname");
   const rootUuid = validRootUuid();
   if (wifiDevice) replacements.push({ pattern: /\bwlan0\b/g, replacement: wifiDevice, label: `Wi-Fi device ${wifiDevice}` });
   if (wifiName) {

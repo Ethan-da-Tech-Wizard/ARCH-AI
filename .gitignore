@@ -23,3 +23,7 @@ vm/*.jpeg
 # Alternate local Git metadata used only when the environment provides a
 # read-only placeholder .git directory.
 .git-local/
+
+# .NET / C# Build outputs
+**/[Bb]in/
+**/[Oo]bj/
