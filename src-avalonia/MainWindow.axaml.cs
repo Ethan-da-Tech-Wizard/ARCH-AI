@@ -857,18 +857,10 @@ namespace src_avalonia
             var box1 = CreateDetailBox("What this command does", command.Purpose);
             grid.Children.Add(box1);
 
-            // Box 2: Expected Output
-            var box2 = CreateDetailBox("What you should see", command.Expected);
-            grid.Children.Add(box2);
-
-            // Box 3: Failure Action
-            var box3 = CreateDetailBox("If it fails", command.Fails);
-            grid.Children.Add(box3);
-
-            // Box 4: Verbatim Mappings
-            var box4 = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(6) };
-            var box4Stack = new StackPanel { Spacing = 6 };
-            box4Stack.Children.Add(new TextBlock { Text = "Command pieces", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+            // Box 2: Verbatim Mappings
+            var box2 = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(6) };
+            var box2Stack = new StackPanel { Spacing = 6 };
+            box2Stack.Children.Add(new TextBlock { Text = "Command pieces", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
             var wordsPanel = new StackPanel { Spacing = 4 };
             foreach (var wordPair in command.Words)
             {
@@ -885,11 +877,70 @@ namespace src_avalonia
                     });
                 }
             }
-            box4Stack.Children.Add(wordsPanel);
-            box4.Child = box4Stack;
+            box2Stack.Children.Add(wordsPanel);
+            box2.Child = box2Stack;
+            grid.Children.Add(box2);
+
+            // Box 3: Expected Success
+            var box3 = CreateDetailBox("Success looks like", command.Expected);
+            grid.Children.Add(box3);
+
+            // Box 4: Danger/Fails info
+            var box4 = CreateDetailBox("Failure or danger looks like", command.Fails);
             grid.Children.Add(box4);
 
+            grid.Margin = new Avalonia.Thickness(0, 0, 0, 10);
             stack.Children.Add(grid);
+
+            // Render Flag explanations if flags exist
+            var options = GetCommandOptionTokens(command.CommandText);
+            if (options.Count > 0)
+            {
+                var flagsCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
+                var flagsStack = new StackPanel { Spacing = 6 };
+                flagsStack.Children.Add(new TextBlock { Text = "Flags and options", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+                foreach (var opt in options)
+                {
+                    string exp = OptionExplanations.TryGetValue(opt, out var ex) ? ex : "Dash-prefixed option or argument flag. Refer to command manuals for details.";
+                    flagsStack.Children.Add(new TextBlock { Text = $"• {opt}: {exp}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+                }
+                flagsCard.Child = flagsStack;
+                stack.Children.Add(flagsCard);
+            }
+
+            // Render Absolute Paths explanations if paths exist
+            var paths = GetCommandPathTokens(command.CommandText);
+            if (paths.Count > 0)
+            {
+                var pathsCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
+                var pathsStack = new StackPanel { Spacing = 6 };
+                pathsStack.Children.Add(new TextBlock { Text = "Paths as data", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+                foreach (var p in paths)
+                {
+                    string exp = GetPathExplanation(p);
+                    pathsStack.Children.Add(new TextBlock { Text = $"• {p}: {exp}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+                }
+                pathsCard.Child = pathsStack;
+                stack.Children.Add(pathsCard);
+            }
+
+            // Render Normal Silence Explanation
+            var silenceCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12), Margin = new Avalonia.Thickness(0, 0, 0, 10) };
+            var silenceStack = new StackPanel { Spacing = 6 };
+            silenceStack.Children.Add(new TextBlock { Text = "Normal silence means", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+            silenceStack.Children.Add(new TextBlock { Text = GetNormalSilenceExplanation(command), FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            silenceCard.Child = silenceStack;
+            stack.Children.Add(silenceCard);
+
+            // Render Failure split Recovery Explanation
+            var failSplit = SplitFailureExplanation(command.Fails);
+            var recoveryCard = new Border { Background = new SolidColorBrush(Color.FromRgb(28, 35, 38)), BorderBrush = new SolidColorBrush(Color.FromRgb(51, 63, 68)), BorderThickness = new Avalonia.Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Avalonia.Thickness(12) };
+            var recoveryStack = new StackPanel { Spacing = 6 };
+            recoveryStack.Children.Add(new TextBlock { Text = "Failure recovery actions", FontWeight = FontWeight.Bold, FontSize = 12, Foreground = Brushes.White });
+            recoveryStack.Children.Add(new TextBlock { Text = $"Meaning: {failSplit.Meaning}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            recoveryStack.Children.Add(new TextBlock { Text = $"What to do next: {failSplit.Recovery}", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 217)) });
+            recoveryCard.Child = recoveryStack;
+            stack.Children.Add(recoveryCard);
 
             card.Child = stack;
             WizardStageContainer.Children.Add(card);
@@ -1030,6 +1081,148 @@ namespace src_avalonia
 
             safetyCard.Child = safetyStack;
             DrawerContentContainer.Children.Add(safetyCard);
+        }
+
+        // ================= HELPERS FOR DETAILED COMMAND PARSING =================
+        private static readonly Dictionary<string, string> OptionExplanations = new()
+        {
+            { "-A3", "grep option meaning print 3 lines after each matching line, so related device-driver context appears with the match." },
+            { "-F", "mkfs.fat option meaning FAT size. In mkfs.fat -F 32, it creates a FAT32 filesystem." },
+            { "-G", "useradd option meaning add the new user to supplementary groups listed after the option." },
+            { "-K", "pacstrap option meaning initialize a fresh pacman keyring in the new target system." },
+            { "-KILL", "kill signal argument meaning send SIGKILL, the force-kill signal that the process cannot handle or clean up from." },
+            { "-Q", "pacman query option meaning inspect installed package database instead of installing packages." },
+            { "-Qo", "pacman query-owner option meaning find which installed package owns a file path." },
+            { "-R", "umount option meaning recursive, so nested mounts under the target mount point are unmounted too." },
+            { "-S", "pacman sync/install option meaning install packages from enabled repositories." },
+            { "-Syu", "pacman combined sync/update options: -S selects repository sync mode, y refreshes package databases, and u upgrades installed packages." },
+            { "-TERM", "kill signal argument meaning send SIGTERM, a normal terminate request that gives the process a chance to exit cleanly." },
+            { "-U", "genfstab option meaning write filesystem identifiers as UUIDs instead of unstable device names." },
+            { "-ap", "pstree combined options: -a shows command arguments and -p shows process IDs." },
+            { "-apu", "pstree combined options: -a shows command arguments, -p shows process IDs, and -u shows user changes." },
+            { "-c", "count option. For ping, -c 3 means stop after 3 packets instead of running forever." },
+            { "-d", "duration option. For arecord, -d 5 means record for 5 seconds." },
+            { "-e", "ps option meaning show every process." },
+            { "-E", "grep option meaning extended regular expression syntax." },
+            { "-eo", "ps combined options: -e selects every process and -o chooses the output columns." },
+            { "-k", "lspci option meaning show kernel drivers handling each PCI device." },
+            { "-l", "list or long-format option, depending on the command. Read the command card and official source for the exact command-specific meaning." },
+            { "-lh", "ls combined options: -l uses long listing format and -h makes sizes human-readable." },
+            { "-m", "useradd option meaning create the user's home directory." },
+            { "-n", "journalctl option meaning show only the requested number of recent log lines." },
+            { "-o", "output option. It selects an output format or column list for commands such as lsblk, blkid, ps, or grub-mkconfig." },
+            { "-p", "select-by-property option. For ps or systemctl show, it selects the process ID or property name listed after it." },
+            { "-s", "selector option. Its exact meaning depends on the command, such as selecting a UUID field in blkid or selecting a shell in useradd/chsh." },
+            { "-sf", "ln combined options: -s creates a symbolic link and -f replaces an existing destination if needed." },
+            { "-u", "user option. It filters or targets a user for commands such as ps, pkill, or journalctl." },
+            { "-v", "invert-match option for grep, meaning show lines that do not match." },
+            { "--bootloader-id=GRUB", "grub-install option setting the UEFI bootloader identifier/name to GRUB." },
+            { "--efi-directory=/boot", "grub-install option telling GRUB where the EFI System Partition is mounted." },
+            { "--no-headers", "ps option hiding the header row so counts and scripts receive only process rows." },
+            { "--now", "systemctl option meaning start the unit immediately while also applying the requested enable action." },
+            { "--show", "swapon option meaning list active swap devices instead of enabling a new one." },
+            { "--sort=ppid", "ps option sorting the output by parent process ID." },
+            { "--systohc", "hwclock option meaning write the current system clock into the hardware clock." },
+            { "--target=i386-pc", "grub-install option selecting the legacy BIOS GRUB target." },
+            { "--target=x86_64-efi", "grub-install option selecting the 64-bit UEFI GRUB target." },
+            { "--user", "systemctl option meaning operate on the current user's systemd manager instead of the system manager." }
+        };
+
+        private static List<string> GetCommandOptionTokens(string commandText)
+        {
+            return commandText
+                .Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(token => token.Trim().Trim('(', ')', '\'', '"', '`', ','))
+                .Where(token => Regex.IsMatch(token, @"^-{1,2}[A-Za-z0-9]"))
+                .Distinct()
+                .ToList();
+        }
+
+        private static List<string> GetCommandPathTokens(string commandText)
+        {
+            var matches = Regex.Matches(commandText, @"(?:^|[\s=:])/([A-Za-z0-9._@%+/-]+)");
+            return matches.Cast<Match>()
+                .Select(m => m.Groups[1].Value.Trim().Trim('=', ':').Trim(')', ','))
+                .Select(p => "/" + p)
+                .Distinct()
+                .ToList();
+        }
+
+        private static string GetPathExplanation(string path)
+        {
+            if (path.StartsWith("/dev/"))
+            {
+                return "Device path. This points to hardware or a partition exposed by Linux. Treat it as machine-specific data from discovery output, not magic text to copy from an example.";
+            }
+            if (path == "/mnt" || path.StartsWith("/mnt/"))
+            {
+                return "Temporary install mount path. During installation, /mnt is where the new Arch system is attached before pacstrap, fstab generation, and chroot work.";
+            }
+            if (path == "/boot" || path.StartsWith("/boot/"))
+            {
+                return "Boot-files path inside the installed system. It contains kernel, initramfs, bootloader, or EFI-related files depending on the selected boot path.";
+            }
+            if (path.StartsWith("/etc/systemd/"))
+            {
+                return "System configuration path for systemd. Files here affect services, units, slices, or drop-ins on the installed system.";
+            }
+            if (path.StartsWith("/etc/security/"))
+            {
+                return "Security/login configuration path. Files here can affect PAM limits and user sessions, so edits must be exact and recoverable.";
+            }
+            if (path.StartsWith("/etc/"))
+            {
+                return "System configuration path. Files under /etc change installed-system behavior such as locale, hostname, mounts, shells, or service configuration.";
+            }
+            if (path.StartsWith("/sys/"))
+            {
+                return "Kernel-provided evidence path. This is not a normal file to edit; it exposes live system/firmware information for inspection.";
+            }
+            if (path.StartsWith("/usr/share/zoneinfo/"))
+            {
+                return "Time zone data path. This points to an installed time zone file used when linking /etc/localtime.";
+            }
+            if (path == "/bin/bash" || path == "/bin/rbash")
+            {
+                return "Shell program path. This names the login shell executable assigned to a user account.";
+            }
+            if (path == "/path/to/command")
+            {
+                return "Placeholder file path. Replace it with the real command path before using the command.";
+            }
+            if (path == "/vmlinuz-linux" || path == "/initramfs-linux.img" || path == "/intel-ucode.img" || path == "/amd-ucode.img")
+            {
+                return "Boot entry path relative to the boot partition. In a systemd-boot entry, this tells the bootloader which kernel, initramfs, or microcode file to load.";
+            }
+            return "Absolute filesystem path. It starts at /, the root of the Linux filesystem. Verify whether this path is a fixed system location or a value specific to this machine before using it.";
+        }
+
+        private static string GetNormalSilenceExplanation(Command command)
+        {
+            string expected = command.Expected.ToLower();
+            if (Regex.IsMatch(expected, @"(no output|usually no output|prints nothing|no text|silent|without an error|without error|returns without an error)"))
+            {
+                return "Silence or a return to the prompt can be normal for this command, but only when the command's expected-result text says that no output or no error is the success signal.";
+            }
+            if (Regex.IsMatch(command.CommandText.Trim(), @"^(nano|sudo\s+nano|editor=.*visudo|htop|pavucontrol|firefox|xfce4-terminal)\b", RegexOptions.IgnoreCase))
+            {
+                return "This command opens an interactive program or editor. Normal success may be a screen change, editor window, graphical app, or prompt inside that program instead of a simple printed line.";
+            }
+            return "Plain silence is not the main success signal for this command. If nothing appears, compare that behavior with the expected-result text and do not assume success until the next verification command confirms it.";
+        }
+
+        private static (string Meaning, string Recovery) SplitFailureExplanation(string fails)
+        {
+            var parts = Regex.Split(fails, @"(?<=[.!?])\s+")
+                .Select(p => p.Trim())
+                .Where(p => !string.IsNullOrEmpty(p))
+                .ToList();
+
+            if (parts.Count <= 1)
+            {
+                return ("This means the command did not produce the expected result, or the visible result is not enough evidence to safely continue.", fails);
+            }
+            return (parts[0], string.Join(" ", parts.Skip(1)));
         }
     }
 
