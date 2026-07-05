@@ -2,7 +2,6 @@ package ui
 
 import (
 	"arch-ai-go/internal/model"
-	"fmt"
 	"image/color"
 	"strings"
 
@@ -13,183 +12,132 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// NewCommandSlide renders a "command" slide.
-// For each CommandBlock it shows:
-//   - The full raw command in a monospace box
-//   - A token table (each word/symbol with role + explanation)
-//   - A "Why spaces?" note
-//   - Expected output description
-//   - Danger level badge
-//   - A copy button (disabled when placeholders are not filled)
+// NewCommandSlide renders a command slide with full token annotation.
 func NewCommandSlide(step model.WizardStep, dm model.DeviceMap) fyne.CanvasObject {
-	title := canvas.NewText(step.Title, ColorAccent())
-	title.TextSize = 20
-	title.TextStyle = fyne.TextStyle{Bold: true}
+	items := []fyne.CanvasObject{}
 
-	body := widget.NewRichTextFromMarkdown(step.Body)
-	body.Wrapping = fyne.TextWrapWord
-
-	blocks := container.NewVBox()
-	for _, cb := range step.Commands {
-		blocks.Add(renderCommandBlock(cb, dm))
-		blocks.Add(widget.NewLabel(""))
+	if step.Body != "" {
+		bodyLbl := widget.NewLabel(step.Body)
+		bodyLbl.Wrapping = fyne.TextWrapWord
+		items = append(items, bodyLbl, widget.NewLabel(""))
 	}
 
-	content := container.NewVBox(
-		title,
-		body,
-		widget.NewLabel(""),
-		blocks,
-	)
-	return container.NewPadded(container.NewVScroll(content))
+	for _, cb := range step.Commands {
+		items = append(items, renderCommandBlock(cb, dm), widget.NewLabel(""))
+	}
+
+	return container.NewVBox(items...)
 }
 
-// renderCommandBlock builds the full visual for one CommandBlock.
+// renderCommandBlock builds the visual for one CommandBlock.
 func renderCommandBlock(cb model.CommandBlock, dm model.DeviceMap) fyne.CanvasObject {
-	// ── Danger badge ────────────────────────────────────────────────────────
-	badgeColor, badgeLabel := dangerStyle(cb.DangerLevel)
-	badge := canvas.NewText("⬛ "+badgeLabel, badgeColor)
-	badge.TextSize = 12
-	badge.TextStyle = fyne.TextStyle{Bold: true}
-
-	// ── Resolved command (placeholders filled from DeviceMap) ────────────────
 	resolved := resolveCommand(cb.Raw, dm)
 	hasUnfilled := strings.Contains(resolved, "{{")
 
-	cmdBg := canvas.NewRectangle(ColorSurface())
-	cmdBg.CornerRadius = 6
-	cmdBg.SetMinSize(fyne.NewSize(600, 44))
+	// ── Danger badge row ──────────────────────────────────────────────────────
+	badgeTxt, badgeBgCol := dangerStyle(cb.DangerLevel)
+	badgeLbl := widget.NewLabel(badgeTxt)
+	badgeBg := canvas.NewRectangle(badgeBgCol)
+	badgeBg.CornerRadius = 4
+	badgeWidget := container.NewStack(badgeBg, container.NewPadded(badgeLbl))
 
-	cmdLabel := canvas.NewText(resolved, ColorMono())
-	cmdLabel.TextSize = 14
-	cmdLabel.TextStyle = fyne.TextStyle{Monospace: true}
-
-	cmdBox := container.NewStack(cmdBg, container.NewPadded(container.NewCenter(cmdLabel)))
-
-	// ── Copy button ──────────────────────────────────────────────────────────
-	copyBtn := widget.NewButton("Copy", nil)
+	copyBtn := widget.NewButton("📋 Copy", nil)
 	if hasUnfilled {
 		copyBtn.Disable()
-		copyBtn.SetText("Fill in all fields first")
 	} else {
 		copyBtn.OnTapped = func() {
 			fyne.CurrentApp().Driver().AllWindows()[0].Clipboard().SetContent(resolved)
 			copyBtn.SetText("✓ Copied!")
-			// Reset label after a moment (next interaction)
 		}
 	}
+	badgeRow := container.NewBorder(nil, nil, badgeWidget, copyBtn, layout.NewSpacer())
 
-	// ── Token table ──────────────────────────────────────────────────────────
-	tokenSection := canvas.NewText("Word-by-word breakdown:", color.NRGBA{R: 0xaa, G: 0xbb, B: 0xcc, A: 0xff})
-	tokenSection.TextSize = 12
+	// ── Command box ───────────────────────────────────────────────────────────
+	cmdLbl := widget.NewLabel(resolved)
+	cmdLbl.TextStyle = fyne.TextStyle{Monospace: true}
+	// Use WrapWord so very long commands wrap inside the card instead of
+	// painting straight through into adjacent cards.
+	cmdLbl.Wrapping = fyne.TextWrapWord
 
-	tokenRows := container.NewVBox()
-	for _, tok := range cb.Tokens {
-		tokenRows.Add(renderTokenRow(tok))
+	cmdBg := canvas.NewRectangle(color.NRGBA{R: 0x09, G: 0x0b, B: 0x12, A: 0xff})
+	cmdBg.CornerRadius = 6
+	cmdBox := container.NewStack(cmdBg, container.NewPadded(cmdLbl))
+
+	// ── Sections ──────────────────────────────────────────────────────────────
+	var sections []fyne.CanvasObject
+	sections = append(sections, badgeRow, cmdBox)
+
+	if len(cb.Tokens) > 0 {
+		sections = append(sections, widget.NewLabel(""),
+			sectionHeader("Word-by-word breakdown:"))
+		for _, tok := range cb.Tokens {
+			sections = append(sections, renderTokenRow(tok))
+		}
 	}
-
-	// ── Why spaces ───────────────────────────────────────────────────────────
-	var spacesSection fyne.CanvasObject
 	if cb.WhySpaces != "" {
-		spaceLbl := canvas.NewText("Why spaces?", color.NRGBA{R: 0xaa, G: 0xbb, B: 0xcc, A: 0xff})
-		spaceLbl.TextSize = 12
-		spaceBody := widget.NewLabel(cb.WhySpaces)
-		spaceBody.Wrapping = fyne.TextWrapWord
-		spacesSection = container.NewVBox(spaceLbl, spaceBody)
+		sections = append(sections, widget.NewLabel(""),
+			sectionHeader("Why spaces?"),
+			wrappingLabel(cb.WhySpaces))
 	}
-
-	// ── Expected output ──────────────────────────────────────────────────────
-	var outputSection fyne.CanvasObject
 	if cb.ExpectedOutput != "" {
-		outLbl := canvas.NewText("Expected output:", color.NRGBA{R: 0xaa, G: 0xbb, B: 0xcc, A: 0xff})
-		outLbl.TextSize = 12
-
-		outBg := canvas.NewRectangle(color.NRGBA{R: 0x0a, G: 0x15, B: 0x0f, A: 0xff})
-		outBg.CornerRadius = 4
-		outBody := widget.NewLabel(cb.ExpectedOutput)
-		outBody.Wrapping = fyne.TextWrapWord
-		outBox := container.NewStack(outBg, container.NewPadded(outBody))
-		outputSection = container.NewVBox(outLbl, outBox)
+		sections = append(sections,
+			sectionHeader("✓ Expected output:"),
+			codeBox(cb.ExpectedOutput, color.NRGBA{R: 0x08, G: 0x14, B: 0x0c, A: 0xff}))
 	}
-
-	// ── Failure output ───────────────────────────────────────────────────────
-	var failSection fyne.CanvasObject
 	if cb.FailureOutput != "" {
-		failLbl := canvas.NewText("Common failure output:", color.NRGBA{R: 0xdd, G: 0x77, B: 0x77, A: 0xff})
-		failLbl.TextSize = 12
-		failBg := canvas.NewRectangle(color.NRGBA{R: 0x1a, G: 0x08, B: 0x08, A: 0xff})
-		failBg.CornerRadius = 4
-		failBody := widget.NewLabel(cb.FailureOutput)
-		failBody.Wrapping = fyne.TextWrapWord
-		failBox := container.NewStack(failBg, container.NewPadded(failBody))
-		failSection = container.NewVBox(failLbl, failBox)
+		sections = append(sections,
+			sectionHeader("✗ If it fails:"),
+			codeBox(cb.FailureOutput, color.NRGBA{R: 0x18, G: 0x06, B: 0x06, A: 0xff}))
 	}
-
-	// ── Note ─────────────────────────────────────────────────────────────────
-	var noteSection fyne.CanvasObject
 	if cb.Note != "" {
-		noteLbl := canvas.NewText("ℹ Note:", ColorWarning())
-		noteLbl.TextSize = 12
-		noteBody := widget.NewLabel(cb.Note)
-		noteBody.Wrapping = fyne.TextWrapWord
-		noteSection = container.NewVBox(noteLbl, noteBody)
+		sections = append(sections,
+			sectionHeader("ℹ  Note:"),
+			wrappingLabel(cb.Note))
 	}
 
-	// ── Card background ──────────────────────────────────────────────────────
-	sections := []fyne.CanvasObject{
-		container.NewHBox(badge, layout.NewSpacer(), copyBtn),
-		cmdBox,
-		widget.NewLabel(""),
-		tokenSection,
-		tokenRows,
-	}
-	if spacesSection != nil {
-		sections = append(sections, widget.NewLabel(""), spacesSection)
-	}
-	if outputSection != nil {
-		sections = append(sections, widget.NewLabel(""), outputSection)
-	}
-	if failSection != nil {
-		sections = append(sections, failSection)
-	}
-	if noteSection != nil {
-		sections = append(sections, widget.NewLabel(""), noteSection)
-	}
-
-	innerBox := container.NewVBox(sections...)
-	cardBg := canvas.NewRectangle(ColorCard())
+	// ── Card wrapper ──────────────────────────────────────────────────────────
+	cardBg := canvas.NewRectangle(color.NRGBA{R: 0x18, G: 0x1a, B: 0x28, A: 0xff})
 	cardBg.CornerRadius = 8
-	return container.NewStack(cardBg, container.NewPadded(innerBox))
+	inner := container.NewVBox(sections...)
+	return container.NewStack(cardBg, container.NewPadded(inner))
 }
 
-// renderTokenRow renders one row of the token breakdown table.
+// renderTokenRow renders one token explanation row.
 func renderTokenRow(tok model.CommandToken) fyne.CanvasObject {
-	tokenColor := ColorMono()
+	// Use canvas.Text for the short token word itself — it is always a single
+	// word/flag so it will never overflow. Using canvas.Text here lets us
+	// colour it (green for commands, amber for placeholders) without a custom
+	// renderer. The explanation below uses widget.Label with TextWrapWord so
+	// it never bleeds outside its container.
+	tokenStyle := fyne.TextStyle{Monospace: true, Bold: true}
+	monoCol := ColorMono()
 	if tok.IsPlaceholder {
-		tokenColor = ColorWarning()
+		monoCol = ColorWarning()
 	}
 
-	tokenText := canvas.NewText(tok.Text, tokenColor)
-	tokenText.TextSize = 13
-	tokenText.TextStyle = fyne.TextStyle{Monospace: true}
+	tokenLbl := &canvas.Text{
+		Text:      tok.Text,
+		Color:     monoCol,
+		TextSize:  13,
+		TextStyle: tokenStyle,
+	}
+	roleLbl := widget.NewLabel("[" + tok.Role + "]")
+	roleLbl.Importance = widget.LowImportance
 
-	roleText := canvas.NewText("["+tok.Role+"]", color.NRGBA{R: 0x66, G: 0x88, B: 0xaa, A: 0xff})
-	roleText.TextSize = 11
+	header := container.NewHBox(tokenLbl, roleLbl, layout.NewSpacer())
 
-	explain := widget.NewLabel(tok.Explanation)
-	explain.Wrapping = fyne.TextWrapWord
+	// Explanation — MUST wrap so it stays inside the card
+	explainLbl := widget.NewLabel(tok.Explanation)
+	explainLbl.Wrapping = fyne.TextWrapWord
 
-	rowBg := canvas.NewRectangle(color.NRGBA{R: 0x13, G: 0x15, B: 0x20, A: 0xff})
+	rowBg := canvas.NewRectangle(color.NRGBA{R: 0x10, G: 0x12, B: 0x1e, A: 0xff})
 	rowBg.CornerRadius = 4
-
-	inner := container.NewVBox(
-		container.NewHBox(tokenText, roleText),
-		explain,
-	)
+	inner := container.NewVBox(header, explainLbl)
 	return container.NewStack(rowBg, container.NewPadded(inner))
 }
 
-// resolveCommand replaces {{key}} placeholders with DeviceMap values.
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 func resolveCommand(raw string, dm model.DeviceMap) string {
 	result := raw
 	for key := range dm {
@@ -201,21 +149,35 @@ func resolveCommand(raw string, dm model.DeviceMap) string {
 	return result
 }
 
-// dangerStyle returns the badge color and label for a DangerLevel string.
-func dangerStyle(level string) (color.Color, string) {
+func dangerStyle(level string) (label string, bg color.Color) {
 	switch level {
 	case "destructive":
-		return ColorDanger(), "⚠ DESTRUCTIVE — this command can erase data"
+		return "⚠  DESTRUCTIVE", color.NRGBA{R: 0x44, G: 0x0a, B: 0x0a, A: 0xff}
 	case "install":
-		return ColorWarning(), "📦 INSTALL — downloads and installs packages"
+		return "📦  INSTALL", color.NRGBA{R: 0x3a, G: 0x28, B: 0x08, A: 0xff}
 	case "config":
-		return ColorAccent(), "⚙ CONFIG — edits system configuration"
+		return "⚙  CONFIG", color.NRGBA{R: 0x0c, G: 0x22, B: 0x3a, A: 0xff}
 	default:
-		return ColorSuccess(), "✓ SAFE — read-only inspection command"
+		return "✓  SAFE", color.NRGBA{R: 0x08, G: 0x28, B: 0x10, A: 0xff}
 	}
 }
 
-// renderCommandBlockPreview is used in the wizard progress tooltip.
-func renderCommandBlockPreview(raw string) string {
-	return fmt.Sprintf("$ %s", raw)
+func sectionHeader(text string) fyne.CanvasObject {
+	lbl := widget.NewLabel(text)
+	lbl.Importance = widget.LowImportance
+	return lbl
+}
+
+func wrappingLabel(text string) fyne.CanvasObject {
+	lbl := widget.NewLabel(text)
+	lbl.Wrapping = fyne.TextWrapWord
+	return lbl
+}
+
+func codeBox(text string, bg color.Color) fyne.CanvasObject {
+	bgRect := canvas.NewRectangle(bg)
+	bgRect.CornerRadius = 4
+	lbl := widget.NewLabel(text)
+	lbl.Wrapping = fyne.TextWrapWord
+	return container.NewStack(bgRect, container.NewPadded(lbl))
 }

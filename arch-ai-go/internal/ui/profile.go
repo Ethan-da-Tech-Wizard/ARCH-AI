@@ -11,91 +11,157 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// NewProfileScreen returns the 12-card install-type selection screen.
-// onSelect is called with the chosen InstallCardDef when the user confirms.
-func NewProfileScreen(onSelect func(model.InstallCardDef)) fyne.CanvasObject {
+// NewProfileScreen returns the 12-card install-type selector with a detail panel.
+// Layout: left = scrollable card grid  |  right = detail panel for selected card
+func NewProfileScreen(onSelect func(model.InstallCardDef), nextBtn *widget.Button) fyne.CanvasObject {
 	cards := model.AllInstallCards()
 
 	var selectedKey string
-	var beginBtn *widget.Button
 
-	// cardWidgets holds the rendered card objects so we can update selection state.
+	// Detail panel labels (updated on card tap)
+	detailSymLbl := widget.NewLabel("")
+	detailSymLbl.Alignment = fyne.TextAlignCenter
+
+	detailTitleLbl := widget.NewLabel("")
+	detailTitleLbl.TextStyle = fyne.TextStyle{Bold: true}
+	detailTitleLbl.Wrapping = fyne.TextWrapWord
+
+	detailWhoLbl := widget.NewLabel("")
+	detailWhoLbl.Wrapping = fyne.TextWrapWord
+	detailWhoLbl.Importance = widget.LowImportance
+
+	detailWhatHeader := widget.NewLabel("What it does:")
+	detailWhatHeader.TextStyle = fyne.TextStyle{Bold: true}
+
+	detailWhatLbl := widget.NewLabel("")
+	detailWhatLbl.Wrapping = fyne.TextWrapWord
+
+	detailRisksHeader := widget.NewLabel("Risks:")
+	detailRisksHeader.TextStyle = fyne.TextStyle{Bold: true}
+
+	detailRisksLbl := widget.NewLabel("")
+	detailRisksLbl.Wrapping = fyne.TextWrapWord
+
+	detailSelectBtn := widget.NewButton("Select This  →", nil)
+	detailSelectBtn.Importance = widget.HighImportance
+	detailSelectBtn.Disable()
+
+	// Shown when nothing is selected
+	placeholderLbl := widget.NewLabel("← Select a card to see details")
+	placeholderLbl.Importance = widget.LowImportance
+	placeholderLbl.Alignment = fyne.TextAlignCenter
+
+	// Detail panel content (shown when a card is selected)
+	detailContent := container.NewVBox(
+		detailSymLbl,
+		widget.NewLabel(""),
+		detailTitleLbl,
+		detailWhoLbl,
+		widget.NewLabel(""),
+		detailWhatHeader,
+		detailWhatLbl,
+		widget.NewLabel(""),
+		detailRisksHeader,
+		detailRisksLbl,
+		widget.NewLabel(""),
+		container.NewHBox(layout.NewSpacer(), detailSelectBtn),
+	)
+	detailContent.Hide()
+
+	detailScroll := container.NewScroll(container.NewPadded(detailContent))
+	detailBg := newRect(color.NRGBA{R: 0x13, G: 0x15, B: 0x22, A: 0xff}, 0, 0)
+
+	detailHeader := widget.NewLabel("Install Type Details")
+	detailHeader.TextStyle = fyne.TextStyle{Bold: true}
+	detailHeader.Importance = widget.LowImportance
+
+	detailDivider := newRect(color.NRGBA{R: 0x28, G: 0x2c, B: 0x3e, A: 0xff}, 0, 1)
+
+	detailPanelInner := container.NewBorder(
+		container.NewVBox(container.NewPadded(detailHeader), detailDivider),
+		nil, nil, nil,
+		container.NewStack(
+			container.NewPadded(placeholderLbl),
+			detailScroll,
+		),
+	)
+	detailPanel := container.NewStack(detailBg, detailPanelInner)
+
+	// Build card widgets
+	cardObjs := make([]fyne.CanvasObject, len(cards))
 	cardWidgets := make([]*profileCard, len(cards))
 
-	selectCard := func(key string) {
-		selectedKey = key
+	selectCard := func(def model.InstallCardDef) {
+		selectedKey = def.Key
 		for _, cw := range cardWidgets {
-			cw.setSelected(cw.def.Key == key)
+			cw.setSelected(cw.def.Key == def.Key)
 		}
-		if beginBtn != nil {
-			beginBtn.Enable()
+		// Update detail panel
+		detailSymLbl.SetText(def.Symbol)
+		detailTitleLbl.SetText(def.Title)
+		detailWhoLbl.SetText(def.WhoFor)
+		detailWhatLbl.SetText(def.What)
+		detailRisksLbl.SetText(def.Risks)
+
+		onSelectWrapper := func() {
+			onSelect(def)
 		}
+
+		detailSelectBtn.OnTapped = onSelectWrapper
+		detailSelectBtn.Enable()
+
+		placeholderLbl.Hide()
+		detailContent.Show()
+		detailScroll.Refresh()
+
+		if nextBtn != nil {
+			nextBtn.OnTapped = onSelectWrapper
+			nextBtn.Enable()
+		}
+		_ = selectedKey
 	}
 
-	// Build the card grid.
-	grid := container.New(layout.NewGridWrapLayout(fyne.NewSize(320, 240)))
 	for i, def := range cards {
-		d := def // capture
-		cw := newProfileCard(d, func() { selectCard(d.Key) })
+		d := def
+		cw := newProfileCard(d, func() { selectCard(d) })
 		cardWidgets[i] = cw
-		grid.Add(cw.render())
+		cardObjs[i] = cw.render()
 	}
 
-	scroll := container.NewVScroll(grid)
-	scroll.SetMinSize(fyne.NewSize(700, 480))
-
-	// Header
-	header := canvas.NewText("Choose Your Install Type", ColorAccent())
-	header.TextSize = 26
-	header.TextStyle = fyne.TextStyle{Bold: true}
-	header.Alignment = fyne.TextAlignCenter
-
-	sub := widget.NewRichTextFromMarkdown(
-		"Select the option that best describes your situation. Each card explains exactly what will happen, who it is for, and what risks are involved. If you are unsure, choose **I Am Not Sure** at the bottom right.",
-	)
-	sub.Wrapping = fyne.TextWrapWord
-
-	beginBtn = widget.NewButton("Begin Setup →", func() {
-		for _, def := range cards {
-			if def.Key == selectedKey {
-				onSelect(def)
-				return
-			}
-		}
-	})
-	beginBtn.Importance = widget.HighImportance
-	beginBtn.Disable()
-
-	footer := container.NewHBox(layout.NewSpacer(), beginBtn)
-
-	divider := canvas.NewRectangle(ColorAccent())
-	divider.SetMinSize(fyne.NewSize(600, 1))
-
-	content := container.NewVBox(
-		widget.NewLabel(""),
-		container.NewCenter(header),
-		container.NewCenter(sub),
-		container.NewCenter(divider),
-		widget.NewLabel(""),
-		scroll,
-		widget.NewLabel(""),
-		footer,
+	// 3-column grid — cards are compact: symbol + title
+	grid := container.New(layout.NewGridWrapLayout(fyne.NewSize(200, 100)),
+		cardObjs...,
 	)
 
-	bg := canvas.NewRectangle(color.NRGBA{R: 0x0f, G: 0x10, B: 0x17, A: 0xff})
-	return container.NewStack(bg, container.NewPadded(content))
+	hintLbl := widget.NewLabel("Not sure? Pick \"I Am Not Sure\" — it will ask you questions to figure it out.")
+	hintLbl.Wrapping = fyne.TextWrapWord
+	hintLbl.Importance = widget.LowImportance
+
+	footer := container.NewBorder(nil, nil, nil, nil, hintLbl)
+
+	// Left: card grid with scroll  |  Right: detail panel (~300px)
+	detailBgFixed := newRect(color.NRGBA{R: 0x13, G: 0x15, B: 0x22, A: 0xff}, 300, 0)
+	_ = detailBgFixed // detail panel min-width enforced by its bg
+
+	scrollGrid := container.NewScroll(container.NewPadded(grid))
+
+	splitArea := container.NewBorder(nil, nil, nil, detailPanel, scrollGrid)
+
+	return container.NewBorder(
+		nil,
+		container.NewPadded(footer),
+		nil, nil,
+		splitArea,
+	)
 }
 
 // ─── profileCard ──────────────────────────────────────────────────────────────
 
 type profileCard struct {
-	def      model.InstallCardDef
-	onTap    func()
-	selected bool
-
-	bg       *canvas.Rectangle
-	border   *canvas.Rectangle
-	rendered fyne.CanvasObject
+	def    model.InstallCardDef
+	onTap  func()
+	bg     *canvas.Rectangle
+	border *canvas.Rectangle
 }
 
 func newProfileCard(def model.InstallCardDef, onTap func()) *profileCard {
@@ -103,64 +169,45 @@ func newProfileCard(def model.InstallCardDef, onTap func()) *profileCard {
 }
 
 func (c *profileCard) render() fyne.CanvasObject {
-	// Symbol
-	sym := canvas.NewText(c.def.Symbol, color.White)
-	sym.TextSize = 36
-	sym.Alignment = fyne.TextAlignCenter
+	// Symbol emoji — left-aligned to avoid NewCenter squeezing to 1-char wide
+	symLbl := widget.NewLabel(c.def.Symbol)
+	symLbl.Alignment = fyne.TextAlignLeading
 
-	// Title
-	title := canvas.NewText(c.def.Title, ColorAccent())
-	title.TextSize = 15
-	title.TextStyle = fyne.TextStyle{Bold: true}
-	title.Alignment = fyne.TextAlignCenter
+	// Title — bold, wrapping
+	titleLbl := widget.NewLabel(c.def.Title)
+	titleLbl.TextStyle = fyne.TextStyle{Bold: true}
+	titleLbl.Alignment = fyne.TextAlignLeading
+	titleLbl.Wrapping = fyne.TextWrapWord
 
-	// Who-for blurb
-	whoFor := widget.NewLabel(c.def.WhoFor)
-	whoFor.Wrapping = fyne.TextWrapWord
-	whoFor.Alignment = fyne.TextAlignCenter
-
-	// Risk note
-	riskText := canvas.NewText(c.def.Risks, ColorWarning())
-	riskText.TextSize = 11
-	riskText.Alignment = fyne.TextAlignCenter
-
-	inner := container.NewVBox(
-		container.NewCenter(sym),
-		container.NewCenter(title),
-		container.NewCenter(whoFor),
-		container.NewCenter(riskText),
-	)
-
-	c.bg = canvas.NewRectangle(ColorCard())
-	c.bg.CornerRadius = 10
-	c.bg.SetMinSize(fyne.NewSize(316, 236))
+	c.bg = canvas.NewRectangle(color.NRGBA{R: 0x1c, G: 0x1e, B: 0x2c, A: 0xff})
+	c.bg.CornerRadius = 8
+	c.bg.SetMinSize(fyne.NewSize(200, 100))
 
 	c.border = canvas.NewRectangle(color.Transparent)
-	c.border.CornerRadius = 10
-	c.border.SetMinSize(fyne.NewSize(316, 236))
+	c.border.CornerRadius = 8
 	c.border.StrokeColor = color.Transparent
 	c.border.StrokeWidth = 2
+	c.border.SetMinSize(fyne.NewSize(200, 100))
 
-	card := container.NewStack(c.bg, c.border, container.NewPadded(inner))
+	// Compact: just symbol row + title — no prose on the card
+	inner := container.NewVBox(
+		symLbl,
+		titleLbl,
+	)
 
-	// Wrap in a tappable button-like widget.
-	btn := widget.NewButton("", func() {
-		c.onTap()
-	})
+	// Invisible button overlay to capture taps
+	btn := widget.NewButton("", c.onTap)
 	btn.Importance = widget.LowImportance
 
-	// Overlay the button on top of the card visual.
-	c.rendered = container.NewStack(card, btn)
-	return c.rendered
+	return container.NewStack(c.bg, c.border, container.NewPadded(inner), btn)
 }
 
 func (c *profileCard) setSelected(sel bool) {
-	c.selected = sel
 	if sel {
-		c.bg.FillColor = color.NRGBA{R: 0x1a, G: 0x2a, B: 0x3a, A: 0xff}
-		c.border.StrokeColor = ColorAccent()
+		c.bg.FillColor = color.NRGBA{R: 0x0e, G: 0x22, B: 0x3c, A: 0xff}
+		c.border.StrokeColor = color.NRGBA{R: 0x4c, G: 0xaf, B: 0xf0, A: 0xff}
 	} else {
-		c.bg.FillColor = ColorCard()
+		c.bg.FillColor = color.NRGBA{R: 0x1c, G: 0x1e, B: 0x2c, A: 0xff}
 		c.border.StrokeColor = color.Transparent
 	}
 	c.bg.Refresh()

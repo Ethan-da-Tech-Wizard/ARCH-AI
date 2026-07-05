@@ -126,3 +126,21 @@ Every completed chunk appends a dated entry below.
 - CharNotes: all 8 canonical chars (/ \ . " - = # space) explained per nano slide
 - Placeholder tokens: {{disk}}, {{efi_part}}, {{root_part}}, {{username}}, {{root_uuid}}
 - Binary rebuilt: arch-ai-wizard 33MB ✓
+
+---
+
+## 2026-07-05 — Chunk 14: UI Formatting & Layout Refinement
+
+- Status: COMPLETE
+- Files modified:
+  - `internal/ui/profile.go` (cards show symbol+title only, added details panel)
+  - `internal/ui/wizard.go` (standard bottom bar navigation layout, sidebar prefix phase-highlighting, progress bar width constraint)
+  - `internal/ui/slide_command.go` (command text word wrapping)
+  - `internal/ui/slide_nano.go` (horizontal scroll Monospace box, copy button)
+  - `internal/ui/slide_info.go` (styled callout card for long info bodies)
+  - `internal/ui/slide_input.go` (enabled wrapping for labels/examples, NewSeparator)
+  - `internal/model/profile.go` (single-codepoint VM emojis)
+- Files deleted:
+  - `internal/ui/splash.go` (dead code removed)
+- Verification check: `go build -buildvcs=false ./...` compiles cleanly with zero errors, `go vet ./...` passes with zero warnings. Binary rebuilt.
+

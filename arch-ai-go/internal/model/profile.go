@@ -177,7 +177,7 @@ func AllInstallCards() []InstallCardDef {
 		},
 		{
 			Key:    "vm-windows-host",
-			Symbol: "🪟🖥️",
+			Symbol: "🖥",
 			Title:  "Windows Host → VM",
 			WhoFor: "You are running Windows as your main OS and want to install Arch Linux inside a virtual machine (QEMU, VirtualBox, or VMware) without rebooting.",
 			What:   "Arch runs inside a virtual disk that looks like a real disk to the VM. Your Windows environment is never touched. The VM can be deleted at any time.",
@@ -186,7 +186,7 @@ func AllInstallCards() []InstallCardDef {
 		},
 		{
 			Key:    "vm-linux-host",
-			Symbol: "🐧🖥️",
+			Symbol: "🐧",
 			Title:  "Linux Host → VM",
 			WhoFor: "You are running a Linux distribution and want to install Arch in a QEMU or VirtualBox virtual machine on the same computer.",
 			What:   "Arch runs inside a virtual disk image file. Your existing Linux installation is not touched. Clipboard and display scaling may require guest additions.",
