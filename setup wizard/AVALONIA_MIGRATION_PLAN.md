@@ -1,4 +1,4 @@
-# ARCH-AI: C# + Avalonia UI Native Setup Wizard Migration Plan
+# Arch Wizard: C# + Avalonia UI Native Setup Wizard Migration Plan
 
 ## 1. Architectural Rejection of Web Stack
 Tauri, WebView, WebKitGTK, Electron, HTML, CSS, JavaScript, and embedded local HTTP servers (`localhost`) are rejected.
@@ -23,12 +23,12 @@ We will build a native desktop application in C# and .NET using the **Avalonia U
 We will clean up the old web frontend and Tauri code, putting them in a legacy subdirectory if needed, and initialize a new Avalonia project structure:
 
 ```
-ARCH-AI/
+Arch Wizard/
 ├── setup wizard/
 │   ├── AVALONIA_MIGRATION_PLAN.md   # This plan
 │   └── (Other wizard documentation)
 ├── src-avalonia/                    # C# + Avalonia Project Root
-│   ├── ArchAiSetupWizard.csproj     # .NET project file
+│   ├── ArchSetupWizard.csproj     # .NET project file
 │   ├── App.axaml                    # Application style definition
 │   ├── App.axaml.cs                 # Application lifecycle code
 │   ├── MainWindow.axaml             # Main window containing the layout grid
