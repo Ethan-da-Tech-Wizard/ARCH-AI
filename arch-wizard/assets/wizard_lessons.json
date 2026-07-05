@@ -1,0 +1,1507 @@
+{
+  "lessons": [
+    {
+      "id": "before-you-start",
+      "title": "Before You Start",
+      "slideType": "info",
+      "tags": [],
+      "body": "## Before You Start\n\nThis wizard walks you through installing Arch Linux step by step. Before any command is run, read this entire slide.\n\n**What you need:**\n- A USB flash drive (8 GB or larger) with the Arch Linux ISO written to it\n- A second screen, phone, or tablet to view this guide while working in the terminal\n- A stable internet connection (wired Ethernet is easiest)\n- At least 20 GB of free space on your target disk\n- Time — a careful first install takes 45–90 minutes\n\n**What this wizard does NOT do automatically:**\n- It does not run commands for you\n- It does not connect to your machine\n- It shows you exactly what to type and explains every word\n\n**The most important rule:** Never type a command you do not understand. Every command on every slide is explained word-by-word. Read the explanation before you copy anything."
+    },
+    {
+      "id": "before-you-start-keymap",
+      "title": "Optional: Set Your Keyboard Layout",
+      "slideType": "command",
+      "tags": [],
+      "body": "The Arch ISO boots with a US keyboard layout by default. If your keyboard uses a different layout (UK, DE, FR, etc.) you can change it now. This only affects the live ISO session — it does not affect your final installed system's keyboard layout, which you configure separately later.\n\nIf your keyboard is US layout, skip this slide and press Next.",
+      "commands": [
+        {
+          "raw": "localectl list-keymaps",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the program name (localectl) from the sub-command (list-keymaps). The shell reads left to right: first it finds the program to run, then the instruction to give it. Without the space they would be treated as one unknown word.",
+          "expectedOutput": "A long alphabetical list of keymap names is printed, one per line. Look for your country code, e.g. 'uk', 'de', 'fr', 'es'.",
+          "failureOutput": "If localectl is not found, you may not be in the live ISO environment. Verify you booted from the USB.",
+          "tokens": [
+            {
+              "text": "localectl",
+              "role": "program",
+              "explanation": "localectl is a command-line tool that controls the system locale and keyboard layout settings. It is part of systemd, the init system that starts and manages services on modern Linux systems including the Arch ISO."
+            },
+            {
+              "text": "list-keymaps",
+              "role": "sub-command",
+              "explanation": "list-keymaps is the instruction given to localectl. It tells localectl to print all available keyboard layout names. The hyphen (-) between 'list' and 'keymaps' is part of the sub-command name — it is not a flag."
+            }
+          ]
+        },
+        {
+          "raw": "loadkeys uk",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program name (loadkeys) from its argument (uk). The argument tells loadkeys which layout to load. Without the space, the shell cannot distinguish the program from the layout name.",
+          "expectedOutput": "No output is printed on success. The keyboard layout changes immediately — try typing a key to verify.",
+          "failureOutput": "If you see 'uk: No such file or directory', the keymap name is wrong. Run 'localectl list-keymaps' and find the correct name for your layout.",
+          "note": "Replace 'uk' with your actual layout name from the list above. Common examples: de (German), fr (French), es (Spanish), dvorak (Dvorak).",
+          "tokens": [
+            {
+              "text": "loadkeys",
+              "role": "program",
+              "explanation": "loadkeys is a program that loads a keyboard layout (keymap) into the Linux console. It only affects the current terminal session — when you reboot, the layout resets to default unless you configure it permanently later."
+            },
+            {
+              "text": "uk",
+              "role": "argument (placeholder)",
+              "explanation": "uk is the name of the keyboard layout to load. This is a placeholder — replace it with the layout name that matches your physical keyboard. You got the correct name from the 'localectl list-keymaps' command above.",
+              "isPlaceholder": false
+            }
+          ]
+        },
+        {
+          "raw": "whoami",
+          "dangerLevel": "safe",
+          "whySpaces": "This command has no spaces — it is a single word with no arguments.",
+          "expectedOutput": "The word 'root' is printed. In the Arch live ISO you are always logged in as root (the system administrator). This confirms you have full permissions to partition disks and install software.",
+          "failureOutput": "If anything other than 'root' is printed, you may not be in the live ISO environment.",
+          "tokens": [
+            {
+              "text": "whoami",
+              "role": "program",
+              "explanation": "whoami is a program that prints the username of the currently logged-in user. The name is a play on 'who am I?' It has no options or arguments — it simply prints the current user and exits. In the live ISO, this should print 'root' because the installer runs as the root (administrator) user."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boot-iso-uefi-check",
+      "title": "Boot Into the ISO: Confirm UEFI Mode",
+      "slideType": "command",
+      "tags": [],
+      "body": "You have booted from your Arch Linux USB. The first thing to confirm is whether your machine started in **UEFI mode** or **legacy BIOS mode**. This matters because UEFI and BIOS require completely different bootloaders and partition tables. The command below checks for a special UEFI-only folder that the kernel exposes when UEFI is active.",
+      "commands": [
+        {
+          "raw": "ls /sys/firmware/efi/efivars",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the program (ls) from its argument (the directory path). Without the space, the shell would look for a program literally named 'ls/sys/firmware/efi/efivars', which does not exist.",
+          "expectedOutput": "A long list of filenames is printed (many entries like 'BootOrder-...' and 'Lang-...'). This confirms your machine booted in UEFI mode. You can proceed with a UEFI installation.",
+          "failureOutput": "If the output is 'ls: cannot access /sys/firmware/efi/efivars: No such file or directory', your machine booted in legacy BIOS mode. Stop here and reboot. In your firmware boot menu, look for a version of the USB entry that says 'UEFI' in its name and select that.",
+          "tokens": [
+            {
+              "text": "ls",
+              "role": "program",
+              "explanation": "ls stands for 'list'. It is one of the most fundamental Linux commands. It lists the contents of a directory — the files and folders inside it. By itself, ls lists the current directory. When given a path as an argument, it lists that specific directory."
+            },
+            {
+              "text": "/sys/firmware/efi/efivars",
+              "role": "argument (directory path)",
+              "explanation": "This is the absolute path of the directory we are listing. In Linux, every path starts with / (the root of the entire filesystem). Breaking it down: / is root, sys is a virtual kernel directory, firmware is a sub-directory for firmware interfaces, efi is a sub-directory that only exists when the system booted in UEFI mode, efivars is a directory exposing UEFI variable data. If this directory exists and has files in it, UEFI mode is confirmed. The / characters between directory names are path separators — each / means 'go one level deeper into this directory'."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boot-iso-network-check",
+      "title": "Boot Into the ISO: Check Network",
+      "slideType": "command",
+      "tags": [],
+      "body": "Arch Linux installs packages directly from the internet during installation. You must confirm your network is working before partitioning anything. This slide checks both IP connectivity and DNS resolution.",
+      "commands": [
+        {
+          "raw": "ip link",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the program (ip) from the object type (link). The ip tool uses a structured command style: 'ip [object] [command]'. The object here is 'link' (network interfaces).",
+          "expectedOutput": "A numbered list of network interfaces is printed. Look for a line starting with a number, then a name like 'eth0', 'enp3s0', 'eno1' (wired Ethernet), or 'wlan0', 'wlp2s0' (Wi-Fi). The word 'UP' inside angle brackets means the interface is active. 'lo' is the loopback interface — that is always there and not a real network.",
+          "failureOutput": "If only 'lo' is listed, no network hardware was detected. Check that your Ethernet cable is plugged in or that your Wi-Fi adapter is supported by the live ISO.",
+          "tokens": [
+            {
+              "text": "ip",
+              "role": "program",
+              "explanation": "ip is the primary Linux networking tool. It replaces older tools like ifconfig. It can show and configure network interfaces, routes, and addresses. It always requires an object type after it (like 'link', 'addr', 'route') to know what to operate on."
+            },
+            {
+              "text": "link",
+              "role": "object",
+              "explanation": "link is the object type passed to ip. It tells ip to operate on network link-layer interfaces (the physical or virtual network devices). Without any further sub-command, ip link defaults to 'ip link show', which lists all network interfaces on the system."
+            }
+          ]
+        },
+        {
+          "raw": "ping -c 3 archlinux.org",
+          "dangerLevel": "safe",
+          "whySpaces": "Spaces separate the program (ping), the flag and its value (-c 3), and the target hostname (archlinux.org). The shell needs spaces to tell these three parts apart. Without spaces they would be read as one unrecognised word.",
+          "expectedOutput": "Three lines appear, each reading '64 bytes from ...' with a round-trip time in milliseconds. A summary line shows '3 packets transmitted, 3 received, 0% packet loss'. This confirms both IP connectivity and DNS name resolution are working.",
+          "failureOutput": "If you see 'Network is unreachable' or 'Name or service not known', your network is not working. If you are using Wi-Fi, see the next slide for Wi-Fi setup. If using Ethernet, check that the cable is fully plugged in at both ends.",
+          "tokens": [
+            {
+              "text": "ping",
+              "role": "program",
+              "explanation": "ping is a network testing tool. It sends small ICMP echo request packets to a target host and waits for replies. Each reply proves a round-trip path exists. If it reaches a hostname like archlinux.org, it also proves DNS (Domain Name System) is working — meaning the system can translate a human-readable name into a numeric IP address."
+            },
+            {
+              "text": "-c",
+              "role": "flag",
+              "explanation": "-c stands for count. It limits how many packets ping will send. Without -c, ping runs forever until you press Ctrl+C. The value that follows (3) is the count argument."
+            },
+            {
+              "text": "3",
+              "role": "flag argument",
+              "explanation": "3 is the value for the -c flag. It means 'send exactly 3 ping packets then stop'. You can use any number here. We use 3 as a quick confirmation — enough to see a pattern without waiting a long time."
+            },
+            {
+              "text": "archlinux.org",
+              "role": "argument (hostname)",
+              "explanation": "archlinux.org is the target hostname to ping. It is the official Arch Linux website. We use it because it is a reliable server that accepts ping requests. Reaching it proves both internet connectivity and DNS resolution. The .org is the top-level domain, archlinux is the domain name, and together archlinux.org is the fully qualified domain name."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boot-iso-wifi",
+      "title": "Boot Into the ISO: Connect to Wi-Fi (if needed)",
+      "slideType": "command",
+      "tags": ["wifi"],
+      "body": "If your machine uses Wi-Fi, you need to connect manually using a tool called **iwctl** (iwd wireless control). If you are using a wired Ethernet cable and your network test already passed, skip this slide and press Next.\n\niwctl is an interactive shell — after you type the first command, your prompt changes to `[iwd]#` and you type sub-commands inside that shell. Type the commands below in order.",
+      "commands": [
+        {
+          "raw": "iwctl",
+          "dangerLevel": "safe",
+          "whySpaces": "This command has no spaces — it is a single word with no arguments.",
+          "expectedOutput": "Your terminal prompt changes to '[iwd]#'. You are now inside the iwctl interactive shell. All subsequent commands until you type 'exit' are sent to iwd.",
+          "failureOutput": "If 'iwctl: command not found', you are not in the Arch live ISO. If iwd.service is not running, try: systemctl start iwd",
+          "tokens": [
+            {
+              "text": "iwctl",
+              "role": "program",
+              "explanation": "iwctl is the command-line client for iwd (iNet wireless daemon), which is the wireless management system included in the Arch live ISO. Typing iwctl opens an interactive shell where you type wireless-specific commands. Your normal shell prompt disappears and is replaced by [iwd]# until you type 'exit'."
+            }
+          ]
+        },
+        {
+          "raw": "device list",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the object type (device) from the sub-command (list). Inside iwctl, the structure is always: [object] [action]. Without the space, iwctl would not understand the instruction.",
+          "expectedOutput": "A table is printed showing your wireless device names. The Name column shows the interface name, usually wlan0. The Powered column should say 'on'. Write down the device name — you will use it in the next commands.",
+          "failureOutput": "If the table is empty, your Wi-Fi adapter may not be supported or may be blocked. Try: rfkill unblock wifi",
+          "tokens": [
+            {
+              "text": "device",
+              "role": "object",
+              "explanation": "device is the object category inside iwctl. It refers to wireless hardware adapters — the physical Wi-Fi chip in your computer. You use this to list, show, or control wireless adapters."
+            },
+            {
+              "text": "list",
+              "role": "sub-command",
+              "explanation": "list is the action to perform on the device object. It prints a table of all detected wireless adapters with their names, types, and power state."
+            }
+          ]
+        },
+        {
+          "raw": "station wlan0 scan",
+          "dangerLevel": "safe",
+          "whySpaces": "Three spaces separate three parts: the object (station), the device name (wlan0), and the action (scan). The shell needs each space to know where one token ends and the next begins.",
+          "expectedOutput": "No output is printed on success. The scan runs silently in the background. Wait 2–3 seconds before running the next command to give the scan time to find networks.",
+          "failureOutput": "If you see 'Device is busy', wait a few seconds and try again.",
+          "note": "Replace 'wlan0' with your actual wireless device name from the 'device list' output above.",
+          "tokens": [
+            {
+              "text": "station",
+              "role": "object",
+              "explanation": "station is the object category inside iwctl for managing a wireless device in station (client) mode. In station mode, your device connects to existing Wi-Fi access points — as opposed to access point mode where your device would create a hotspot."
+            },
+            {
+              "text": "wlan0",
+              "role": "argument (device name, placeholder)",
+              "explanation": "wlan0 is the name of the wireless adapter to use. This is a placeholder — your device may be named differently (wlan1, wlp2s0, etc.). Use the name shown in the 'device list' output. The name wlan stands for wireless LAN (Local Area Network) and 0 is the first such device found.",
+              "isPlaceholder": false
+            },
+            {
+              "text": "scan",
+              "role": "sub-command",
+              "explanation": "scan tells the wireless adapter to actively search for available Wi-Fi networks (SSIDs) in range. The scan results are stored internally by iwd and can be viewed with the 'get-networks' command."
+            }
+          ]
+        },
+        {
+          "raw": "station wlan0 get-networks",
+          "dangerLevel": "safe",
+          "whySpaces": "Three parts separated by spaces: object (station), device name (wlan0), and action (get-networks). The hyphen inside get-networks is part of the sub-command name — not a flag.",
+          "expectedOutput": "A table is printed showing nearby Wi-Fi networks. Columns: Network name (SSID), Security type (PSK=password-protected, open=no password), Signal strength (bars). Find your network's name in the list.",
+          "failureOutput": "If the list is empty, the scan may not have finished. Wait 3 seconds and run this command again.",
+          "tokens": [
+            {
+              "text": "station",
+              "role": "object",
+              "explanation": "station refers to the wireless adapter operating as a client. Same as in the scan command."
+            },
+            {
+              "text": "wlan0",
+              "role": "argument (device name, placeholder)",
+              "explanation": "Your wireless adapter name. Replace with your actual device name from 'device list'."
+            },
+            {
+              "text": "get-networks",
+              "role": "sub-command",
+              "explanation": "get-networks retrieves and displays the list of Wi-Fi networks found during the most recent scan. The hyphen (-) between 'get' and 'networks' is simply part of this sub-command's name. It does not mean anything special on its own."
+            }
+          ]
+        },
+        {
+          "raw": "station wlan0 connect \"YourWiFi\"",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate: object (station), device (wlan0), action (connect), and the network name (\"YourWiFi\"). The network name is in double quotes because it may contain spaces. The space between 'connect' and '\"YourWiFi\"' is mandatory — it separates the action from its argument.",
+          "expectedOutput": "iwctl prompts you to enter the Wi-Fi passphrase. Type your password and press Enter. If you see no error, the connection succeeded. You can verify by typing 'exit' and then running: ping -c 3 archlinux.org",
+          "failureOutput": "If you see 'Failed to connect', the password was wrong or the network is out of range. Try again.",
+          "note": "Replace YourWiFi with your actual Wi-Fi network name exactly as it appeared in get-networks. Keep the double quotes.",
+          "tokens": [
+            {
+              "text": "station",
+              "role": "object",
+              "explanation": "The wireless adapter category inside iwctl."
+            },
+            {
+              "text": "wlan0",
+              "role": "argument (device name, placeholder)",
+              "explanation": "Your wireless adapter name. Replace with your actual device name."
+            },
+            {
+              "text": "connect",
+              "role": "sub-command",
+              "explanation": "connect tells iwd to initiate a connection to the specified Wi-Fi network. After connecting, iwd handles authentication and DHCP (getting an IP address) automatically."
+            },
+            {
+              "text": "\"YourWiFi\"",
+              "role": "argument (network name, placeholder)",
+              "explanation": "This is the SSID (network name) of the Wi-Fi network you want to join. Replace YourWiFi with your actual network name as shown in get-networks. The double quote (\") characters wrap the name so that spaces inside the name are treated as part of the name rather than as separators. For example, if your network is called My Home Network, you would type: station wlan0 connect \"My Home Network\". Without quotes, the shell would treat 'My', 'Home', and 'Network' as three separate arguments and the command would fail.",
+              "isPlaceholder": false
+            }
+          ]
+        },
+        {
+          "raw": "exit",
+          "dangerLevel": "safe",
+          "whySpaces": "No spaces — single word, no arguments.",
+          "expectedOutput": "The [iwd]# prompt disappears and your normal shell prompt returns. You are back in the main Arch ISO shell.",
+          "tokens": [
+            {
+              "text": "exit",
+              "role": "program / built-in",
+              "explanation": "exit is a built-in shell command (and also a standalone program) that terminates the current shell session. Inside iwctl, it closes the iwd interactive shell and returns you to the normal Linux shell where you can run any other command. It does not disconnect your Wi-Fi — iwd continues managing the connection in the background."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-naming",
+      "title": "Disk Naming: Understanding Linux Storage Names",
+      "slideType": "command",
+      "tags": [],
+      "body": "Before you touch any disk, you must understand how Linux names storage devices. Getting this wrong is the most common cause of accidentally erasing the wrong drive.\n\n**The rule:** Device names are clues, not proof. Always confirm a drive by matching its name, size, model, and what is currently mounted on it — never trust the name alone.\n\n**NVMe drives** (modern internal SSDs): named `/dev/nvme0n1`, `/dev/nvme1n1`, etc.\n- `nvme` = NVMe protocol\n- `0` = first NVMe controller found\n- `n1` = namespace 1 (almost always 1)\n- Partitions add `p1`, `p2`: `/dev/nvme0n1p1`\n\n**SATA / USB drives**: named `/dev/sda`, `/dev/sdb`, etc.\n- `sd` = SCSI disk (used for SATA, USB, and external drives)\n- `a` = first such disk, `b` = second, etc.\n- Partitions add a number: `/dev/sda1`, `/dev/sda2`\n\n**Warning:** These names can change between reboots depending on what order drives initialise. Always verify by size, model, and mountpoints — not just by name.",
+      "commands": [
+        {
+          "raw": "lsblk -o NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the program (lsblk) from the flag (-o) and a space separates the flag from its argument (the column list). The commas inside the column list are NOT spaces — they separate column names within the single argument.",
+          "expectedOutput": "A table is printed with columns: NAME (device path), SIZE (storage capacity), TYPE (disk or part), MODEL (manufacturer name), TRAN (transport: sata, nvme, usb), SERIAL (unique serial number), MOUNTPOINTS (where it is currently mounted, if at all). Use this table to identify which device is your installation target.",
+          "failureOutput": "If a column shows blank, the kernel could not read that attribute. This is normal for some USB devices or virtual disks.",
+          "tokens": [
+            {
+              "text": "lsblk",
+              "role": "program",
+              "explanation": "lsblk stands for 'list block devices'. A block device is a storage device that stores data in fixed-size blocks — hard drives, SSDs, USB drives, and SD cards are all block devices. lsblk reads the kernel's list of attached storage devices and displays them in a tree structure."
+            },
+            {
+              "text": "-o",
+              "role": "flag",
+              "explanation": "-o stands for 'output columns'. It tells lsblk to show only specific columns instead of the default set. Without -o, lsblk shows NAME, MAJ:MIN, RM, SIZE, RO, TYPE, and MOUNTPOINTS. With -o you can choose exactly which columns you want."
+            },
+            {
+              "text": "NAME,SIZE,TYPE,MODEL,TRAN,SERIAL,MOUNTPOINTS",
+              "role": "flag argument (column list)",
+              "explanation": "This is the list of columns to display, separated by commas (no spaces around commas — spaces would break the argument). Each column name: NAME=device path like /dev/sda, SIZE=total storage capacity, TYPE=disk (whole drive) or part (partition), MODEL=manufacturer model string, TRAN=transport protocol (nvme, sata, usb), SERIAL=unique serial number useful for confirming identity, MOUNTPOINTS=where this device is currently mounted (blank means not currently in use)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-safety",
+      "title": "Disk Setup: Safety Gate",
+      "slideType": "safety",
+      "tags": [],
+      "body": "You are about to partition and format a disk. These operations permanently erase data.",
+      "safetyGate": {
+        "dangerLevel": "danger",
+        "headline": "Disk operations ahead — data will be permanently erased",
+        "body": "The next slides contain commands that partition, format, and write to a physical disk. These operations are irreversible. There is no Undo. Any data on the target disk will be permanently destroyed.\n\nBefore continuing, confirm all of the following:",
+        "checkboxes": [
+          "I have identified my target disk using lsblk and confirmed its NAME, SIZE, and MODEL.",
+          "I have confirmed the target disk does NOT contain data I want to keep, OR I have already backed up everything I need.",
+          "I understand that the commands on the next slides will use MY specific device name (e.g. /dev/nvme0n1 or /dev/sda), which I will enter on the next input slide.",
+          "I understand there is no Undo for disk formatting commands."
+        ]
+      }
+    },
+    {
+      "id": "disk-setup-input-disk",
+      "title": "Enter Your Disk Name",
+      "slideType": "input",
+      "tags": [],
+      "body": "Enter the device name of the disk you will install Arch Linux on. You got this name from the lsblk command on the previous slide.\n\n**Format:** Always starts with /dev/ followed by the disk name. Examples:\n- `/dev/nvme0n1` — a modern NVMe SSD\n- `/dev/sda` — a SATA drive or USB external drive\n- `/dev/sdb` — a second SATA drive",
+      "inputFields": [
+        {
+          "deviceMapKey": "disk",
+          "label": "Target disk device name",
+          "placeholder": "/dev/nvme0n1",
+          "hint": "Enter the full path starting with /dev/. Do not enter a partition number (no p1, p2, 1, 2 at the end).",
+          "example": "/dev/nvme0n1 or /dev/sda",
+          "required": true,
+          "allowUnknown": false
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-inspect",
+      "title": "Disk Setup: Inspect Your Disk",
+      "slideType": "command",
+      "tags": [],
+      "body": "Before changing anything, run these inspection commands to see the current state of your target disk. This is a safety check — inspect first, change later.",
+      "commands": [
+        {
+          "raw": "lsblk",
+          "dangerLevel": "safe",
+          "whySpaces": "No spaces — single word, no arguments. lsblk by itself uses default output columns.",
+          "expectedOutput": "A tree of all block devices and their partitions is printed. Find your target disk (e.g. nvme0n1 or sda). Its children (indented below it) are its existing partitions. Note what is currently there.",
+          "tokens": [
+            {
+              "text": "lsblk",
+              "role": "program",
+              "explanation": "lsblk lists all block devices (storage disks and their partitions) detected by the kernel. Used here without any flags so you can see the full tree with default columns. Look for your target disk by its name and size."
+            }
+          ]
+        },
+        {
+          "raw": "fdisk -l",
+          "dangerLevel": "safe",
+          "whySpaces": "A space separates the program (fdisk) from its flag (-l). Without the space the shell reads 'fdisk-l' as one unknown word.",
+          "expectedOutput": "Detailed information about every disk is printed including: disk size in bytes and GB, sector size, partition table type (GPT or DOS/MBR), and a table of all existing partitions with their start/end sectors, sizes, types, and filesystem signatures.",
+          "failureOutput": "If you see permission errors, make sure you are running as root (you should be in the live ISO).",
+          "tokens": [
+            {
+              "text": "fdisk",
+              "role": "program",
+              "explanation": "fdisk is a disk partitioning tool. It can read, create, and delete partition tables. When used with -l it only reads and displays information — it does not modify anything."
+            },
+            {
+              "text": "-l",
+              "role": "flag",
+              "explanation": "-l stands for 'list'. It tells fdisk to list all disk and partition information across all detected devices without entering interactive mode. This is a read-only inspection command — nothing is written to disk."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-partition",
+      "title": "Disk Setup: Partition the Disk",
+      "slideType": "command",
+      "tags": [],
+      "body": "Now you will create a fresh partition layout on your target disk using **cfdisk**, a menu-driven partitioning tool. cfdisk shows a visual interface in your terminal — you use arrow keys and Enter to navigate.\n\n**Recommended UEFI layout:**\n| Partition | Size | Type | Purpose |\n|-----------|------|------|---------|\n| /dev/nvme0n1p1 | 512 MB | EFI System | Boot files |\n| /dev/nvme0n1p2 | Remaining space | Linux filesystem | Root OS |\n\nIf you want a swap partition (optional — we cover swap files as the easier alternative): add a third partition of 4–8 GB with type Linux swap.\n\n**Inside cfdisk:** Select 'gpt' when asked for label type. Use arrow keys to navigate. Select 'New' to create a partition. Select 'Type' to set its type. Select 'Write' when done, type 'yes' to confirm, then 'Quit'.",
+      "commands": [
+        {
+          "raw": "cfdisk {{disk}}",
+          "dangerLevel": "destructive",
+          "whySpaces": "A space separates the program (cfdisk) from its argument (the disk device path). Without the space cfdisk would not know which disk to open.",
+          "expectedOutput": "A full-screen menu-driven partitioning interface opens in your terminal. Use arrow keys to navigate. When you select 'Write' and confirm, the partition table is written to disk.",
+          "failureOutput": "If 'cfdisk: cannot open /dev/nvme0n1: No such file or directory', your device name is wrong. Go back and re-enter it.",
+          "note": "The {{disk}} placeholder will be replaced with your actual device name (e.g. /dev/nvme0n1) once you entered it on the previous slide.",
+          "tokens": [
+            {
+              "text": "cfdisk",
+              "role": "program",
+              "explanation": "cfdisk is a curses-based (text-based graphical) disk partition editor. It shows a visual interface in your terminal where you can create, delete, resize, and set types for partitions. Unlike fdisk's command-line mode, cfdisk uses arrow keys and a menu bar. Changes are only written to disk when you explicitly select 'Write' and confirm."
+            },
+            {
+              "text": "{{disk}}",
+              "role": "argument (device path, placeholder)",
+              "explanation": "This is replaced by your actual disk device path (e.g. /dev/nvme0n1 or /dev/sda). It tells cfdisk which disk to open and edit. The /dev/ prefix means this is a device file in the /dev directory — a special file that represents real hardware. The name after /dev/ (nvme0n1 or sda) is the specific disk.",
+              "isPlaceholder": true,
+              "deviceMapKey": "disk"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-format-efi",
+      "title": "Disk Setup: Format the EFI Partition",
+      "slideType": "command",
+      "tags": [],
+      "body": "After partitioning, you must format each partition with a filesystem before it can store data. The EFI partition requires the FAT32 filesystem — this is a strict requirement of the UEFI standard, not an option.",
+      "commands": [
+        {
+          "raw": "mkfs.fat -F 32 {{efi_part}}",
+          "dangerLevel": "destructive",
+          "whySpaces": "Spaces separate three parts: the program (mkfs.fat), the flag with its value (-F 32), and the target partition (the placeholder). Each must be separated by a space so the shell can identify them individually.",
+          "expectedOutput": "Output like 'mkfs.fat 4.2 (2021-01-31)' followed by nothing. No errors means success. The partition is now formatted as FAT32.",
+          "failureOutput": "If you see 'No such file or directory', the partition path is wrong. Verify with lsblk.",
+          "tokens": [
+            {
+              "text": "mkfs.fat",
+              "role": "program",
+              "explanation": "mkfs.fat is the program that creates a FAT (File Allocation Table) filesystem. mkfs stands for 'make filesystem'. The .fat suffix tells you it specifically creates FAT-family filesystems. The dot (.) in the name is part of the program's name — it is not a path separator here. FAT32 is required for the EFI System Partition because the UEFI firmware itself reads this partition, and UEFI firmware universally supports FAT32."
+            },
+            {
+              "text": "-F",
+              "role": "flag",
+              "explanation": "-F stands for FAT size. It specifies which FAT variant to create: 12, 16, or 32. The value 32 means FAT32. You must specify -F 32 explicitly for the EFI partition — FAT12 and FAT16 are too limited for EFI use."
+            },
+            {
+              "text": "32",
+              "role": "flag argument",
+              "explanation": "32 is the value for the -F flag. It specifies FAT32 format, which supports files up to 4 GB and partitions up to 2 TB. FAT32 is the only FAT variant acceptable for EFI System Partitions."
+            },
+            {
+              "text": "{{efi_part}}",
+              "role": "argument (partition path, placeholder)",
+              "explanation": "This is replaced by your actual EFI partition path (e.g. /dev/nvme0n1p1 or /dev/sda1). This is the first partition you created in cfdisk that you set to type 'EFI System'. Note the difference from the disk path: the disk is /dev/nvme0n1 but the partition is /dev/nvme0n1p1 (with p1 at the end). The p1 means 'partition 1' of that disk.",
+              "isPlaceholder": true,
+              "deviceMapKey": "efi_part"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-format-root",
+      "title": "Disk Setup: Format the Root Partition",
+      "slideType": "command",
+      "tags": [],
+      "body": "The root partition holds your entire Arch Linux installation — the operating system, all programs, and your user files. We format it with **ext4**, which is the most widely supported, reliable, and beginner-appropriate Linux filesystem.",
+      "commands": [
+        {
+          "raw": "mkfs.ext4 {{root_part}}",
+          "dangerLevel": "destructive",
+          "whySpaces": "A space separates the program (mkfs.ext4) from its argument (the partition path). Without the space, the shell would look for a nonexistent program named 'mkfs.ext4/dev/...'.",
+          "expectedOutput": "Several lines of output: 'Creating filesystem with N 4k blocks...', 'Allocating group tables: done', 'Writing inode tables: done', 'Creating journal: done', 'Writing superblocks... done'. This means the ext4 filesystem was created successfully.",
+          "failureOutput": "If you see 'Invalid argument' or the partition path does not exist, verify the partition name with lsblk.",
+          "tokens": [
+            {
+              "text": "mkfs.ext4",
+              "role": "program",
+              "explanation": "mkfs.ext4 creates an ext4 filesystem. mkfs means 'make filesystem'. The .ext4 suffix specifies which filesystem type to create. ext4 (Fourth Extended Filesystem) is the default Linux filesystem — reliable, fast, supports journaling (which protects against data corruption on unexpected power loss), and supports files up to 16 TB and partitions up to 1 EB."
+            },
+            {
+              "text": "{{root_part}}",
+              "role": "argument (partition path, placeholder)",
+              "explanation": "This is replaced by your actual root partition path (e.g. /dev/nvme0n1p2 or /dev/sda2). This is the second partition you created in cfdisk — the large one set to 'Linux filesystem' type. This is where your entire Arch installation will live. Formatting this partition with mkfs.ext4 completely erases whatever was there before.",
+              "isPlaceholder": true,
+              "deviceMapKey": "root_part"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disk-setup-mount",
+      "title": "Disk Setup: Mount the Partitions",
+      "slideType": "command",
+      "tags": [],
+      "body": "Before installing any software, you must **mount** the formatted partitions. Mounting means attaching a filesystem to a specific directory in the current system's folder tree. The Arch installer uses `/mnt` as the root of the new installation, and `/mnt/boot` as where the EFI partition is attached.",
+      "commands": [
+        {
+          "raw": "mount {{root_part}} /mnt",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate the program (mount), the source partition (placeholder), and the target directory (/mnt). All three parts are required and must be in this exact order.",
+          "expectedOutput": "No output on success. Silence is correct. You can verify with: lsblk",
+          "failureOutput": "If you see 'mount: /mnt: special device does not exist', the partition path is wrong.",
+          "tokens": [
+            {
+              "text": "mount",
+              "role": "program",
+              "explanation": "mount is the Linux command that attaches a filesystem (from a disk partition) to a directory in the current filesystem tree. After mounting, you can access the files on that partition by navigating to the mount point directory. During installation, /mnt is used as a staging area where the new Arch Linux system is built."
+            },
+            {
+              "text": "{{root_part}}",
+              "role": "argument (source partition, placeholder)",
+              "explanation": "The partition to mount (e.g. /dev/nvme0n1p2). This is the source — the physical storage location. It is replaced by your actual root partition path.",
+              "isPlaceholder": true,
+              "deviceMapKey": "root_part"
+            },
+            {
+              "text": "/mnt",
+              "role": "argument (mount point directory)",
+              "explanation": "/mnt is the target directory — the mount point. After this command runs, the contents of the root partition appear inside /mnt. The /mnt directory exists in the live ISO as a conventional temporary mount location. The slash at the start means it is an absolute path starting from the filesystem root. mnt is short for 'mount'."
+            }
+          ]
+        },
+        {
+          "raw": "mkdir -p /mnt/boot",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate the program (mkdir), the flag (-p), and the path (/mnt/boot). Each is a separate token that the shell must see individually.",
+          "expectedOutput": "No output on success. The directory /mnt/boot is created inside the mounted root filesystem.",
+          "tokens": [
+            {
+              "text": "mkdir",
+              "role": "program",
+              "explanation": "mkdir stands for 'make directory'. It creates a new directory at the specified path."
+            },
+            {
+              "text": "-p",
+              "role": "flag",
+              "explanation": "-p stands for 'parents'. It tells mkdir to create any missing parent directories in the path, and to not produce an error if the directory already exists. Without -p, if /mnt/boot's parent (/mnt) did not exist, mkdir would fail."
+            },
+            {
+              "text": "/mnt/boot",
+              "role": "argument (directory path)",
+              "explanation": "/mnt/boot is the path of the directory to create. Breaking it down: / is the filesystem root, mnt is the directory where the root partition is mounted, boot is the new subdirectory we are creating inside it. This will become the mount point for the EFI partition. The slash (/) between mnt and boot is a path separator — it means 'boot is inside mnt'."
+            }
+          ]
+        },
+        {
+          "raw": "mount {{efi_part}} /mnt/boot",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate the program (mount), the source partition (placeholder), and the target directory (/mnt/boot).",
+          "expectedOutput": "No output on success. You can verify both mounts with: lsblk",
+          "tokens": [
+            {
+              "text": "mount",
+              "role": "program",
+              "explanation": "mount attaches a filesystem to a directory. We use it again here to attach the EFI partition to the /mnt/boot directory we just created."
+            },
+            {
+              "text": "{{efi_part}}",
+              "role": "argument (source partition, placeholder)",
+              "explanation": "The EFI partition to mount (e.g. /dev/nvme0n1p1). Replaced by your actual EFI partition path.",
+              "isPlaceholder": true,
+              "deviceMapKey": "efi_part"
+            },
+            {
+              "text": "/mnt/boot",
+              "role": "argument (mount point directory)",
+              "explanation": "/mnt/boot is where the EFI partition is attached. After this command, the EFI partition's contents appear at /mnt/boot. The bootloader will later be installed here. The path has two / characters: the first / is the filesystem root, the slash between mnt and boot is a path separator meaning 'the boot directory inside mnt'."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "install-base-system",
+      "title": "Install Base System",
+      "slideType": "command",
+      "tags": [],
+      "body": "Now you install the core of your Arch Linux system using **pacstrap**. This command downloads packages from the Arch mirrors and installs them into `/mnt` (your mounted root partition). This step requires an internet connection and takes several minutes depending on your connection speed.\n\nThe packages installed here:\n- `base` — minimum set of packages to define a basic Arch Linux installation\n- `linux` — the Linux kernel itself\n- `linux-firmware` — firmware files for common hardware\n- `nano` — a beginner-friendly text editor\n- `networkmanager` — network management daemon (for post-install networking)\n- `sudo` — allows non-root users to run commands as root",
+      "commands": [
+        {
+          "raw": "pacstrap -K /mnt base linux linux-firmware nano networkmanager sudo",
+          "dangerLevel": "install",
+          "whySpaces": "Spaces separate every part: the program (pacstrap), the flag (-K), the install root (/mnt), and each package name. Every package name is a separate argument — they must be space-separated so pacstrap knows where each package name starts and ends.",
+          "expectedOutput": "A progress display shows packages being downloaded and installed one by one. Lines like '(1/N) installing base...' appear. The process ends with 'Running post-transaction hooks...' followed by completion. This can take 3–10 minutes.",
+          "failureOutput": "If you see 'failed to retrieve some files' or 'error: target not found', your internet connection dropped or a mirror is down. Check with: ping -c 3 archlinux.org. If you see 'could not synchronize package databases', run: pacman -Sy first.",
+          "tokens": [
+            {
+              "text": "pacstrap",
+              "role": "program",
+              "explanation": "pacstrap is an Arch-specific installer tool. It installs packages into a specified directory (the chroot target) rather than into the currently running system. pac comes from pacman (Arch's package manager), and strap refers to bootstrapping — building a minimal system from scratch. pacstrap handles keyring initialization, dependency resolution, and installation into the target directory."
+            },
+            {
+              "text": "-K",
+              "role": "flag",
+              "explanation": "-K tells pacstrap to initialise and populate the pacman keyring in the target installation (/mnt). The pacman keyring is a set of cryptographic keys that verify package authenticity — ensuring packages have not been tampered with. Without -K the installed system would have no keys and could not install packages after first boot."
+            },
+            {
+              "text": "/mnt",
+              "role": "argument (install root)",
+              "explanation": "/mnt is the directory where packages will be installed. This is where your root partition is mounted. pacstrap treats /mnt as if it were the root (/) of a new system and installs everything relative to it. After pacstrap finishes, /mnt will contain a complete basic Arch Linux installation."
+            },
+            {
+              "text": "base",
+              "role": "argument (package name)",
+              "explanation": "base is a package group that contains the minimal set of packages needed to define a functional Arch Linux installation. It includes the package manager (pacman), basic shell utilities (coreutils, bash), filesystem tools, and other essentials. Without base, the installed system would be missing fundamental tools."
+            },
+            {
+              "text": "linux",
+              "role": "argument (package name)",
+              "explanation": "linux is the Linux kernel package — the core of the operating system. It contains the kernel binary (vmlinuz-linux) and initial ramdisk images (initramfs-linux.img) needed to boot. Without this package, your system cannot boot at all."
+            },
+            {
+              "text": "linux-firmware",
+              "role": "argument (package name)",
+              "explanation": "linux-firmware contains firmware binary files for a wide range of hardware: Wi-Fi adapters, Bluetooth chips, graphics cards, and more. Many hardware components require proprietary firmware loaded by the kernel at boot time. Without this package, some or all of your hardware may not function after installation."
+            },
+            {
+              "text": "nano",
+              "role": "argument (package name)",
+              "explanation": "nano is a simple terminal text editor. It is included here so you have an editor available inside the new system after you chroot into it. Nano is recommended for beginners because it shows available keyboard shortcuts at the bottom of the screen."
+            },
+            {
+              "text": "networkmanager",
+              "role": "argument (package name)",
+              "explanation": "networkmanager is a background service (daemon) that manages network connections after installation. It handles both wired and wireless connections and provides the nmcli and nmtui command-line interfaces. Without it, networking would need to be configured manually every boot."
+            },
+            {
+              "text": "sudo",
+              "role": "argument (package name)",
+              "explanation": "sudo (superuser do) is a program that allows a regular user to run specific commands with root (administrator) privileges. Without sudo, your regular user account created later could not perform administrative tasks. sudo reads a configuration file (/etc/sudoers) to determine who can run what commands as root."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-fstab",
+      "title": "Configure System: Generate fstab",
+      "slideType": "command",
+      "tags": [],
+      "body": "**fstab** (filesystem table) is a configuration file at `/etc/fstab` that tells the Linux kernel which partitions to mount automatically at every boot, where to mount them, and with what options.\n\nThe `genfstab` tool reads your current mount layout (the partitions you mounted at /mnt and /mnt/boot) and writes the correct fstab entries automatically based on the real UUIDs of your partitions.",
+      "commands": [
+        {
+          "raw": "genfstab -U /mnt >> /mnt/etc/fstab",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate: the program (genfstab), the flag (-U), the target (/mnt), the redirection operator (>>), and the output file path (/mnt/etc/fstab). Every token must be space-separated.",
+          "expectedOutput": "No terminal output. The fstab entries are written directly to the file. Verify by running: cat /mnt/etc/fstab",
+          "failureOutput": "If you see 'permission denied', you are not running as root. In the live ISO you should always be root.",
+          "tokens": [
+            {
+              "text": "genfstab",
+              "role": "program",
+              "explanation": "genfstab stands for 'generate filesystem table'. It inspects the current mounts under a given directory, reads the UUIDs of each mounted partition, and outputs correctly formatted fstab lines. It is an Arch-specific tool included in the arch-install-scripts package, which is present on the live ISO."
+            },
+            {
+              "text": "-U",
+              "role": "flag",
+              "explanation": "-U tells genfstab to use UUIDs (Universally Unique Identifiers) to identify partitions in the fstab file, rather than device paths like /dev/nvme0n1p2. UUIDs are preferred because they are permanent and unique — they do not change if you add or remove disks, unlike device paths which can shift between reboots."
+            },
+            {
+              "text": "/mnt",
+              "role": "argument (chroot root)",
+              "explanation": "/mnt tells genfstab to look for mounted partitions under /mnt as the root of the new system. It scans /mnt itself (root partition) and any subdirectories that have other partitions mounted (like /mnt/boot for the EFI partition)."
+            },
+            {
+              "text": ">>",
+              "role": "operator (append redirection)",
+              "explanation": ">> is the append redirection operator. It takes the output that genfstab would normally print to the screen and instead writes it to the end of the specified file without erasing what was already there. The double > is important: a single > would overwrite the file from the beginning, destroying any existing content. >> adds to the end. In this case, since /mnt/etc/fstab is likely empty on a fresh install, both work, but >> is the safe default."
+            },
+            {
+              "text": "/mnt/etc/fstab",
+              "role": "argument (output file path)",
+              "explanation": "This is the path of the fstab file inside the new installation. Breaking down the path: / is the filesystem root of the live ISO, mnt is where the new system's root partition is mounted, etc is the directory for system-wide configuration files, fstab is the filesystem table file. After this command, /mnt/etc/fstab contains the mount rules that the installed system will use on every boot. The slash (/) separates each directory level."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-chroot",
+      "title": "Configure System: Enter chroot",
+      "slideType": "command",
+      "tags": [],
+      "body": "**chroot** (change root) is a way to switch your working root directory from the live ISO to the installed system at `/mnt`. After chrooting, every command you run affects the new installation — not the live ISO. This is how you configure the system as if you had already booted into it.",
+      "commands": [
+        {
+          "raw": "arch-chroot /mnt",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program (arch-chroot) from its argument (/mnt). Without the space the shell cannot identify the program.",
+          "expectedOutput": "Your shell prompt changes — it may show [root@archiso /]# changing to [root@archiso /]# or simply # with a different hostname. You are now operating inside the new installation. Every command from now until you type 'exit' modifies the new system.",
+          "failureOutput": "If you see 'failed to run command /bin/bash: No such file or directory', the base system was not installed correctly. Re-run the pacstrap command.",
+          "tokens": [
+            {
+              "text": "arch-chroot",
+              "role": "program",
+              "explanation": "arch-chroot is an Arch-specific enhanced version of the standard chroot command. Beyond just changing the root directory, arch-chroot also mounts important virtual filesystems (like /proc, /sys, /dev) into the chroot environment so that programs inside the chroot can access kernel interfaces. This is necessary for tasks like generating locale, setting up the bootloader, and creating users."
+            },
+            {
+              "text": "/mnt",
+              "role": "argument (new root directory)",
+              "explanation": "/mnt is the directory to use as the new filesystem root. Since the new Arch system's root partition is mounted at /mnt, entering arch-chroot /mnt means all subsequent commands see /mnt/etc as /etc, /mnt/usr as /usr, etc. From inside the chroot, the path /mnt no longer appears — it looks like a fully booted system."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-timezone",
+      "title": "Configure System: Set Timezone",
+      "slideType": "command",
+      "tags": [],
+      "body": "The timezone tells the system what time zone you are in so that the system clock displays the correct local time. We create a symbolic link (a kind of shortcut) from the timezone data file to the expected location.",
+      "commands": [
+        {
+          "raw": "ln -sf /usr/share/zoneinfo/America/Phoenix /etc/localtime",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate: program (ln), flags (-sf), source path (/usr/share/zoneinfo/America/Phoenix), and target path (/etc/localtime). All four parts must be separated so the shell can identify each one.",
+          "expectedOutput": "No output on success.",
+          "note": "Replace 'America/Phoenix' with your actual timezone. Browse available timezones with: ls /usr/share/zoneinfo/ and ls /usr/share/zoneinfo/America/ (or your region folder).",
+          "tokens": [
+            {
+              "text": "ln",
+              "role": "program",
+              "explanation": "ln stands for 'link'. It creates links between files. There are two types: hard links (same inode, same data) and symbolic links (a pointer to another file's path). Here we use -s to create a symbolic link."
+            },
+            {
+              "text": "-sf",
+              "role": "flag (combined)",
+              "explanation": "-sf is two flags combined into one: -s means 'symbolic' (create a symbolic link rather than a hard link), and -f means 'force' (if /etc/localtime already exists, overwrite it without asking). Combining flags with a single hyphen is standard Unix convention — -sf means the same as -s -f."
+            },
+            {
+              "text": "/usr/share/zoneinfo/America/Phoenix",
+              "role": "argument (source — timezone data file)",
+              "explanation": "This is the source of the symbolic link — the actual timezone data file we want to point to. /usr is the directory for user-space programs and data, share contains architecture-independent data files, zoneinfo is the timezone database directory, America is the continent or region, Phoenix is the specific city/timezone. Replace America/Phoenix with your own region and city. The slash (/) between each directory name is a path separator."
+            },
+            {
+              "text": "/etc/localtime",
+              "role": "argument (target — link location)",
+              "explanation": "This is where the symbolic link is created. /etc is the directory for system-wide configuration, localtime is the file the system reads to determine the current timezone. After this command, /etc/localtime is a symbolic link that points to /usr/share/zoneinfo/America/Phoenix (or whichever timezone you chose). Programs that need the current timezone read /etc/localtime."
+            }
+          ]
+        },
+        {
+          "raw": "hwclock --systohc",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program (hwclock) from its option (--systohc). The double hyphen (--) prefix indicates this is a long-form option name.",
+          "expectedOutput": "No output on success. The hardware clock is updated.",
+          "tokens": [
+            {
+              "text": "hwclock",
+              "role": "program",
+              "explanation": "hwclock (hardware clock) is a tool that reads and sets the Real Time Clock (RTC) — the battery-backed clock chip on your motherboard that keeps time even when the computer is off. The RTC is separate from the system clock (the software clock maintained by the OS kernel)."
+            },
+            {
+              "text": "--systohc",
+              "role": "option",
+              "explanation": "--systohc stands for 'system to hardware clock'. It reads the current software system time and writes it to the hardware RTC chip. The double hyphen (--) marks this as a long-format option — as opposed to single-letter short flags like -s. This synchronises the hardware clock so it stays accurate across reboots. It should be run after setting the timezone."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-locale",
+      "title": "Configure System: Set Locale",
+      "slideType": "nano",
+      "tags": [],
+      "body": "The locale defines the language, date format, number format, and character encoding your system uses. You need to uncomment (activate) your locale in `/etc/locale.gen` and then generate it.",
+      "nanoEdit": {
+        "filePath": "/etc/locale.gen",
+        "filePathExplain": "Breaking down the path /etc/locale.gen: The / at the very start means this is an absolute path — it starts from the root of the entire filesystem. etc is a directory that holds system-wide configuration files. The / between etc and locale.gen is a path separator meaning 'locale.gen is inside etc'. locale.gen is the file name — locale means locale (language/region settings), the dot (.) separates the name from the extension, and gen is the extension meaning 'generate' (this file tells the locale-gen program which locales to generate).",
+        "openCommand": "nano /etc/locale.gen",
+        "openTokens": [
+          {
+            "text": "nano",
+            "role": "program",
+            "explanation": "nano is a simple terminal text editor. It is beginner-friendly because it shows available keyboard shortcuts at the bottom of the screen. It opens files for reading and editing directly in the terminal without requiring a graphical interface."
+          },
+          {
+            "text": "/etc/locale.gen",
+            "role": "argument (file path)",
+            "explanation": "This is the path of the file to open. nano opens this file for editing. /etc/locale.gen is the locale generation configuration file. It contains a list of all available locales, each commented out with a # character. To activate a locale you remove the # at the start of its line."
+          }
+        ],
+        "fullContent": "#en_US.UTF-8 UTF-8\n#en_US ISO-8859-1",
+        "lines": [
+          {
+            "lineNumber": 1,
+            "content": "#en_US.UTF-8 UTF-8",
+            "explanation": "This line activates the en_US.UTF-8 locale. The # at the very start is a comment marker — it means this line is currently disabled. To enable en_US.UTF-8, delete the # character at the beginning of this line. After removing the #, the line becomes: en_US.UTF-8 UTF-8. The locale name en_US.UTF-8 means: en=English language, US=United States region, UTF-8=Unicode character encoding (supports all languages and special characters). The second UTF-8 on the line is the character set — it must match the encoding in the locale name."
+          },
+          {
+            "lineNumber": 2,
+            "content": "#en_US ISO-8859-1",
+            "explanation": "This line would activate the en_US locale with the older ISO-8859-1 character encoding (Latin-1). This encoding only supports Western European characters and is not recommended for modern systems. Leave this line commented out (keep the # at the start) unless you have a specific reason to need it. UTF-8 from line 1 is always preferred."
+          }
+        ],
+        "charNotes": [
+          {
+            "char": "#",
+            "name": "hash / pound sign",
+            "role": "comment marker",
+            "explanation": "In /etc/locale.gen, a line that starts with # is a comment — it is completely ignored by the locale-gen program. To activate a locale, you must remove the # from the start of its line. The # itself has no meaning to locale-gen — only lines without # are processed."
+          },
+          {
+            "char": ".",
+            "name": "period / dot",
+            "role": "locale name separator",
+            "explanation": "In the locale name en_US.UTF-8, the dot (.) separates the language-region code (en_US) from the encoding (UTF-8). The dot here is just part of the naming convention for locale identifiers — it has no special meaning to the filesystem."
+          },
+          {
+            "char": "-",
+            "name": "hyphen / dash",
+            "role": "part of encoding name",
+            "explanation": "In UTF-8 and ISO-8859-1, the hyphens are part of the encoding standard names. UTF-8 has a hyphen between UTF and 8. ISO-8859-1 has hyphens between ISO, 8859, and 1. These hyphens are part of the official names and must be typed exactly as shown."
+          },
+          {
+            "char": " ",
+            "name": "space",
+            "role": "field separator",
+            "explanation": "In each locale line like 'en_US.UTF-8 UTF-8', the space between the locale name (en_US.UTF-8) and the character set (UTF-8) separates two fields. locale-gen reads the line as: field 1 = locale name, space, field 2 = character set. The space must be present and must be exactly one space."
+          }
+        ],
+        "saveExplain": "Press Ctrl+O to write (save) the file. The Ctrl key is the Control key — usually bottom-left on your keyboard. O is the letter O (not zero). nano will ask you to confirm the filename — just press Enter to keep the same filename. Then press Ctrl+X to exit nano. X is the letter X. After saving, you must run locale-gen to actually generate the locale files."
+      }
+    },
+    {
+      "id": "configure-locale-gen",
+      "title": "Configure System: Generate Locale",
+      "slideType": "command",
+      "tags": [],
+      "body": "After editing /etc/locale.gen, run locale-gen to generate the actual locale data files. Then set the LANG variable in /etc/locale.conf.",
+      "commands": [
+        {
+          "raw": "locale-gen",
+          "dangerLevel": "config",
+          "whySpaces": "No spaces — single word, no arguments.",
+          "expectedOutput": "Lines like 'Generating locales...' followed by 'en_US.UTF-8... done' and 'Generation complete.' are printed.",
+          "failureOutput": "If no locales are generated, you did not uncomment any line in /etc/locale.gen. Go back and remove the # from the correct line.",
+          "tokens": [
+            {
+              "text": "locale-gen",
+              "role": "program",
+              "explanation": "locale-gen reads /etc/locale.gen, finds every line that is not commented out (no # at the start), and generates the binary locale data files for each activated locale. The generated files are stored in /usr/lib/locale/. Without running locale-gen after editing locale.gen, the system has no locale data and programs may display errors about missing locale settings. The hyphen in locale-gen is part of the program's name."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-locale-conf",
+      "title": "Configure System: Set System Language",
+      "slideType": "nano",
+      "tags": [],
+      "body": "Now create `/etc/locale.conf` — the file that sets the default system language. This single-line file tells all programs what locale to use.",
+      "nanoEdit": {
+        "filePath": "/etc/locale.conf",
+        "filePathExplain": "Path breakdown: / is the filesystem root. etc is the system configuration directory. The / between etc and locale.conf is a path separator. locale.conf is the filename — locale refers to locale settings, the dot (.) separates name from extension, conf is a common extension for configuration files.",
+        "openCommand": "nano /etc/locale.conf",
+        "openTokens": [
+          {
+            "text": "nano",
+            "role": "program",
+            "explanation": "nano opens the file for editing. Since /etc/locale.conf does not exist yet, nano creates a new empty file at this path when you save."
+          },
+          {
+            "text": "/etc/locale.conf",
+            "role": "argument (file path to create)",
+            "explanation": "The path of the locale configuration file to create. Since it does not exist yet, nano will create it when you save. /etc is the system configuration directory, locale.conf is the locale settings file."
+          }
+        ],
+        "fullContent": "LANG=en_US.UTF-8",
+        "lines": [
+          {
+            "lineNumber": 1,
+            "content": "LANG=en_US.UTF-8",
+            "explanation": "This single line sets the LANG environment variable for the entire system. LANG is the primary locale variable — it tells all programs what language, number format, date format, and character encoding to use by default. The equals sign (=) assigns the value en_US.UTF-8 to the variable LANG. There must be no spaces around the = sign. en_US.UTF-8 must match exactly one of the locales you activated in /etc/locale.gen."
+          }
+        ],
+        "charNotes": [
+          {
+            "char": "=",
+            "name": "equals sign",
+            "role": "assignment operator",
+            "explanation": "In /etc/locale.conf, the = assigns a value to a variable. LANG=en_US.UTF-8 means: set the variable named LANG to the value en_US.UTF-8. There must be no spaces before or after the = sign. Adding a space (like LANG = en_US.UTF-8) would cause the setting to be ignored or misread."
+          },
+          {
+            "char": ".",
+            "name": "period / dot",
+            "role": "locale name separator",
+            "explanation": "In en_US.UTF-8, the dot separates the language-region code (en_US) from the character encoding (UTF-8). This is the standard format for locale names."
+          },
+          {
+            "char": "-",
+            "name": "hyphen / dash",
+            "role": "part of encoding name",
+            "explanation": "In UTF-8, the hyphen is part of the official encoding standard name. It must be present exactly as written."
+          },
+          {
+            "char": " ",
+            "name": "space",
+            "role": "NOT present — important absence",
+            "explanation": "There are NO spaces in LANG=en_US.UTF-8. Unlike many configuration formats, shell variable assignments and locale.conf entries must not have spaces around the = sign. A space before or after = would break the setting."
+          }
+        ],
+        "saveExplain": "Press Ctrl+O to write (save) the file, then press Enter to confirm the filename, then press Ctrl+X to exit nano."
+      }
+    },
+    {
+      "id": "configure-hostname",
+      "title": "Configure System: Set Hostname",
+      "slideType": "nano",
+      "tags": [],
+      "body": "The hostname is the name your computer uses to identify itself on a network. It appears in your shell prompt after the @ symbol (e.g. `[ethan@archbox ~]$` — archbox is the hostname). Choose a simple name with only letters, numbers, and hyphens.",
+      "nanoEdit": {
+        "filePath": "/etc/hostname",
+        "filePathExplain": "Path: / is the filesystem root. etc is the system configuration directory. hostname is the configuration file that contains just the computer's name. There is no file extension — it is simply called 'hostname'.",
+        "openCommand": "nano /etc/hostname",
+        "openTokens": [
+          {
+            "text": "nano",
+            "role": "program",
+            "explanation": "nano opens the file for editing. /etc/hostname does not exist on a fresh install — nano creates it when you save."
+          },
+          {
+            "text": "/etc/hostname",
+            "role": "argument (file path to create)",
+            "explanation": "The path of the hostname configuration file. This file will contain exactly one line: the hostname of your machine."
+          }
+        ],
+        "fullContent": "archbox",
+        "lines": [
+          {
+            "lineNumber": 1,
+            "content": "archbox",
+            "explanation": "This is the hostname — the name of your computer. Replace 'archbox' with whatever name you want to give your machine. Rules: use only letters (a-z, A-Z), numbers (0-9), and hyphens (-). No spaces, no underscores, no dots. The name can be anything you like — common choices are names like 'myarch', 'desktop', 'laptop', or something personal. Keep it short and easy to type since it appears in your shell prompt."
+          }
+        ],
+        "charNotes": [
+          {
+            "char": "-",
+            "name": "hyphen / dash",
+            "role": "allowed character in hostname",
+            "explanation": "Hyphens are allowed in hostnames (e.g. 'arch-desktop'). However, a hostname cannot start or end with a hyphen. The hyphen separates words in multi-word hostnames for readability."
+          },
+          {
+            "char": " ",
+            "name": "space",
+            "role": "NOT allowed in hostnames",
+            "explanation": "Spaces are NOT allowed in hostnames. The hostname must be a single word. If you type 'my computer' with a space, only 'my' would be read as the hostname and 'computer' would be ignored or cause errors."
+          },
+          {
+            "char": ".",
+            "name": "period / dot",
+            "role": "NOT recommended in simple hostnames",
+            "explanation": "While dots are technically allowed in fully qualified domain names (like 'archbox.local'), for a simple /etc/hostname entry it is best to use a plain name without dots. Dots in hostnames can confuse some network programs."
+          },
+          {
+            "char": "\\",
+            "name": "backslash",
+            "role": "NOT valid in hostnames",
+            "explanation": "Backslashes have no meaning in hostnames and should never be used. Only letters, numbers, and hyphens are valid hostname characters."
+          },
+          {
+            "char": "\"",
+            "name": "double quote",
+            "role": "NOT valid in hostnames",
+            "explanation": "Double quotes have no meaning in /etc/hostname and should never appear in the file. The hostname value is read literally — no quoting is needed or allowed."
+          }
+        ],
+        "saveExplain": "Press Ctrl+O to save, then Enter to confirm the filename, then Ctrl+X to exit nano."
+      }
+    },
+    {
+      "id": "configure-root-password",
+      "title": "Configure System: Set Root Password",
+      "slideType": "command",
+      "tags": [],
+      "body": "Set a password for the **root** account. Root is the system administrator user — the account with full unrestricted access to everything. You will use this password if you ever need emergency access. Choose a strong password you will not forget.",
+      "commands": [
+        {
+          "raw": "passwd",
+          "dangerLevel": "config",
+          "whySpaces": "No spaces — single word, no arguments. When run without arguments inside a chroot as root, passwd sets the root user's password.",
+          "expectedOutput": "You are prompted to 'Enter new password:' — type your chosen password (nothing appears on screen as you type). Then 'Retype new password:' — type it again to confirm. If they match: 'passwd: password updated successfully'.",
+          "failureOutput": "If you see 'Sorry, passwords do not match', you typed different things. Try again. If you see 'Password quality check failed', the password is too weak — choose something longer.",
+          "tokens": [
+            {
+              "text": "passwd",
+              "role": "program",
+              "explanation": "passwd is the program that changes user account passwords. When run as root without any username argument, it changes root's own password. When run with a username argument (like 'passwd ethan'), it changes that user's password. It prompts you to enter the new password twice — the input is hidden (nothing appears as you type) for security."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-user",
+      "title": "Configure System: Create Your User Account",
+      "slideType": "command",
+      "tags": [],
+      "body": "Create a regular (non-root) user account for everyday use. Using root for daily tasks is dangerous — a typo in a command can destroy the system. A regular user account with sudo access gives you administrative power when needed but protects you from accidents.",
+      "commands": [
+        {
+          "raw": "useradd -m -G wheel -s /bin/bash {{username}}",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate every part: program (useradd), flags with values (-m, -G wheel, -s /bin/bash), and the username. Each flag and its value must be space-separated from each other and from other flags.",
+          "expectedOutput": "No output on success. The user account is created.",
+          "failureOutput": "If you see 'useradd: user already exists', the username is taken. Choose a different name.",
+          "tokens": [
+            {
+              "text": "useradd",
+              "role": "program",
+              "explanation": "useradd is the system tool for creating new user accounts. It adds a new entry to /etc/passwd (the user database), creates a group for the user, and optionally creates a home directory."
+            },
+            {
+              "text": "-m",
+              "role": "flag",
+              "explanation": "-m stands for 'create home directory'. It tells useradd to create a home directory for the new user at /home/username. Without -m, the user has no home directory and many programs would fail when trying to read user-specific configuration files."
+            },
+            {
+              "text": "-G",
+              "role": "flag",
+              "explanation": "-G stands for 'supplementary groups'. It adds the new user to additional groups beyond their primary group. The value that follows (-G's argument) is a comma-separated list of group names. Here we add the user to the 'wheel' group."
+            },
+            {
+              "text": "wheel",
+              "role": "flag argument (group name)",
+              "explanation": "wheel is the name of the administrators group on Arch Linux. Members of the wheel group are allowed to use sudo to run commands as root. The name 'wheel' is a historical Unix term for privileged users (as in 'big wheel'). By adding your user to wheel, they can run sudo commands after you configure /etc/sudoers."
+            },
+            {
+              "text": "-s",
+              "role": "flag",
+              "explanation": "-s stands for 'shell'. It sets the login shell for the new user — the program that runs when they log in. If not specified, the default shell is /bin/sh which is less feature-rich than bash."
+            },
+            {
+              "text": "/bin/bash",
+              "role": "flag argument (shell path)",
+              "explanation": "/bin/bash is the path to the Bash shell (Bourne Again SHell). Bash is the most common Linux shell, supporting command history, tab completion, scripting, and many useful features. /bin is the directory for essential binaries, bash is the shell binary. The / at the start makes this an absolute path."
+            },
+            {
+              "text": "{{username}}",
+              "role": "argument (new username, placeholder)",
+              "explanation": "Replace this with your chosen username. Usernames should be all lowercase, start with a letter, and contain only letters, numbers, hyphens, and underscores. This becomes your login name and determines your home directory path (/home/yourusername).",
+              "isPlaceholder": true,
+              "deviceMapKey": "username"
+            }
+          ]
+        },
+        {
+          "raw": "passwd {{username}}",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program (passwd) from its argument (the username). Without the space, passwd would look for a user literally named 'passwd{{username}}'.",
+          "expectedOutput": "Prompts for new password twice. 'passwd: password updated successfully' on success.",
+          "tokens": [
+            {
+              "text": "passwd",
+              "role": "program",
+              "explanation": "passwd changes a user's password. Run as root with a username argument, it sets that user's password without requiring the old password."
+            },
+            {
+              "text": "{{username}}",
+              "role": "argument (username, placeholder)",
+              "explanation": "The name of the user whose password you are setting. Replace with your actual username (the same one you used in the useradd command above).",
+              "isPlaceholder": true,
+              "deviceMapKey": "username"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-sudoers",
+      "title": "Configure System: Enable sudo for Your User",
+      "slideType": "command",
+      "tags": [],
+      "body": "The `wheel` group needs to be granted sudo permission in `/etc/sudoers`. The safest way to edit this file is with `EDITOR=nano visudo` — visudo validates the file's syntax before saving, preventing lockout from a typo.",
+      "commands": [
+        {
+          "raw": "EDITOR=nano visudo",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the environment variable assignment (EDITOR=nano) from the command (visudo). The shell processes EDITOR=nano as a temporary variable set only for this one command invocation — not permanently.",
+          "expectedOutput": "nano opens /etc/sudoers. Find the line: '# %wheel ALL=(ALL:ALL) ALL' and remove the # at the start to uncomment it. Save with Ctrl+O, Enter, Ctrl+X.",
+          "failureOutput": "If you see 'visudo: /etc/sudoers: syntax error', you made a typo. visudo will ask if you want to re-edit — say yes and fix the error.",
+          "tokens": [
+            {
+              "text": "EDITOR=nano",
+              "role": "environment variable assignment",
+              "explanation": "EDITOR=nano temporarily sets the EDITOR environment variable to 'nano' just for this one command. Environment variables are key-value settings that programs read to configure their behaviour. EDITOR tells visudo which text editor to open. Without this, visudo would try to open vi (another editor) which is harder for beginners. The equals sign (=) assigns the value — no spaces around it."
+            },
+            {
+              "text": "visudo",
+              "role": "program",
+              "explanation": "visudo is the safe way to edit /etc/sudoers. It opens the file in the editor specified by EDITOR, and when you save and exit, it validates the file's syntax before writing it. If your edit contains a syntax error, visudo warns you and lets you correct it. A broken /etc/sudoers could lock you out of sudo permanently, so always use visudo instead of editing the file directly with nano or another editor."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-bootloader",
+      "title": "Configure System: Install systemd-boot",
+      "slideType": "command",
+      "tags": ["uefi", "systemd-boot"],
+      "body": "**systemd-boot** is a lightweight UEFI bootloader that reads simple text configuration files. It only works on UEFI systems. Install and configure it now while you are inside the chroot.\n\nAfter installation you must create two configuration files:\n1. `/boot/loader/loader.conf` — global bootloader settings\n2. `/boot/loader/entries/arch.conf` — the Arch Linux boot entry",
+      "commands": [
+        {
+          "raw": "bootctl install",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program (bootctl) from the sub-command (install).",
+          "expectedOutput": "Lines like 'Created EFI boot entry \"Linux Boot Manager\".' and 'Copied /usr/lib/systemd/boot/efi/systemd-bootx64.efi to /boot/EFI/systemd/...' are printed. This confirms systemd-boot was installed to the EFI partition.",
+          "failureOutput": "If you see 'Mount point /boot is not a file system', you did not mount the EFI partition. Exit the chroot, mount it, and re-enter.",
+          "tokens": [
+            {
+              "text": "bootctl",
+              "role": "program",
+              "explanation": "bootctl is the systemd utility for managing systemd-boot. It can install, update, remove, and show the status of the bootloader."
+            },
+            {
+              "text": "install",
+              "role": "sub-command",
+              "explanation": "install tells bootctl to install the systemd-boot bootloader into the EFI System Partition (mounted at /boot). It copies the bootloader binary to /boot/EFI/ and creates an UEFI boot entry in the firmware so your computer knows to run systemd-boot at startup."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-bootloader-loaderconf",
+      "title": "Configure Boot: loader.conf",
+      "slideType": "nano",
+      "tags": ["uefi", "systemd-boot"],
+      "body": "Create the global bootloader configuration file. This file controls how the boot menu behaves.",
+      "nanoEdit": {
+        "filePath": "/boot/loader/loader.conf",
+        "filePathExplain": "Path breakdown: / is the filesystem root (inside the chroot, this is your installed system's root). boot is the directory where the EFI partition is mounted — it contains all bootloader files. loader is a subdirectory created by bootctl — it holds bootloader configuration. loader.conf is the global configuration file for systemd-boot. The dot (.) separates the filename 'loader' from the extension 'conf' (configuration).",
+        "openCommand": "nano /boot/loader/loader.conf",
+        "openTokens": [
+          {
+            "text": "nano",
+            "role": "program",
+            "explanation": "Opens the file for editing."
+          },
+          {
+            "text": "/boot/loader/loader.conf",
+            "role": "argument (file path)",
+            "explanation": "The path to the systemd-boot global configuration file inside the EFI partition."
+          }
+        ],
+        "fullContent": "default arch.conf\ntimeout 5\nconsole-mode keep\neditor no",
+        "lines": [
+          {
+            "lineNumber": 1,
+            "content": "default arch.conf",
+            "explanation": "default sets which boot entry to select automatically if no key is pressed. arch.conf refers to the file /boot/loader/entries/arch.conf that you will create in the next slide. The .conf extension is part of the entry filename. A space separates the key (default) from the value (arch.conf). If you have multiple boot entries, only one can be the default."
+          },
+          {
+            "lineNumber": 2,
+            "content": "timeout 5",
+            "explanation": "timeout sets how many seconds the boot menu is displayed before automatically booting the default entry. 5 means 5 seconds. A space separates the key (timeout) from the value (5). If you want the menu to wait indefinitely for a keypress, set it to 0. If you want no menu at all, you can set it to 0 and keep editor no."
+          },
+          {
+            "lineNumber": 3,
+            "content": "console-mode keep",
+            "explanation": "console-mode controls the screen resolution used for the boot menu. keep means keep whatever resolution the firmware is already using. Other values are max (highest available) or a specific number. keep is the safe default — it avoids resolution issues on some monitors."
+          },
+          {
+            "lineNumber": 4,
+            "content": "editor no",
+            "explanation": "editor controls whether users can edit boot parameters at the boot menu by pressing 'e'. no disables this for security — an attacker with physical access could otherwise type 'init=/bin/sh' to get a root shell without a password. Always set editor no on systems where security matters."
+          }
+        ],
+        "charNotes": [
+          {
+            "char": " ",
+            "name": "space",
+            "role": "key-value separator",
+            "explanation": "In loader.conf, a space separates each key from its value (e.g. 'default arch.conf' — 'default' is the key, one space, 'arch.conf' is the value). The format is: key[space]value. There are no equals signs in this file."
+          },
+          {
+            "char": ".",
+            "name": "period / dot",
+            "role": "file extension separator",
+            "explanation": "In 'arch.conf', the dot separates the filename (arch) from the extension (conf). In 'console-mode', there is no dot — the hyphen is the separator there."
+          },
+          {
+            "char": "-",
+            "name": "hyphen / dash",
+            "role": "word separator in key names",
+            "explanation": "In 'console-mode', the hyphen connects the two words into one key name. This is a naming convention for systemd-boot configuration keys — hyphens join multi-word key names."
+          },
+          {
+            "char": "\\",
+            "name": "backslash",
+            "role": "not used in this file",
+            "explanation": "Backslashes have no special meaning in loader.conf. Do not add them."
+          },
+          {
+            "char": "\"",
+            "name": "double quote",
+            "role": "not used in this file",
+            "explanation": "Double quotes have no special meaning in loader.conf. Values are not quoted."
+          },
+          {
+            "char": "#",
+            "name": "hash / pound sign",
+            "role": "comment marker",
+            "explanation": "Lines starting with # in loader.conf are comments and are ignored. You can add # before any line to disable it without deleting it."
+          },
+          {
+            "char": "=",
+            "name": "equals sign",
+            "role": "not used in this file",
+            "explanation": "loader.conf does NOT use equals signs. The format is 'key value' with a space, not 'key=value'. This is different from many other configuration files. Do not add = signs."
+          },
+          {
+            "char": "/",
+            "name": "forward slash",
+            "role": "path separator (in the open command, not in the file contents)",
+            "explanation": "The / appears in the command 'nano /boot/loader/loader.conf' as a path separator between directory names. Inside the file contents themselves, there are no forward slashes."
+          }
+        ],
+        "saveExplain": "Press Ctrl+O to save, Enter to confirm the filename, Ctrl+X to exit nano."
+      }
+    },
+    {
+      "id": "configure-bootloader-entry",
+      "title": "Configure Boot: Arch Linux Boot Entry",
+      "slideType": "command",
+      "tags": ["uefi", "systemd-boot"],
+      "body": "Create the boot entry file for Arch Linux. This file tells systemd-boot exactly which kernel to load, which initramfs to use, and what options to pass to the kernel at boot. The most critical value is the UUID of your root partition — this tells the kernel which disk to use as its root filesystem.",
+      "commands": [
+        {
+          "raw": "blkid -s UUID -o value {{root_part}}",
+          "dangerLevel": "safe",
+          "whySpaces": "Spaces separate: program (blkid), flags (-s UUID, -o value), and the partition path (placeholder). Each flag and its value must be separated by spaces.",
+          "expectedOutput": "A UUID is printed on one line, e.g.: fde3dc1f-36be-4d4f-b03a-fb901e6e8d8d. Copy this UUID exactly — you need it for the boot entry file.",
+          "tokens": [
+            {
+              "text": "blkid",
+              "role": "program",
+              "explanation": "blkid stands for 'block device ID'. It reads metadata from block devices (disks and partitions) and prints information like UUID, filesystem type, and partition label. UUID (Universally Unique Identifier) is a permanent 128-bit identifier assigned when a filesystem is created. Unlike device paths (/dev/nvme0n1p2), UUIDs never change — even if you add or remove disks."
+            },
+            {
+              "text": "-s",
+              "role": "flag",
+              "explanation": "-s stands for 'search tag'. It limits the output to only the specified tag. Here the tag is UUID, so blkid only shows the UUID field instead of all fields."
+            },
+            {
+              "text": "UUID",
+              "role": "flag argument",
+              "explanation": "UUID is the tag name to show. blkid stores several tags per device (UUID, TYPE, LABEL, etc.). Specifying UUID here means only the UUID value is printed."
+            },
+            {
+              "text": "-o",
+              "role": "flag",
+              "explanation": "-o stands for 'output format'. It controls how blkid formats its output."
+            },
+            {
+              "text": "value",
+              "role": "flag argument",
+              "explanation": "value tells blkid to print only the bare value (just the UUID string) without any label or key prefix. This makes it easy to copy the UUID directly."
+            },
+            {
+              "text": "{{root_part}}",
+              "role": "argument (partition path, placeholder)",
+              "explanation": "The root partition whose UUID you want to read (e.g. /dev/nvme0n1p2). Replaced by your actual root partition path.",
+              "isPlaceholder": true,
+              "deviceMapKey": "root_part"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure-bootloader-entry-input-uuid",
+      "title": "Enter Your Root Partition UUID",
+      "slideType": "input",
+      "tags": [],
+      "body": "Paste the UUID you got from the blkid command above. It looks like: `fde3dc1f-36be-4d4f-b03a-fb901e6e8d8d`\n\nThis UUID uniquely identifies your root partition. It is used in the boot entry file so the kernel knows exactly which partition to mount as its root filesystem.",
+      "inputFields": [
+        {
+          "deviceMapKey": "root_uuid",
+          "label": "Root partition UUID",
+          "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+          "hint": "Paste the UUID exactly as printed by blkid. UUIDs are 36 characters with hyphens in specific positions. Do not add spaces or quotes.",
+          "example": "fde3dc1f-36be-4d4f-b03a-fb901e6e8d8d",
+          "required": true,
+          "allowUnknown": false
+        }
+      ]
+    },
+    {
+      "id": "configure-bootloader-entry-nano",
+      "title": "Configure Boot: Write the Boot Entry",
+      "slideType": "nano",
+      "tags": ["uefi", "systemd-boot"],
+      "body": "Create the Arch Linux boot entry file. This file tells systemd-boot everything it needs to start Arch Linux: the kernel binary, the initramfs image, and the kernel command-line options.",
+      "nanoEdit": {
+        "filePath": "/boot/loader/entries/arch.conf",
+        "filePathExplain": "Path: / is the filesystem root. boot is where the EFI partition is mounted. loader is the systemd-boot configuration directory. entries is a subdirectory of loader — it holds one .conf file per boot entry (one per OS you can boot). arch.conf is the file for your Arch Linux entry. The dot (.) separates 'arch' from the extension 'conf'.",
+        "openCommand": "nano /boot/loader/entries/arch.conf",
+        "openTokens": [
+          {
+            "text": "nano",
+            "role": "program",
+            "explanation": "Opens the file for editing. The entries directory exists — bootctl install created it. The arch.conf file does not exist yet and will be created when you save."
+          },
+          {
+            "text": "/boot/loader/entries/arch.conf",
+            "role": "argument (file path to create)",
+            "explanation": "The path of the new Arch Linux boot entry file. Each / is a path separator between directory levels."
+          }
+        ],
+        "fullContent": "title   Arch Linux\nlinux   /vmlinuz-linux\ninitrd  /initramfs-linux.img\noptions root=UUID=PASTE-UUID-HERE rw",
+        "lines": [
+          {
+            "lineNumber": 1,
+            "content": "title   Arch Linux",
+            "explanation": "title sets the display name shown in the systemd-boot menu. 'Arch Linux' is what appears on screen at boot. The multiple spaces between 'title' and 'Arch Linux' are allowed — systemd-boot uses the first word as the key and everything after the whitespace as the value."
+          },
+          {
+            "lineNumber": 2,
+            "content": "linux   /vmlinuz-linux",
+            "explanation": "linux specifies the path to the kernel binary, relative to the EFI partition mount point (/boot). /vmlinuz-linux means the file named vmlinuz-linux at the root of the EFI partition. vmlinuz is the standard name for a compressed Linux kernel binary (vm = virtual memory, linuz = linux, z = gzip compressed). The slash (/) at the start means 'root of the EFI partition', not the root of the entire filesystem."
+          },
+          {
+            "lineNumber": 3,
+            "content": "initrd  /initramfs-linux.img",
+            "explanation": "initrd specifies the path to the initial ramdisk image, relative to the EFI partition. initramfs-linux.img is the file that is loaded into RAM before the real root filesystem is mounted. It contains the kernel modules and scripts needed to find, unlock (if encrypted), and mount the root partition. Without initrd, the kernel cannot find the root filesystem. The .img extension means this is a binary image file."
+          },
+          {
+            "lineNumber": 4,
+            "content": "options root=UUID=PASTE-UUID-HERE rw",
+            "explanation": "options is the kernel command line — parameters passed directly to the Linux kernel at boot. root=UUID=PASTE-UUID-HERE tells the kernel which partition to use as the root filesystem, identified by its UUID. Replace PASTE-UUID-HERE with the UUID you got from blkid (e.g. fde3dc1f-36be-4d4f-b03a-fb901e6e8d8d). rw means 'mount the root filesystem read-write' — without this it would be read-only and the system could not start properly."
+          }
+        ],
+        "charNotes": [
+          {
+            "char": "/",
+            "name": "forward slash",
+            "role": "path separator and root-relative prefix",
+            "explanation": "In lines 2 and 3, the / before vmlinuz-linux and initramfs-linux.img means these paths are relative to the EFI partition root (/boot). The EFI partition is at /boot, so /vmlinuz-linux means /boot/vmlinuz-linux in the full filesystem path. In line 4, the options line has no forward slashes — UUID values use hyphens as separators instead."
+          },
+          {
+            "char": "=",
+            "name": "equals sign",
+            "role": "key-value assignment in kernel options",
+            "explanation": "In 'root=UUID=PASTE-UUID-HERE', the first = assigns the root parameter, and UUID= is a prefix that tells the kernel to look up the partition by UUID rather than by device path. Both = signs are essential. There must be no spaces around either = sign in kernel parameters."
+          },
+          {
+            "char": "-",
+            "name": "hyphen / dash",
+            "role": "UUID segment separator",
+            "explanation": "In a UUID like fde3dc1f-36be-4d4f-b03a-fb901e6e8d8d, the hyphens divide the UUID into 5 groups of hexadecimal digits. These hyphens are part of the UUID format — they must be included exactly as blkid printed them. Do not remove or add hyphens."
+          },
+          {
+            "char": " ",
+            "name": "space",
+            "role": "key-value separator and parameter separator",
+            "explanation": "In each line, spaces separate the key from the value (e.g. 'title   Arch Linux' — multiple spaces are fine). In the options line, a space separates kernel parameters from each other (root=UUID=... and rw are two separate parameters separated by a space). The kernel reads each space-separated word as one parameter."
+          },
+          {
+            "char": ".",
+            "name": "period / dot",
+            "role": "file extension separator",
+            "explanation": "In initramfs-linux.img, the dot separates the filename (initramfs-linux) from the extension (img). In vmlinuz-linux, there is no dot — vmlinuz-linux is the complete filename without an extension."
+          },
+          {
+            "char": "\\",
+            "name": "backslash",
+            "role": "not used in this file",
+            "explanation": "Backslashes do not appear in this configuration file and should not be added. Path separators in bootloader entries use forward slashes (/)."
+          },
+          {
+            "char": "\"",
+            "name": "double quote",
+            "role": "not used in this file",
+            "explanation": "Values in bootloader entry files are not quoted. Do not add double quotes around any value."
+          },
+          {
+            "char": "#",
+            "name": "hash / pound sign",
+            "role": "comment marker",
+            "explanation": "Lines starting with # in bootloader entry files are comments and are ignored. You can add a # before any line to disable it without deleting it."
+          }
+        ],
+        "saveExplain": "Press Ctrl+O to save, Enter to confirm the filename, Ctrl+X to exit nano. After saving, verify the file looks correct with: cat /boot/loader/entries/arch.conf"
+      }
+    },
+    {
+      "id": "configure-networkmanager",
+      "title": "Configure System: Enable NetworkManager",
+      "slideType": "command",
+      "tags": [],
+      "body": "Enable NetworkManager so it starts automatically at every boot. Without this, you will have no network connection after the first reboot.",
+      "commands": [
+        {
+          "raw": "systemctl enable NetworkManager",
+          "dangerLevel": "config",
+          "whySpaces": "Spaces separate: the program (systemctl), the sub-command (enable), and the service name (NetworkManager). All three are required.",
+          "expectedOutput": "A line like 'Created symlink /etc/systemd/system/multi-user.target.wants/NetworkManager.service → ...' is printed. This means the service is enabled to start at boot.",
+          "failureOutput": "If you see 'Failed to enable unit: Unit NetworkManager.service does not exist', the networkmanager package was not installed. Run: pacman -S networkmanager",
+          "tokens": [
+            {
+              "text": "systemctl",
+              "role": "program",
+              "explanation": "systemctl is the main command-line tool for controlling systemd — the init system and service manager on Arch Linux. It can start, stop, enable, disable, and check the status of system services (called units in systemd)."
+            },
+            {
+              "text": "enable",
+              "role": "sub-command",
+              "explanation": "enable tells systemctl to configure the service to start automatically at every boot. It does this by creating a symbolic link in the systemd configuration directories. Enable alone does not start the service right now — it only schedules it to start on the next boot. To start it immediately, you would use 'systemctl start' or 'systemctl enable --now'."
+            },
+            {
+              "text": "NetworkManager",
+              "role": "argument (service name)",
+              "explanation": "NetworkManager is the name of the network management service. Capital N and M are required — service names are case-sensitive. NetworkManager is the daemon that automatically detects, configures, and manages network connections. It is what allows your installed Arch system to connect to networks without manual configuration each boot."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "first-boot-exit-reboot",
+      "title": "First Boot: Exit chroot and Reboot",
+      "slideType": "command",
+      "tags": [],
+      "body": "Your Arch Linux installation is complete. Exit the chroot environment, unmount the partitions, and reboot. Remove the USB drive when the screen goes black during shutdown so the system boots from the installed disk.",
+      "commands": [
+        {
+          "raw": "exit",
+          "dangerLevel": "safe",
+          "whySpaces": "No spaces — single word, no arguments.",
+          "expectedOutput": "You return to the live ISO shell prompt. The chroot session ends.",
+          "tokens": [
+            {
+              "text": "exit",
+              "role": "built-in command",
+              "explanation": "exit closes the current shell session. Inside arch-chroot, it exits the chroot and returns to the live ISO shell. After exit, commands affect the live ISO again, not the installed system."
+            }
+          ]
+        },
+        {
+          "raw": "umount -R /mnt",
+          "dangerLevel": "config",
+          "whySpaces": "A space separates the program (umount) from the flag (-R) and a space separates the flag from the directory (/mnt).",
+          "expectedOutput": "No output on success. All partitions mounted under /mnt are unmounted.",
+          "failureOutput": "If you see 'target is busy', a process is still using the mounted filesystem. Make sure you exited the chroot.",
+          "tokens": [
+            {
+              "text": "umount",
+              "role": "program",
+              "explanation": "umount (not 'unmount' — there is no 'n') detaches mounted filesystems. You must unmount filesystems before rebooting to ensure all data is written to disk properly. If you skip this step, the filesystem may be left in an inconsistent state."
+            },
+            {
+              "text": "-R",
+              "role": "flag",
+              "explanation": "-R stands for 'recursive'. It unmounts /mnt and all filesystems mounted beneath it (like /mnt/boot). Without -R you would need to unmount /mnt/boot first, then /mnt separately. -R handles all of them in the correct order automatically."
+            },
+            {
+              "text": "/mnt",
+              "role": "argument (mount point)",
+              "explanation": "/mnt is the root of the mount tree to unmount. With -R, this also unmounts /mnt/boot (the EFI partition) and any other sub-mounts under /mnt."
+            }
+          ]
+        },
+        {
+          "raw": "reboot",
+          "dangerLevel": "safe",
+          "whySpaces": "No spaces — single word, no arguments.",
+          "expectedOutput": "The system shuts down and restarts. Remove the USB drive when the screen goes dark. The machine should boot into your new Arch Linux installation.",
+          "failureOutput": "If the machine boots back into the live ISO, you forgot to remove the USB drive, or the firmware boot order puts the USB before the disk. Enter your firmware setup (usually F2 or Delete at power-on) and change the boot order.",
+          "tokens": [
+            {
+              "text": "reboot",
+              "role": "program",
+              "explanation": "reboot is the command that initiates a system restart. It signals systemd to stop all services, unmount filesystems, and restart the computer. After reboot runs, the system shuts down completely and then powers back on, loading whatever is first in the firmware boot order — which should now be your installed Arch Linux system."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "complete",
+      "title": "Installation Complete",
+      "slideType": "info",
+      "tags": [],
+      "body": "## ✅ Arch Linux is Installed\n\nYour system has rebooted into a fresh Arch Linux installation. You should see a login prompt:\n\n```\nArch Linux (ttyS0 or tty1)\nhostname login:\n```\n\nLog in with your username and password.\n\n**What you now have:**\n- A bootable Arch Linux system\n- A regular user account with sudo access\n- NetworkManager for network management\n- nano for text editing\n- systemd-boot as the bootloader\n\n**What to do next:**\n- Run `sudo pacman -Syu` to update all packages\n- Install a desktop environment if you want a graphical interface\n- Configure audio, Bluetooth, and any other hardware you need\n\nCongratulations — you have installed Arch Linux."
+    }
+  ]
+}
