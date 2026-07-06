@@ -172,14 +172,6 @@ func (wa *WizardApp) buildFrame(
 	stepIdx, stepTotal int,
 ) fyne.CanvasObject {
 
-	// ── Title bar ─────────────────────────────────────────────────────────────
-	titleLbl := widget.NewLabel("  ⚙  Arch Wizard — Arch Linux Setup Wizard")
-	titleLbl.TextStyle = fyne.TextStyle{Bold: true}
-	titleBar := container.NewStack(
-		newRect(color.NRGBA{R: 0x0d, G: 0x0f, B: 0x1a, A: 0xff}, 0, 36),
-		container.NewCenter(titleLbl),
-	)
-
 	// ── Sidebar ───────────────────────────────────────────────────────────────
 	sidebar := wa.buildSidebar(currentStepID, stepIdx, stepTotal)
 
@@ -213,7 +205,7 @@ func (wa *WizardApp) buildFrame(
 	// ── Assemble full page ────────────────────────────────────────────────────
 	mainBg := newRect(color.NRGBA{R: 0x0f, G: 0x10, B: 0x18, A: 0xff}, 0, 0)
 	return container.NewStack(mainBg,
-		container.NewBorder(titleBar, bottom, nil, nil, splitArea),
+		container.NewBorder(nil, bottom, nil, nil, splitArea),
 	)
 }
 
@@ -363,8 +355,11 @@ func (wa *WizardApp) buildBottomBar(showBack, showNext bool, onBack, onNext func
 		progressSection = widget.NewLabel("")
 	}
 
-	// Layout: Back button on the Left, Next button on the Right, Progress in the Center
-	barRow := container.NewBorder(nil, nil, backBtn, nextBtn, container.NewCenter(progressSection))
+	// Group buttons side-by-side on the right
+	buttonsRow := container.NewHBox(backBtn, nextBtn)
+
+	// Layout: Progress on the Left, Navigation buttons grouped on the Right
+	barRow := container.NewBorder(nil, nil, progressSection, buttonsRow, widget.NewLabel(""))
 
 	return container.NewVBox(
 		divider,
