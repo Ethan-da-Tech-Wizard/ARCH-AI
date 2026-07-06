@@ -8,6 +8,27 @@
       "body": "## Before You Start\n\nThis wizard walks you through installing Arch Linux step by step. Before any command is run, read this entire slide.\n\n**What you need:**\n- A USB flash drive (8 GB or larger) with the Arch Linux ISO written to it\n- A second screen, phone, or tablet to view this guide while working in the terminal\n- A stable internet connection (wired Ethernet is easiest)\n- At least 20 GB of free space on your target disk\n- Time — a careful first install takes 45–90 minutes\n\n**What this wizard does NOT do automatically:**\n- It does not run commands for you\n- It does not connect to your machine\n- It shows you exactly what to type and explains every word\n\n**The most important rule:** Never type a command you do not understand. Every command on every slide is explained word-by-word. Read the explanation before you copy anything."
     },
     {
+      "id": "before-you-start-usb-prep",
+      "title": "Prepare Your Bootable USB",
+      "slideType": "info",
+      "tags": [],
+      "body": "## 1. Prepare Your Bootable USB\n\nBefore booting the target computer, you must write the installation image to a USB flash drive.\n\n**Requirements:**\n- A USB flash drive (8 GB or larger). *All existing data on this USB will be erased!*\n- A computer to download and write the image.\n\n**Steps:**\n1. Download the latest official Arch Linux ISO from [archlinux.org/download](https://archlinux.org/download/).\n2. Download a flash utility to write the ISO to your USB drive:\n   - **Windows**: Download **Rufus** (select the ISO, keep default partition scheme, write in ISO Image mode) or **Ventoy**.\n   - **macOS / Linux**: Download **BalenaEtcher** or use the native `dd` command line utility.\n3. Flash the ISO to the USB drive and safely eject it."
+    },
+    {
+      "id": "before-you-start-boot-menu",
+      "title": "Boot From the USB Drive",
+      "slideType": "info",
+      "tags": [],
+      "body": "## 2. Boot From the USB Drive\n\nNow insert the USB into your target computer and boot from it.\n\n**Steps:**\n1. Turn off the target computer completely.\n2. Plug the bootable USB drive into a USB port.\n3. Turn the computer on and immediately begin tapping the **Boot Menu key** repeatedly. The correct key depends on your motherboard manufacturer:\n   - **Lenovo, Dell, Toshiba, Intel**: `F12`\n   - **ASUS, HP, Sony**: `F8`, `F9`, or `F11`\n   - **MSI, Gigabyte, ASRock, Acer**: `F11`, `F12`, or `Esc`\n   - **Intel Macs**: Hold the `Option` (Alt) key immediately on startup.\n4. From the boot menu list, select your USB flash drive.\n   - *Note*: If you see two entries for the same USB, choose the one with **UEFI** in its name (e.g. `UEFI: SanDisk USB Drive`) to boot in modern UEFI mode."
+    },
+    {
+      "id": "before-you-start-bootloader-menu",
+      "title": "Choose the Install Option",
+      "slideType": "info",
+      "tags": [],
+      "body": "## 3. Choose the Install Option\n\nOnce the USB boots, you will be presented with a black Arch Linux Boot Loader screen. Select the main installation mode.\n\n**Arch Linux Boot Menu Options:**\n- **`Arch Linux install medium (x86_64, UEFI)`** *(Recommended)*: Boots into the live 64-bit installer in modern UEFI mode. Select this option and press **Enter**.\n- `EFI Shell`: Opens an interactive EFI console shell. Only useful for advanced UEFI diagnostics.\n- `Reboot Into Firmware Interface`: Restarts the computer and boots directly into your motherboard's UEFI/BIOS configuration settings.\n- `Memtest86+` *(on legacy systems)*: Runs a diagnostic utility to check your RAM for hardware errors.\n\n**Next Step:**\nPress **Enter** on the top option. A wall of scrolling kernel log text will print. After 15–30 seconds, you will arrive at the interactive prompt: `root@archiso ~ #`."
+    },
+    {
       "id": "before-you-start-keymap",
       "title": "Optional: Set Your Keyboard Layout",
       "slideType": "command",
@@ -159,7 +180,9 @@
       "id": "boot-iso-wifi",
       "title": "Boot Into the ISO: Connect to Wi-Fi (if needed)",
       "slideType": "command",
-      "tags": ["wifi"],
+      "tags": [
+        "wifi"
+      ],
       "body": "If your machine uses Wi-Fi, you need to connect manually using a tool called **iwctl** (iwd wireless control). If you are using a wired Ethernet cable and your network test already passed, skip this slide and press Next.\n\niwctl is an interactive shell — after you type the first command, your prompt changes to `[iwd]#` and you type sub-commands inside that shell. Type the commands below in order.",
       "commands": [
         {
@@ -1116,7 +1139,10 @@
       "id": "configure-bootloader",
       "title": "Configure System: Install systemd-boot",
       "slideType": "command",
-      "tags": ["uefi", "systemd-boot"],
+      "tags": [
+        "uefi",
+        "systemd-boot"
+      ],
       "body": "**systemd-boot** is a lightweight UEFI bootloader that reads simple text configuration files. It only works on UEFI systems. Install and configure it now while you are inside the chroot.\n\nAfter installation you must create two configuration files:\n1. `/boot/loader/loader.conf` — global bootloader settings\n2. `/boot/loader/entries/arch.conf` — the Arch Linux boot entry",
       "commands": [
         {
@@ -1144,7 +1170,10 @@
       "id": "configure-bootloader-loaderconf",
       "title": "Configure Boot: loader.conf",
       "slideType": "nano",
-      "tags": ["uefi", "systemd-boot"],
+      "tags": [
+        "uefi",
+        "systemd-boot"
+      ],
       "body": "Create the global bootloader configuration file. This file controls how the boot menu behaves.",
       "nanoEdit": {
         "filePath": "/boot/loader/loader.conf",
@@ -1242,7 +1271,10 @@
       "id": "configure-bootloader-entry",
       "title": "Configure Boot: Arch Linux Boot Entry",
       "slideType": "command",
-      "tags": ["uefi", "systemd-boot"],
+      "tags": [
+        "uefi",
+        "systemd-boot"
+      ],
       "body": "Create the boot entry file for Arch Linux. This file tells systemd-boot exactly which kernel to load, which initramfs to use, and what options to pass to the kernel at boot. The most critical value is the UUID of your root partition — this tells the kernel which disk to use as its root filesystem.",
       "commands": [
         {
@@ -1309,7 +1341,10 @@
       "id": "configure-bootloader-entry-nano",
       "title": "Configure Boot: Write the Boot Entry",
       "slideType": "nano",
-      "tags": ["uefi", "systemd-boot"],
+      "tags": [
+        "uefi",
+        "systemd-boot"
+      ],
       "body": "Create the Arch Linux boot entry file. This file tells systemd-boot everything it needs to start Arch Linux: the kernel binary, the initramfs image, and the kernel command-line options.",
       "nanoEdit": {
         "filePath": "/boot/loader/entries/arch.conf",
